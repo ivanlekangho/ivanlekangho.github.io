@@ -39,6 +39,21 @@ export const staffLineYs = (g: StaffGeom) => [0, 1, 2, 3, 4].map((i) => g.bottom
 export const stemDirection = (n: Note, g: StaffGeom) =>
   noteY(n, g) > g.bottomY - 2 * g.gap ? 'up' : 'down'
 
+/**
+ * Stem directions for a whole phrase. A note sitting exactly ON the middle
+ * line can go either way, so it follows its neighbour rather than flipping —
+ * otherwise "ber" and "all" point opposite ways for no reason a reader can see.
+ */
+export function stemDirections(notes: Note[], g: StaffGeom): ('up' | 'down')[] {
+  const mid = g.bottomY - 2 * g.gap
+  const out: ('up' | 'down')[] = []
+  for (const n of notes) {
+    const y = noteY(n, g)
+    out.push(y === mid && out.length ? out[out.length - 1] : y > mid ? 'up' : 'down')
+  }
+  return out
+}
+
 /** Ledger lines for anything outside the staff. Empty for this phrase. */
 export function ledgerLines(n: Note, g: StaffGeom): number[] {
   const idx = diatonic(n.step, n.octave)
@@ -51,7 +66,7 @@ export function ledgerLines(n: Note, g: StaffGeom): number[] {
 /** Where the two sharps of a B-minor key signature sit in bass clef. */
 export const bassKeySharps = (g: StaffGeom) => [
   { x: 0, y: stepY(diatonic('F', 3), g) },
-  { x: 9, y: stepY(diatonic('C', 3), g) },
+  { x: g.gap * 0.62, y: stepY(diatonic('C', 3), g) },
 ]
 
 /**
@@ -87,23 +102,6 @@ export function flagPath(stemX: number, stemTipY: number, dir: 'up' | 'down', g:
   return `M ${stemX},${stemTipY} q ${0.95 * u},${0.25 * u * s} ${0.6 * u},${1.35 * u * s}`
 }
 
-export const totalBeats = (notes: Note[]) => notes.reduce((s, n) => s + n.beats, 0)
-
-/**
- * x positions proportional to elapsed beats, so the spacing reads rhythmically
- * instead of as evenly spaced dots. The same x is reused by all three
- * projections, which is what keeps the morph legible as one object moving.
- */
-export function beatXs(notes: Note[], x0: number, x1: number) {
-  const total = totalBeats(notes)
-  let acc = 0
-  return notes.map((n) => {
-    const x = x0 + ((x1 - x0) * acc) / total
-    acc += n.beats
-    return x
-  })
-}
-
 /* ------------------------------------------------------------------
    Engraving details: dots, flags, barlines, slurs.
    ------------------------------------------------------------------ */
@@ -114,11 +112,28 @@ export const isDotted = (beats: number) => [0.75, 1.5, 3, 6].includes(beats)
 /** Anything shorter than a quarter gets a flag. This phrase only has eighths. */
 export const hasFlag = (beats: number) => beats < 1
 
+export const totalBeats = (notes: Note[]) => notes.reduce((s, n) => s + n.beats, 0)
+
 /**
- * x positions for barlines, placed midway between the note that ends a bar and
- * the note that starts the next so they never collide with a notehead.
- * `pickup` is the length of the anacrusis in the same units as `beats`.
+ * x positions for noteheads.
+ *
+ * Space is allocated per note as `beats ** 0.6`, not linearly. Strict
+ * proportional spacing is what engravers call "mathematically correct and
+ * visually wrong": an eighth next to a dotted quarter gets a third of the
+ * room and the pair reads as cramped. The sub-linear curve is roughly what
+ * hand engravers used, and it's why "ein Fremd" stops colliding.
  */
+export function beatXs(notes: { beats: number }[], x0: number, x1: number, exponent = 0.6) {
+  const w = notes.map((n) => Math.pow(n.beats, exponent))
+  const total = w.reduce((a, b) => a + b, 0)
+  let acc = 0
+  return notes.map((_, i) => {
+    const x = x0 + ((x1 - x0) * acc) / total
+    acc += w[i]
+    return x
+  })
+}
+
 export function barlineXs(
   notes: Note[],
   xs: number[],
@@ -159,4 +174,109 @@ export function slurPath(x1: number, y1: number, x2: number, y2: number, g: Staf
   const cx = (x1 + x2) / 2
   const cy = Math.min(y1, y2) - lift
   return `M ${x1},${y1 - g.gap * 0.6} Q ${cx},${cy} ${x2},${y2 - g.gap * 0.6}`
+}
+
+/* ------------------------------------------------------------------
+   Accidentals
+   ------------------------------------------------------------------ */
+
+/**
+ * Whether a written accidental is needed. A note's `accidental` records its
+ * SOUNDING pitch, so in B minor the F♯s and C♯ carry `sharp` in the data but
+ * must not be marked on the staff — the key signature already says so.
+ */
+export function needsAccidental(n: Note, keySharps: readonly string[]) {
+  if (!n.accidental) return false
+  if (n.accidental === 'sharp') return !keySharps.includes(n.step)
+  return true // naturals and flats always contradict something
+}
+
+/* ------------------------------------------------------------------
+   Hand-drawn feel.
+
+   The staff stays ruled — it's printed manuscript paper. Everything written
+   ON it wobbles: noteheads are slightly irregular blobs at varying angles,
+   stems bow a little and aren't quite vertical, flags vary. The variation is
+   deterministic (seeded by note id) so it never changes between renders or
+   flickers during the centerpiece morph.
+   ------------------------------------------------------------------ */
+
+/** Deterministic pseudo-random in [-1, 1] from a string seed and a salt. */
+export function wobble(seed: string, salt: number) {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  h = Math.imul(h ^ salt, 16777619)
+  h ^= h >>> 13
+  h = Math.imul(h, 1274126177)
+  h ^= h >>> 16
+  return ((h >>> 0) / 0xffffffff) * 2 - 1
+}
+
+/** A line with a slight bow, as if drawn by hand rather than ruled. */
+export function penLine(x1: number, y1: number, x2: number, y2: number, bow: number) {
+  const mx = (x1 + x2) / 2
+  const my = (y1 + y2) / 2
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const len = Math.hypot(dx, dy) || 1
+  return `M ${x1},${y1} Q ${mx + (-dy / len) * bow},${my + (dx / len) * bow} ${x2},${y2}`
+}
+
+/**
+ * An irregular notehead: four bezier quarters whose radii each vary a little,
+ * so no two noteheads on the staff are quite the same shape. Drawn around the
+ * origin — position and tilt it with a transform.
+ */
+export function noteheadPath(rx: number, ry: number, seed: string) {
+  const k = 0.5523
+  const j = (salt: number) => 1 + wobble(seed, salt) * 0.14
+  const l = rx * j(1), r = rx * j(2), t = ry * j(3), b = ry * j(4)
+  return (
+    `M ${-l},0 ` +
+    `C ${-l},${-t * k} ${-r * k},${-t} 0,${-t} ` +
+    `C ${r * k},${-t} ${r},${-t * k} ${r},0 ` +
+    `C ${r},${b * k} ${r * k},${b} 0,${b} ` +
+    `C ${-l * k},${b} ${-l},${b * k} ${-l},0 Z`
+  )
+}
+
+/**
+ * Cut time (alla breve): a C open to the right, spanning the middle two staff
+ * spaces, with a vertical stroke through it. Built from two explicit beziers
+ * rather than an SVG arc so the shape can't flip on an arc-flag.
+ */
+export function cutTime(cx: number, g: StaffGeom) {
+  const cy = g.bottomY - 2 * g.gap
+  const r = g.gap
+  const k = 0.5523 * r
+  const sx = cx + r * 0.78
+  const sy = cy - r * 0.62
+  const ex = cx + r * 0.78
+  const ey = cy + r * 0.62
+  return {
+    // start upper-right → over the top → round the left → down to lower-right
+    c:
+      `M ${sx},${sy} C ${cx + r * 0.42},${cy - r} ${cx - k},${cy - r} ${cx - r},${cy - k * 0.35} ` +
+      `C ${cx - r * 1.08},${cy + k * 0.7} ${cx - r * 0.5},${cy + r} ${ex},${ey}`,
+    stem: { x1: cx, y1: cy - r * 1.75, x2: cx, y2: cy + r * 1.75 },
+  }
+}
+
+/**
+ * A quarter rest, drawn as a hand-written zigzag rather than the engraved
+ * glyph. Without it the closing bar looks truncated instead of complete.
+ */
+export function quarterRestPath(x: number, g: StaffGeom) {
+  const u = g.gap
+  const y = g.bottomY - 2 * u // centred on the middle line
+  return (
+    `M ${x + u * 0.22},${y - u * 1.15} ` +
+    `L ${x - u * 0.3},${y - u * 0.3} ` +
+    `L ${x + u * 0.3},${y + u * 0.15} ` +
+    `L ${x - u * 0.28},${y + u * 0.95} ` +
+    `C ${x + u * 0.05},${y + u * 0.62} ${x + u * 0.42},${y + u * 0.72} ${x + u * 0.38},${y + u * 1.2}`
+  )
 }

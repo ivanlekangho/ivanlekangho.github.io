@@ -1,6 +1,9 @@
-import { PHRASE, PIECE, PITCHES_UNVERIFIED } from '../data/phrase'
+import { PHRASE, PIECE, UE_PITCH_UNVERIFIED } from '../data/phrase'
 import { MANDARIN } from '../data/tones'
-import { beatXs, bassClef, bassKeySharps, diatonic, noteY, staffLineYs, type StaffGeom } from '../lib/notation'
+import {
+  beatXs, bassClef, bassKeySharps, diatonic, noteheadPath, noteY, staffLineYs, wobble,
+  type StaffGeom,
+} from '../lib/notation'
 import { ease, lerp, range, useScrollProgress } from '../lib/useScrollProgress'
 import Todo from './Todo'
 
@@ -205,8 +208,8 @@ export default function Centerpiece() {
                     {/* stem only exists while we are reading notation */}
                     <line x1={x + 7} y1={y} x2={x + 7} y2={y - 36}
                       stroke="var(--ink)" strokeWidth="1.1" opacity={oStaff * 0.5} />
-                    <ellipse cx={x} cy={y} rx={7.3 * r} ry={5.3 * r} fill={fill}
-                      transform={`rotate(${lerp(-16, 0, tAB)} ${x} ${y})`} />
+                    <path d={noteheadPath(7.3, 5.3, n.id)} fill={fill}
+                      transform={`translate(${x} ${y}) rotate(${lerp(-16 + wobble(n.id, 5) * 7, 0, tAB)}) scale(${r})`} />
                     {n.german && (
                       <text x={xs[i]} y={GEO.bottomY + 36} textAnchor="middle" opacity={oGerman}
                         fontFamily="var(--font-body)" fontSize="12" fill="var(--ink-2)">
@@ -244,9 +247,9 @@ export default function Centerpiece() {
             >{`phrase
   .filter(n => n.han)                     // 7 syllables, 9 notes
   .map(n => [n.han, n.tone, pitch(n)])
-// [['我',3,'E3'], ['处',4,'G3'], ['处',4,'E3'], ['皆',1,'B3'],
-//  ['为',2,'G3'], ['异',4,'A3'], ['客',4,'D3']]
-// two notes carry no syllable of their own: the slurs on 皆 and 客`}</pre>
+// [['我',3,'F♯3'], ['处',4,'F♯3'], ['处',4,'F♯3'], ['皆',1,'B3'],
+//  ['为',2,'E3'],  ['异',4,'A3'],  ['客',4,'C♯3']]
+// two notes carry no syllable of their own: the slur on 皆, the span on 客`}</pre>
 
             <p className="muted" style={{ fontSize: 'var(--step--1)', marginTop: 'var(--space-4)', maxWidth: '52ch' }}>
               <span className="han">{PIECE.mandarin}</span> — {PIECE.mandarinPinyin} — “{PIECE.mandarinGloss}”.
@@ -258,12 +261,11 @@ export default function Centerpiece() {
       </div>
 
       <div className="shell">
-        {PITCHES_UNVERIFIED && (
+        {UE_PITCH_UNVERIFIED && (
           <Todo>
-            Pitches are my reading of your score photo and need your eye. Rhythm and
-            bars are solid. Least certain: the dotted note on "ü", and the final
-            "ber–all" pair. Correct anything wrong in src/data/phrase.ts and flip
-            PITCHES_UNVERIFIED to false.
+            One pitch left: the dotted note on "ü". You confirmed every other
+            syllable but skipped that one, so it's still my reading (A3). Tell me
+            and I'll set it — src/data/phrase.ts, then drop UE_PITCH_UNVERIFIED.
           </Todo>
         )}
       </div>
