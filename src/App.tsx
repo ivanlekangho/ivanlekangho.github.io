@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import Nav from './components/Nav'
+import FloatingNav from './components/FloatingNav'
 import Home from './pages/Home'
 import HowIThink from './pages/HowIThink'
 import Log from './pages/Log'
@@ -20,10 +21,15 @@ function HashScroll() {
 }
 
 export default function App() {
+  const home = useLocation().pathname === '/'
   return (
     <>
       <a href="#main" className="sr-only">Skip to content</a>
-      <Nav />
+      {/* The recital room is a full-viewport pinned stage, so it can't share
+          the top of the screen with a bar — the stage ends up cropped. On the
+          front page the floating rail is the navigation, and the name sits as
+          a small fixed mark instead. */}
+      {home ? <Link to="/" className="brand-mark">Ivan Ho</Link> : <Nav />}
       <HashScroll />
       <main id="main">
         <Routes>
@@ -35,6 +41,7 @@ export default function App() {
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
+      <FloatingNav />
     </>
   )
 }

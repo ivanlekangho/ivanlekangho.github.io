@@ -32,6 +32,13 @@ export const stepY = (idx: number, g: StaffGeom) => g.bottomY - (idx - BASS_BOTT
 
 export const noteY = (n: Note, g: StaffGeom) => stepY(diatonic(n.step, n.octave), g)
 
+/** y for a diatonic index on a staff whose bottom line is `refIdx`.
+ *  Lets the same geometry serve the treble staff as well as the bass. */
+export const stepYFrom = (idx: number, refIdx: number, g: StaffGeom) =>
+  g.bottomY - (idx - refIdx) * (g.gap / 2)
+
+export const TREBLE_BOTTOM = diatonic('E', 4)
+
 /** The five line y values, bottom to top. */
 export const staffLineYs = (g: StaffGeom) => [0, 1, 2, 3, 4].map((i) => g.bottomY - i * g.gap)
 
@@ -279,4 +286,40 @@ export function quarterRestPath(x: number, g: StaffGeom) {
     `L ${x - u * 0.28},${y + u * 0.95} ` +
     `C ${x + u * 0.05},${y + u * 0.62} ${x + u * 0.42},${y + u * 0.72} ${x + u * 0.38},${y + u * 1.2}`
   )
+}
+
+/**
+ * A line-drawn treble clef, in the same stroked idiom as the bass clef.
+ * `yG` is the G4 line — the second line up — which is the line the spiral
+ * wraps, and the only thing a treble clef actually asserts.
+ */
+export function trebleClef(x: number, yG: number, g: StaffGeom) {
+  const u = g.gap
+  return {
+    /** The body: down the left, round the right, into the spiral at the G line. */
+    body:
+      `M ${x + 0.05 * u},${yG - 3.40 * u} ` +
+      `C ${x - 0.95 * u},${yG - 2.40 * u} ${x - 1.10 * u},${yG - 1.05 * u} ${x - 0.10 * u},${yG - 0.25 * u} ` +
+      `C ${x + 0.90 * u},${yG + 0.55 * u} ${x + 1.12 * u},${yG + 1.55 * u} ${x + 0.30 * u},${yG + 1.98 * u} ` +
+      `C ${x - 0.42 * u},${yG + 2.34 * u} ${x - 1.00 * u},${yG + 1.70 * u} ${x - 0.82 * u},${yG + 0.95 * u} ` +
+      `C ${x - 0.68 * u},${yG + 0.32 * u} ${x + 0.08 * u},${yG + 0.06 * u} ${x + 0.42 * u},${yG + 0.62 * u}`,
+    /** The stem, straight down from the top tip past the staff. */
+    stem: `M ${x + 0.05 * u},${yG - 3.40 * u} C ${x + 0.38 * u},${yG - 1.6 * u} ${x + 0.38 * u},${yG + 0.9 * u} ${x + 0.30 * u},${yG + 2.75 * u}`,
+    /** The tail hook below the staff. */
+    tail: `M ${x + 0.30 * u},${yG + 2.75 * u} C ${x + 0.26 * u},${yG + 3.45 * u} ${x - 0.45 * u},${yG + 3.55 * u} ${x - 0.62 * u},${yG + 2.95 * u}`,
+  }
+}
+
+/**
+ * Ledger lines for a staff whose bottom line is `bottomIdx`. Generic, because
+ * the piano's right hand spends the whole phrase below the treble staff and
+ * its left hand below the bass staff — without these, almost every chord's
+ * pitch is unreadable.
+ */
+export function ledgersFor(idx: number, bottomIdx: number, g: StaffGeom): number[] {
+  const topIdx = bottomIdx + 8
+  const out: number[] = []
+  for (let i = bottomIdx - 2; i >= idx; i -= 2) out.push(stepYFrom(i, bottomIdx, g))
+  for (let i = topIdx + 2; i <= idx; i += 2) out.push(stepYFrom(i, bottomIdx, g))
+  return out
 }

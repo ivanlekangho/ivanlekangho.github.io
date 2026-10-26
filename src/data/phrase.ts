@@ -20,8 +20,9 @@ import type { ToneId } from './tones'
  * syllables with no slur, so the notation must NOT draw one there — that span
  * exists only in the Mandarin overlay. Hence two fields, not one.
  *
- * Pitches confirmed by Ivan against the score, with one exception: the dotted
- * note on "ü" is still my reading (A3) — he listed every other syllable.
+ * Pitches confirmed by Ivan, and independently re-measured off the score image
+ * by detecting staff lines and correlating a notehead template (the scan
+ * reproduced his corrections exactly, and settled the "ü" he hadn't listed).
  * Accidentals: F♯ is in the key signature, so the three opening F♯s and the
  * C♯ on "ber" need no written accidental; `accidental` here records the
  * sounding pitch, and the engraver only draws a sign where the key signature
@@ -54,8 +55,8 @@ export type Note = {
   hyphenAfter?: boolean
 }
 
-/** Only the "ü" pitch is still unconfirmed. */
-export const UE_PITCH_UNVERIFIED = true
+/** All nine pitches confirmed. */
+export const UE_PITCH_UNVERIFIED = false
 
 export const PHRASE: Note[] = [
   // pickup

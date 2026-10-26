@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom'
-import ModeToggle from './ModeToggle'
 
 const LINKS = [
   { to: '/#about', label: 'About' },
@@ -16,9 +15,9 @@ export default function Nav() {
   return (
     <header
       style={{
-        position: 'sticky', top: 0, zIndex: 20,
-        background: 'color-mix(in srgb, var(--bg) 88%, transparent)',
-        backdropFilter: 'blur(8px)',
+        // Deliberately NOT sticky. The floating rail is what persists; a second
+        // bar pinned at the top would both duplicate it and shorten the recital
+        // room's sticky viewport, cutting the stage off at the bottom.
         borderBottom: '1px solid var(--rule)',
       }}
     >
@@ -48,7 +47,6 @@ export default function Nav() {
             </li>
           ))}
         </ul>
-        <div style={{ marginLeft: 'auto' }}><ModeToggle /></div>
       </nav>
     </header>
   )
