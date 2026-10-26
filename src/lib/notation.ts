@@ -55,16 +55,36 @@ export const bassKeySharps = (g: StaffGeom) => [
 ]
 
 /**
- * A line-drawn F clef. Deliberately stroked rather than a filled engraved
- * glyph: the whole site is thin-line pastel, and a heavy Bravura clef would
- * sit on the page like a stamp. Swap in a subsetted SMuFL font here if we
- * ever want strict engraving accuracy.
+ * A line-drawn F clef: head dot on the F line, a curl that closes just above
+ * the bottom staff line, and the two dots that straddle the F line.
+ *
+ * Deliberately stroked rather than a filled engraved glyph — the whole site is
+ * thin-line pastel, and a Bravura clef would sit on the page like a stamp.
+ * Returns the parts rather than one path so the caller can't put the dots in
+ * the wrong place relative to the curl, which is exactly what happened when
+ * their x was hardcoded separately.
  */
-export function bassClefPath(x: number, fLineY: number, g: StaffGeom) {
+export function bassClef(x: number, fLineY: number, g: StaffGeom) {
   const u = g.gap
-  return `M ${x + 0.35 * u},${fLineY}
-          C ${x + 0.35 * u},${fLineY - 1.15 * u} ${x + 2.7 * u},${fLineY - 1.25 * u} ${x + 2.7 * u},${fLineY + 0.3 * u}
-          C ${x + 2.7 * u},${fLineY + 2.25 * u} ${x + 0.95 * u},${fLineY + 3.4 * u} ${x - 0.2 * u},${fLineY + 4.0 * u}`
+  return {
+    curl:
+      `M ${x + 0.5 * u},${fLineY} ` +
+      `C ${x + 0.5 * u},${fLineY - 1.05 * u} ${x + 2.7 * u},${fLineY - 0.95 * u} ${x + 2.7 * u},${fLineY + 0.35 * u} ` +
+      `C ${x + 2.7 * u},${fLineY + 1.85 * u} ${x + 1.5 * u},${fLineY + 2.6 * u} ${x + 0.25 * u},${fLineY + 3.0 * u}`,
+    head: { cx: x + 0.5 * u, cy: fLineY, r: 0.3 * u },
+    dots: [
+      { cx: x + 3.4 * u, cy: fLineY - 0.5 * u, r: 0.15 * u },
+      { cx: x + 3.4 * u, cy: fLineY + 0.5 * u, r: 0.15 * u },
+    ],
+    width: 3.8 * u,
+  }
+}
+
+/** An eighth flag: a comma bulging away from the notehead. */
+export function flagPath(stemX: number, stemTipY: number, dir: 'up' | 'down', g: StaffGeom) {
+  const u = g.gap
+  const s = dir === 'up' ? 1 : -1
+  return `M ${stemX},${stemTipY} q ${0.95 * u},${0.25 * u * s} ${0.6 * u},${1.35 * u * s}`
 }
 
 export const totalBeats = (notes: Note[]) => notes.reduce((s, n) => s + n.beats, 0)
@@ -82,4 +102,61 @@ export function beatXs(notes: Note[], x0: number, x1: number) {
     acc += n.beats
     return x
   })
+}
+
+/* ------------------------------------------------------------------
+   Engraving details: dots, flags, barlines, slurs.
+   ------------------------------------------------------------------ */
+
+/** Durations that need an augmentation dot. */
+export const isDotted = (beats: number) => [0.75, 1.5, 3, 6].includes(beats)
+
+/** Anything shorter than a quarter gets a flag. This phrase only has eighths. */
+export const hasFlag = (beats: number) => beats < 1
+
+/**
+ * x positions for barlines, placed midway between the note that ends a bar and
+ * the note that starts the next so they never collide with a notehead.
+ * `pickup` is the length of the anacrusis in the same units as `beats`.
+ */
+export function barlineXs(
+  notes: Note[],
+  xs: number[],
+  pickup: number,
+  perBar: number,
+): number[] {
+  const out: number[] = []
+  let acc = 0
+  let nextBar = pickup > 0 ? pickup : perBar
+  for (let i = 0; i < notes.length; i++) {
+    acc += notes[i].beats
+    if (acc >= nextBar - 1e-9 && i < notes.length - 1) {
+      out.push((xs[i] + xs[i + 1]) / 2)
+      nextBar += perBar
+    }
+  }
+  return out
+}
+
+/** Contiguous index runs that share a melisma id. */
+export function melismaGroups(notes: Note[]): [number, number][] {
+  const out: [number, number][] = []
+  let i = 0
+  while (i < notes.length) {
+    const m = notes[i].melisma
+    if (!m) { i++; continue }
+    let j = i
+    while (j + 1 < notes.length && notes[j + 1].melisma === m) j++
+    if (j > i) out.push([i, j])
+    i = j + 1
+  }
+  return out
+}
+
+/** A slur arcing above two noteheads. */
+export function slurPath(x1: number, y1: number, x2: number, y2: number, g: StaffGeom) {
+  const lift = g.gap * 1.5
+  const cx = (x1 + x2) / 2
+  const cy = Math.min(y1, y2) - lift
+  return `M ${x1},${y1 - g.gap * 0.6} Q ${cx},${cy} ${x2},${y2 - g.gap * 0.6}`
 }

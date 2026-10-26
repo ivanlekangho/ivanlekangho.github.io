@@ -11,6 +11,8 @@
   --paper-2:      #F6F1EA;
   --wash:         #EFE7DE;
   --rule:         #E0D5C9;
+  /* staff lines need a touch more weight than a UI hairline to stay legible */
+  --staff:        #CFC0AE;
   --ink:          #2B2420;
   --ink-2:        #5A4E46;
   --ink-3:        #9C9088;

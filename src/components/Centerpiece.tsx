@@ -1,6 +1,6 @@
-import { PHRASE, PIECE, PHRASE_PLACEHOLDER } from '../data/phrase'
+import { PHRASE, PIECE, PITCHES_UNVERIFIED } from '../data/phrase'
 import { MANDARIN } from '../data/tones'
-import { beatXs, bassClefPath, bassKeySharps, diatonic, noteY, staffLineYs, type StaffGeom } from '../lib/notation'
+import { beatXs, bassClef, bassKeySharps, diatonic, noteY, staffLineYs, type StaffGeom } from '../lib/notation'
 import { ease, lerp, range, useScrollProgress } from '../lib/useScrollProgress'
 import Todo from './Todo'
 
@@ -109,16 +109,21 @@ export default function Centerpiece() {
             >
               {/* ---------- state 0: staff, clef, key signature ---------- */}
               <g opacity={oStaff}>
-                <g stroke="var(--rule)" strokeWidth="1">
+                <g stroke="var(--staff)" strokeWidth="1">
                   {staffLineYs(GEO).map((y) => (
-                    <line key={y} x1="40" y1={y} x2={VB.w - 20} y2={y} />
+                    <line key={y} x1="38" y1={y} x2={VB.w - 20} y2={y} />
                   ))}
                 </g>
-                <path d={bassClefPath(48, fLineY, GEO)} fill="none" stroke="var(--ink)"
-                  strokeWidth={GEO.gap * 0.26} strokeLinecap="round" opacity="0.8" />
-                <circle cx={53} cy={fLineY} r={GEO.gap * 0.3} fill="var(--ink)" opacity="0.8" />
-                <circle cx={94} cy={fLineY - GEO.gap * 0.5} r={GEO.gap * 0.15} fill="var(--ink)" opacity="0.8" />
-                <circle cx={94} cy={fLineY + GEO.gap * 0.5} r={GEO.gap * 0.15} fill="var(--ink)" opacity="0.8" />
+                {(() => {
+                  const c = bassClef(46, fLineY, GEO)
+                  return (
+                    <g opacity="0.8">
+                      <path d={c.curl} fill="none" stroke="var(--ink)" strokeWidth={GEO.gap * 0.22} strokeLinecap="round" />
+                      <circle {...c.head} fill="var(--ink)" />
+                      {c.dots.map((d, i) => <circle key={i} {...d} fill="var(--ink)" />)}
+                    </g>
+                  )
+                })()}
                 <g stroke="var(--ink-2)" strokeWidth="1.1" fill="none">
                   {bassKeySharps(GEO).map((s, i) => {
                     const x = 104 + s.x
@@ -180,7 +185,7 @@ export default function Centerpiece() {
                 // what a melisma is.
                 const parentIdx = isSyllable
                   ? i
-                  : PHRASE.findIndex((m) => m.melisma === n.melisma && m.tone !== undefined)
+                  : PHRASE.findIndex((m) => m.hanGroup === n.hanGroup && m.tone !== undefined)
                 const yB = tone
                   ? TONE_BOT - tone.contour[0] * TONE_H
                   : TONE_BOT - MANDARIN[PHRASE[parentIdx]?.tone ?? 0].contour[0] * TONE_H
@@ -237,10 +242,11 @@ export default function Centerpiece() {
                 transition: 'opacity 80ms linear',
               }}
             >{`phrase
-  .filter(n => n.han)                     // 7 syllables, 8 notes
+  .filter(n => n.han)                     // 7 syllables, 9 notes
   .map(n => [n.han, n.tone, pitch(n)])
-// [['我',3,'B3'], ['处',4,'G3'],  ['处',4,'F♯3'], ['皆',1,'E3'],
-//  ['为',2,'F♯3'], ['异',4,'D3'], ['客',4,'B2']]`}</pre>
+// [['我',3,'E3'], ['处',4,'G3'], ['处',4,'E3'], ['皆',1,'B3'],
+//  ['为',2,'G3'], ['异',4,'A3'], ['客',4,'D3']]
+// two notes carry no syllable of their own: the slurs on 皆 and 客`}</pre>
 
             <p className="muted" style={{ fontSize: 'var(--step--1)', marginTop: 'var(--space-4)', maxWidth: '52ch' }}>
               <span className="han">{PIECE.mandarin}</span> — {PIECE.mandarinPinyin} — “{PIECE.mandarinGloss}”.
@@ -252,12 +258,12 @@ export default function Centerpiece() {
       </div>
 
       <div className="shell">
-        {PHRASE_PLACEHOLDER && (
+        {PITCHES_UNVERIFIED && (
           <Todo>
-            The melody above is a plausible descending B-minor line, NOT Schubert's
-            actual notes — only the syllable and tone mapping is real. Send the score
-            page (or just the pitches and rhythms for these eight notes) and this
-            becomes the real phrase. Edit src/data/phrase.ts.
+            Pitches are my reading of your score photo and need your eye. Rhythm and
+            bars are solid. Least certain: the dotted note on "ü", and the final
+            "ber–all" pair. Correct anything wrong in src/data/phrase.ts and flip
+            PITCHES_UNVERIFIED to false.
           </Todo>
         )}
       </div>
