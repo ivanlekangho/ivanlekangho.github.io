@@ -1,0 +1,126 @@
+/* ============================================================
+   Design tokens — "Four Tones, warm" (direction G)
+   Every colour is a three-stop family: wash (fills), mid (strokes,
+   noteheads, diagram lines), deep (anything that must be READ).
+   Pastels never carry text. That rule is the whole system.
+   ============================================================ */
+
+:root {
+  /* --- paper & ink ------------------------------------------------ */
+  --paper:        #FAF7F3;
+  --paper-2:      #F6F1EA;
+  --wash:         #EFE7DE;
+  --rule:         #E0D5C9;
+  --ink:          #2B2420;
+  --ink-2:        #5A4E46;
+  --ink-3:        #9C9088;
+
+  /* --- tone families ---------------------------------------------
+     Mandarin lexical tones. Mapping is fixed site-wide so the
+     legend is true everywhere it appears.
+       tone 1  level    ˉ   sage
+       tone 2  rising   ˊ   honey
+       tone 3  dipping  ˇ   wisteria
+       tone 4  falling  ˋ   dusty rose
+       tone 0  neutral  ·   warm grey
+     ---------------------------------------------------------------- */
+  --t1-wash: #E6EDE4;  --t1-mid: #A9C2AC;  --t1-deep: #4C6B54;
+  --t2-wash: #F8EBD4;  --t2-mid: #EDD3A2;  --t2-deep: #8E6A20;
+  --t3-wash: #EAE6F1;  --t3-mid: #BCB0D6;  --t3-deep: #5F4E8C;
+  --t4-wash: #F5E4E0;  --t4-mid: #DFA69D;  --t4-deep: #9C4F47;
+  --t0-wash: #F1EDE7;  --t0-mid: #C9BFB4;  --t0-deep: #6E6259;
+
+  /* --- type ------------------------------------------------------- */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body:    'Karla', system-ui, -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* TODO(font): the Mandarin line renders in a system CJK face for now.
+     Ship a subsetted LXGW WenKai containing only the glyphs actually used
+     (我处处皆为异客 …) — the full font is several megabytes. */
+  --font-han: 'LXGW WenKai', 'Noto Serif CJK SC', 'Songti SC', 'Source Han Serif SC', serif;
+
+  /* Fluid modular scale, ~1.25 at small widths opening to ~1.33 */
+  --step--1: clamp(0.80rem, 0.78rem + 0.10vw, 0.86rem);
+  --step-0:  clamp(1.00rem, 0.96rem + 0.20vw, 1.10rem);
+  --step-1:  clamp(1.25rem, 1.17rem + 0.40vw, 1.46rem);
+  --step-2:  clamp(1.56rem, 1.41rem + 0.75vw, 1.95rem);
+  --step-3:  clamp(1.95rem, 1.68rem + 1.35vw, 2.59rem);
+  --step-4:  clamp(2.44rem, 1.98rem + 2.30vw, 3.45rem);
+  --step-5:  clamp(3.05rem, 2.28rem + 3.85vw, 4.60rem);
+
+  /* --- space & shape --------------------------------------------- */
+  --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;
+  --space-4: 1rem;    --space-5: 1.5rem;  --space-6: 2rem;
+  --space-7: 3rem;    --space-8: 4.5rem;  --space-9: 7rem;
+  --radius:   10px;
+  --radius-lg: 16px;
+  --measure: 34rem;          /* comfortable reading width */
+  --gutter: clamp(1.25rem, 5vw, 4.5rem);
+  --max-w: 72rem;
+}
+
+/* ============================================================
+   MODE: musician (default) — serif, warm, rose-forward,
+   staff-line motif, slower easing.
+   ============================================================ */
+html[data-mode='musician'] {
+  --bg:           var(--paper);
+  --accent-wash:  var(--t4-wash);
+  --accent-mid:   var(--t4-mid);
+  --accent-deep:  var(--t4-deep);
+
+  --display-soft:    100;   /* Fraunces SOFT axis: rounded terminals */
+  --display-wonk:    1;
+  --display-weight:  400;
+  --display-tracking: -0.013em;
+  --display-leading: 1.06;
+
+  --dur:  620ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* five staff lines, drawn once and repeated */
+  --motif:
+    repeating-linear-gradient(
+      to bottom,
+      var(--rule) 0 1px,
+      transparent 1px 11px
+    );
+  --motif-size: 100% 55px;
+}
+
+/* ============================================================
+   MODE: engineer — same palette, re-weighted. Sharper terminals,
+   tighter tracking, wisteria-forward, graph-paper motif,
+   snappier easing. Same DOM order: anchors never break.
+   ============================================================ */
+html[data-mode='engineer'] {
+  --bg:           #F8F7F4;
+  --accent-wash:  var(--t3-wash);
+  --accent-mid:   var(--t3-mid);
+  --accent-deep:  var(--t3-deep);
+
+  --display-soft:    0;
+  --display-wonk:    0;
+  --display-weight:  600;
+  --display-tracking: -0.030em;
+  --display-leading: 1.02;
+
+  --dur:  240ms;
+  --ease: cubic-bezier(0.30, 0.00, 0.20, 1);
+
+  --motif:
+    repeating-linear-gradient(to bottom, var(--rule) 0 0.75px, transparent 0.75px 16px),
+    repeating-linear-gradient(to right,  var(--rule) 0 0.75px, transparent 0.75px 16px);
+  --motif-size: 16px 16px, 16px 16px;
+}
+
+/* Anyone who has asked their OS to calm down gets no scroll-driven
+   motion anywhere on the site. Honoured in useScrollProgress too. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 1ms; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
