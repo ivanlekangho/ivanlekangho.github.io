@@ -75,23 +75,45 @@ export const LH: PianoEvent[] = [
 export type HarmonyStep = {
   atBeat: number
   beats: number
+  /** Lead-sheet symbol: what a pianist would read off a chart. */
+  symbol: string
+  /** Roman numeral: what the chord is DOING in the key. */
   numeral: string
   name: string
+  /** The word for the move, which is the part worth learning. */
+  move: string
   key: 'b' | 'D'
   note?: string
 }
 
 export const HARMONY: HarmonyStep[] = [
-  { atBeat: 0.5, beats: 1.0, numeral: 'i',      name: 'B minor',      key: 'b' },
-  { atBeat: 1.5, beats: 1.0, numeral: 'V/iv',   name: 'B⁷ altered',   key: 'b',
+  { atBeat: 0.5, beats: 1.0, symbol: 'Bm',    numeral: 'i',      name: 'B minor',
+    move: 'tonic', key: 'b' },
+  { atBeat: 1.5, beats: 1.0, symbol: 'B+',    numeral: 'V/iv',   name: 'B augmented',
+    move: 'secondary dominant', key: 'b',
     note: 'The D♯ pulls upward to E: a dominant pointing at the subdominant.' },
-  { atBeat: 2.5, beats: 1.5, numeral: 'iv',     name: 'E minor',      key: 'b' },
-  { atBeat: 4.0, beats: 0.5, numeral: 'vii°⁷/III', name: 'C♯°⁷ (rootless)', key: 'b',
+  { atBeat: 2.5, beats: 1.5, symbol: 'Em',    numeral: 'iv',     name: 'E minor',
+    move: 'subdominant', key: 'b' },
+  { atBeat: 4.0, beats: 0.5, symbol: 'C♯°7',  numeral: 'vii°⁷/III', name: 'C♯ diminished seventh',
+    move: 'pivot', key: 'b',
     note: 'The B♭ is the pivot — a diminished seventh that turns the phrase toward D.' },
-  { atBeat: 4.5, beats: 1.0, numeral: 'I⁶₄',    name: 'D major / A',  key: 'D' },
-  { atBeat: 5.5, beats: 1.0, numeral: 'V⁷',     name: 'A⁷',           key: 'D' },
-  { atBeat: 6.5, beats: 1.0, numeral: 'I',      name: 'D major',      key: 'D' },
+  { atBeat: 4.5, beats: 1.0, symbol: 'D/A',   numeral: 'I⁶₄',    name: 'D major over its fifth',
+    move: 'cadential six-four', key: 'D' },
+  { atBeat: 5.5, beats: 1.0, symbol: 'A7',    numeral: 'V⁷',     name: 'A dominant seventh',
+    move: 'dominant', key: 'D' },
+  { atBeat: 6.5, beats: 1.0, symbol: 'D',     numeral: 'I',      name: 'D major',
+    move: 'resolution', key: 'D' },
 ]
+
+/**
+ * The progression in the words a musician would actually use. Kept as data
+ * so the page can say it once rather than three times in three registers.
+ */
+export const PROGRESSION = {
+  short: 'i · V/iv · iv · vii°⁷ · I⁶₄ · V⁷ · I',
+  sentence:
+    'B minor borrows its own dominant to lean on the subdominant, pivots on a diminished seventh, and cadences in D major — the relative major, not the key it started in.',
+}
 
 /**
  * Phrasing slurs in the accompaniment, by onset beat. Only one is visible in
@@ -108,4 +130,22 @@ export const PIANO_PIECE = {
   endKey: 'D major',
   summary:
     'Eight chords that begin in B minor and end in D major — the phrase resolves, just not home.',
+}
+
+/**
+ * Every pitch sounding at a given beat, both hands — sustained notes
+ * included, which is the difference between "what was struck" and "what you
+ * can hear". The A octave that opens bar 2 is held under the next chord, and
+ * without it the V⁷ there reads as a bare tritone.
+ */
+export function soundingAt(beat: number): Pitch[] {
+  const out: Pitch[] = []
+  for (const hand of [RH, LH]) {
+    let at = 0
+    for (const e of hand) {
+      if (!e.rest && at <= beat + 1e-9 && beat < at + e.beats - 1e-9) out.push(...e.pitches)
+      at += e.beats
+    }
+  }
+  return out
 }

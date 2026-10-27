@@ -30,7 +30,7 @@ const PIANO_DY = 200
  */
 const FRAME = [
   { y: 78, h: 342 },   // musician: top line of the voice staff to the bass staff
-  { y: 20, h: 420 },   // linguist: tone box down to the roman numerals
+  { y: 14, h: 414 },   // linguist: the agreement marks down to the roman numerals
   { y: 52, h: 446 },   // engineer: data series down to the ratios
 ]
 

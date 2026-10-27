@@ -150,6 +150,16 @@ export default function StageScene({ p = 0 }: { p?: number }) {
           <stop offset="62%" stopColor="#000" stopOpacity="0.30" />
           <stop offset="100%" stopColor="#000" stopOpacity="0" />
         </radialGradient>
+        {/* Depth of field. The performers are the thing the score is ABOUT,
+            not the thing you read, so they sit behind it: softened, dimmed
+            and a little desaturated. The room's light itself is untouched —
+            blurring the pool as well would just look like a smeared page. */}
+        <filter id="depth" x="-15%" y="-15%" width="130%" height="130%"
+          colorInterpolationFilters="sRGB">
+          <feGaussianBlur stdDeviation="1.7" result="soft" />
+          <feColorMatrix in="soft" type="saturate" values="0.76" />
+        </filter>
+
         <radialGradient id="vignette" cx="50%" cy="56%" r="74%">
           <stop offset="52%" stopColor="#000" stopOpacity="0" />
           <stop offset="100%" stopColor="#000" stopOpacity="0.70" />
@@ -191,22 +201,21 @@ export default function StageScene({ p = 0 }: { p?: number }) {
 
       <rect x="0" y="0" width={W} height={H} fill="url(#pool)" />
 
-      {/* Tone marks hanging in the air — only at the language stop. They
-          keep to the left of the instrument and below the hanging score,
-          which is the one part of the hall nothing else occupies. The
-          right-hand side belongs to the index, and `slice` crops this
-          drawing differently at every window size, so anything placed out
-          there lands on the navigation sooner or later. */}
-      <g opacity={tone} fill="none" strokeWidth="3" strokeLinecap="round">
-        <path d="M134 300 L190 300" stroke="var(--t1-mid)" />
-        <path d="M226 324 L274 282" stroke="var(--t2-mid)" />
-        <path d="M308 288 C320 320 346 320 358 288" stroke="var(--t3-mid)" />
-        <path d="M140 250 L186 288" stroke="var(--t4-mid)" opacity="0.5" />
-        <path d="M258 244 L300 244" stroke="var(--t1-mid)" opacity="0.35" />
+      {/* Tone marks hanging in the air at the language stop. Faint, and only
+          three of them: the score itself now draws the tone contours, so
+          these are an echo of it rather than a second legend. They keep to
+          the left of the instrument, because `slice` crops this drawing
+          differently at every window size and anything further right ends up
+          under the score. */}
+      <g opacity={tone * 0.42} fill="none" strokeWidth="3" strokeLinecap="round">
+        <path d="M118 306 L174 306" stroke="var(--t1-mid)" />
+        <path d="M212 326 L260 288" stroke="var(--t2-mid)" />
+        <path d="M296 292 C308 322 334 322 346 292" stroke="var(--t3-mid)" />
       </g>
 
       {/* ---------------- everything standing on the boards ---------------- */}
-      <g transform={`translate(${SCENE.x},${SCENE.y}) scale(${SCENE.k})`}>
+      <g transform={`translate(${SCENE.x},${SCENE.y}) scale(${SCENE.k})`}
+        filter="url(#depth)" opacity="0.8">
 
       {/* ---------------- bench ---------------- */}
       <g>

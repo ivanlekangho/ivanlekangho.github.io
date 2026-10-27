@@ -338,27 +338,41 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
 
       {/* ---------- B: harmony ---------- */}
       <g opacity={s.oB}>
+        {/* What a pianist reads off a chart goes above the band; what the
+            chord is DOING in the key goes below it. Two registers of the same
+            sentence — the chord symbol names the object, the roman numeral
+            names its function. */}
         {HARMONY.map((h) => {
           const x = xAt(h.atBeat)
           const next = xAt(h.atBeat + h.beats)
           const fam = h.key === 'b' ? 't3' : 't1'
           const w = Math.max(30, next - x - 4)
+          const mid = x - 16 + w / 2
           return (
             <g key={h.atBeat}>
               <rect x={x - 16} y={B_TOP - 12} width={w} height={B_BOT - B_TOP + 24}
-                fill={`var(--${fam}-wash)`} opacity="0.34" />
-              <text x={x - 16 + w / 2} y={B_BOT + 36} textAnchor="middle"
-                fontFamily="var(--font-display)" fontWeight="500" fontSize="15" fill={`var(--${fam}-deep)`}>{h.numeral}</text>
-              <text x={x - 16 + w / 2} y={B_BOT + 50} textAnchor="middle"
-                fontFamily="var(--font-body)" fontSize="9" fill="var(--ink-3)">{h.name}</text>
+                fill={`var(--${fam}-wash)`} opacity="0.17" />
+              <line x1={x - 16} y1={B_TOP - 12} x2={x - 16} y2={B_BOT + 12}
+                stroke="var(--rule)" strokeWidth="1" />
+              <text x={mid} y={B_TOP - 22} textAnchor="middle"
+                fontFamily="var(--font-display)" fontWeight="500" fontSize="20"
+                fill="var(--ink)">{h.symbol}</text>
+              <text x={mid} y={B_BOT + 34} textAnchor="middle"
+                fontFamily="var(--font-label)" fontSize="14" letterSpacing="0.04em"
+                fill={`var(--${fam}-mid)`}>{h.numeral}</text>
             </g>
           )
         })}
         <g stroke="var(--ink-3)" strokeWidth="1" strokeDasharray="3 3" opacity="0.8">
           {COMMON.map((c, i) => <line key={i} x1={c.x1} y1={c.y} x2={c.x2} y2={c.y} />)}
         </g>
-        <text x={SYS.staffLeft} y={B_TOP - 20} fontFamily="var(--font-label)" fontSize="10" fill="var(--t3-deep)">B minor</text>
-        <text x={xAt(4.5) - 16} y={B_TOP - 20} fontFamily="var(--font-label)" fontSize="10" fill="var(--t1-deep)">D major</text>
+        {/* Where the key changes hands, drawn once rather than said twice. */}
+        <g fontFamily="var(--font-label)" fontSize="11" letterSpacing="0.14em">
+          <text x={SYS.staffLeft} y={B_TOP - 44} fill="var(--t3-mid)">IN B MINOR</text>
+          <text x={xAt(4.5) - 16} y={B_TOP - 44} fill="var(--t1-mid)">IN D MAJOR</text>
+        </g>
+        <line x1={xAt(4.5) - 24} y1={B_TOP - 40} x2={xAt(4.5) - 24} y2={B_BOT + 14}
+          stroke="var(--rule)" strokeWidth="1" strokeDasharray="2 4" />
       </g>
 
       {/* ---------- C: physics ---------- */}

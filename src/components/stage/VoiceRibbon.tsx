@@ -3,6 +3,7 @@ import { MANDARIN } from '../../data/tones'
 import { SYS, VOICE_ONSET, barX, xAt } from '../../lib/beatmap'
 import { diatonic, noteY, type StaffGeom } from '../../lib/notation'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
+import { FITS, MARK } from '../../lib/toneMelody'
 import { lerp } from '../../lib/easing'
 import { staging } from './staging'
 
@@ -20,8 +21,8 @@ import { staging } from './staging'
 export const VOICE_H = 224
 const GEO: StaffGeom = { gap: 13, bottomY: 150 }
 const HEAD = { clef: SYS.clef, keySig: SYS.keySig, time: SYS.time }
-const TONE_TOP = 34
-const TONE_BOT = 134
+const TONE_TOP = 40
+const TONE_BOT = 126
 const TONE_H = TONE_BOT - TONE_TOP
 const SLOT = 26
 const DATA_BASE = 176
@@ -56,14 +57,35 @@ export default function VoiceStaves({ p, beat }: { p: number; beat: number | nul
         </g>
         <text x={SYS.staffLeft + 22} y={TONE_TOP + 4} textAnchor="end" fontFamily="var(--font-label)" fontSize="10" fill="var(--ink-3)">5</text>
         <text x={SYS.staffLeft + 22} y={TONE_BOT + 4} textAnchor="end" fontFamily="var(--font-label)" fontSize="10" fill="var(--ink-3)">1</text>
+        {/* The tone contour in colour, and over it, from the same starting
+            point, the direction Schubert's melody actually takes from this
+            syllable to the next. Where the two lines diverge, a sung Mandarin
+            word is fighting the tune it is set to. */}
         {PHRASE.map((n, i) => {
           if (n.tone === undefined) return null
           const t = MANDARIN[n.tone]
+          const x0 = xs[i] - SLOT / 2
+          const y0 = TONE_BOT - t.contour[0] * TONE_H
           const pts = t.contour
-            .map((v, j) => `${xs[i] - SLOT / 2 + (SLOT * j) / (t.contour.length - 1)},${TONE_BOT - v * TONE_H}`)
+            .map((v, j) => `${x0 + (SLOT * j) / (t.contour.length - 1)},${TONE_BOT - v * TONE_H}`)
             .join(' ')
-          return <polyline key={n.id} points={pts} fill="none" stroke={`var(--${t.family}-mid)`}
-            strokeWidth={sounding(i) ? 4.5 : 3} strokeLinecap="round" strokeLinejoin="round" />
+          const fit = FITS.find((f) => f.i === i)
+          const rise = fit?.melody === 'up' ? -1 : fit?.melody === 'down' ? 1 : 0
+          const y1 = Math.min(TONE_BOT, Math.max(TONE_TOP, y0 + rise * TONE_H * 0.34))
+          const mood = fit?.verdict === 'agree' ? 'var(--t1-mid)'
+            : fit?.verdict === 'clash' ? 'var(--t4-mid)' : 'var(--ink-3)'
+          return (
+            <g key={n.id}>
+              <line x1={x0} y1={y0} x2={x0 + SLOT} y2={y1}
+                stroke="var(--ink-2)" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.8" />
+              <polyline points={pts} fill="none" stroke={`var(--${t.family}-mid)`}
+                strokeWidth={sounding(i) ? 4.5 : 3} strokeLinecap="round" strokeLinejoin="round" />
+              {fit && (
+                <text x={xs[i]} y={TONE_TOP - 13} textAnchor="middle" fontFamily="var(--font-label)"
+                  fontSize="14" fill={mood}>{MARK[fit.verdict]}</text>
+              )}
+            </g>
+          )
         })}
       </g>
 
@@ -104,10 +126,10 @@ export default function VoiceStaves({ p, beat }: { p: number; beat: number | nul
               transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale})`} />
             {n.han && (
               <g opacity={s.oB}>
-                <text x={xs[i]} y={TONE_BOT + 26} textAnchor="middle" fontFamily="var(--font-han)"
-                  fontSize="17" fill={on ? `var(--${fam}-deep)` : 'var(--ink)'}>{n.han}</text>
-                <text x={xs[i]} y={TONE_BOT + 41} textAnchor="middle" fontFamily="var(--font-body)"
-                  fontSize="11" fill={`var(--${fam}-deep)`}>{n.pinyin}</text>
+                <text x={xs[i]} y={TONE_BOT + 25} textAnchor="middle" fontFamily="var(--font-han)"
+                  fontSize="20" fill={on ? `var(--${fam}-mid)` : 'var(--ink)'}>{n.han}</text>
+                <text x={xs[i]} y={TONE_BOT + 40} textAnchor="middle" fontFamily="var(--font-body)"
+                  fontSize="12" fill={`var(--${fam}-mid)`}>{n.pinyin}</text>
               </g>
             )}
           </g>

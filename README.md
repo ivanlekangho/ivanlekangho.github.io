@@ -66,6 +66,9 @@ has a URL you can link to directly.
 | The hall, the Steinway, the baritone | `src/components/stage/StageScene.tsx` |
 | The one system both performers read | `src/components/stage/Score.tsx` |
 | The horizontal axis they share | `src/lib/beatmap.ts` |
+| The terminal at the engineer stop | `src/components/stage/Terminal.tsx` |
+| Why a chord sounds the way it does | `src/lib/acoustics.ts` |
+| Does the melody move the way the tone does | `src/lib/toneMelody.ts` |
 | Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
 | Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
 | The room, explained — the piece, the three readings | `src/sections/Room.tsx` |
@@ -201,7 +204,8 @@ The Actions flow doesn't run Jekyll at all.)
 
 ## How the page is shaped
 
-One scrolling page. The first screen is a hall — a Steinway, a baritone, and
+One scrolling page. The first screen is the **recital room** (the hall, the
+home page — the same thing by any of those names) — a Steinway, a baritone, and
 hanging over them the one system they are both reading. Below it, five bands:
 the room explained, about, work, writing, contact.
 
@@ -223,65 +227,102 @@ property on `<html>`, so if you leave the hall at the engineer stop the rest of
 the site is lit in steel; leave at musician and it is lit in warm gold. Nothing
 special makes this happen — it is the same lighting board.
 
-## How the room works
+## How the recital room works
 
-The hall is driven by one number: the rail position, 0 to 1.
+One number drives it: the rail position, 0 to 1.
 
-| Rail | Voice score | Piano score | The hall |
+| Rail | Voice | Piano | The room |
 |---|---|---|---|
 | **musician** | bass-clef notation | grand staff | house lights down, one warm pool |
-| **linguist** | Mandarin tone contours | roman numerals, key regions | half light, plum dusk, tone marks in the air |
-| **engineer** | code encoding | frequency, wavelength, ratios | full cold wash, measured grid |
+| **linguist** | Mandarin tone against the melody | chord symbols over roman numerals | half light, plum dusk |
+| **engineer** | the terminal | the terminal | full cold wash, measured grid |
+
+The room makes one argument: that music, language and code are three
+descriptions of the same object. So the three stops are not three subjects —
+they are three vocabularies pointed at the same nine notes.
+
+**The score is in front and the performers are behind it.** The piano and the
+baritone are softened, dimmed and slightly desaturated by one SVG filter
+(`#depth` in `StageScene.tsx`) applied to the group that holds them; the room's
+own light is untouched, because blurring the pool as well just looks like a
+smeared page. The score casts a soft shadow back onto the room
+(`.score-system::before`) so it has something to sit in front of.
 
 **It is one system, not two ribbons.** The voice staff sits directly above the
 piano's two, bracketed at the left the way a vocal score is, and neither staff
 lays itself out: both read their horizontal positions out of
-`src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both. The
-page is claiming these two are playing together, so the geometry had better say
-so — side by side, it said the opposite.
+`src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both.
 
 The important part: **the same `<ellipse>` elements are the noteheads, the tone
 contour onsets, and the data points.** Nothing crossfades between three separate
-graphics; the objects themselves move. The page is claiming that music, language
-and code are three views of one thing, so that had better be literally true in
-the DOM.
+graphics; the objects themselves move.
 
 The frame closes in and opens out as the rail moves (`FRAME` in `Score.tsx`).
-Notation is two compact staves; acoustics needs nearly twice the height. A
-viewBox big enough for the tallest reading left the staves shrunk and
+Notation is two compact staves; the language reading needs nearly a third more
+height. A viewBox big enough for the tallest reading left the staves shrunk and
 letterboxed at the stop most people land on.
 
-Notation is engraved from note *names*, not MIDI numbers, so F♯ and F land on
-the same staff line and the key signature does its job. Positions are diatonic:
-bass clef, bottom line G2, one staff step = half a line gap. Nothing wobbles —
-an earlier version jittered every line with a hash so the score looked
-hand-copied, and at these sizes that just read as imprecision.
+### The linguist stop
 
-Three engraving rules in the piano part that a reader notices immediately if
-you break them: two notes a second apart cannot share a column, so one of the
-pair crosses the stem (`clusterShifts`); an accidental holds for the rest of its
-bar at that staff position, so the D♯ on the first beamed chord is written and
-the identical one on the second is not; and a pitch altered in the previous bar
-gets a cautionary sign when it reverts, which is the natural on the first chord
-of bar 2 undoing that D♯.
+Two things happen here that are worth stating plainly.
 
-**The lighting board** is `src/lib/palette.ts`. Three keyframes, and every lit
-value is interpolated between them and written onto `<html>` as a custom
-property as the rail moves — so the lights come up continuously instead of
-snapping at the stops. `src/styles/tokens.css` holds only what is allowed to
-snap: type, motion, spacing, and the four Mandarin tone families.
+**Tone against melody.** Mandarin carries part of a word in the pitch contour
+of the syllable, so a melody that falls where the tone rises can make a sung
+line ambiguous — a real problem for anyone setting a tone language to music,
+and one Schubert, writing in German in 1816, obviously did not have. Over each
+syllable the room draws the Mandarin tone as a solid line and where the melody
+actually goes next as a dashed one. `src/lib/toneMelody.ts` compares the two
+and counts: **two of the seven syllables move the way their tone does, two move
+the opposite way.** That is a measured coincidence, not a claim, which is
+exactly why it is measured rather than asserted.
 
-**The instrument** is projected, not sketched. A grand's plan is a long straight
-spine, a straight keyboard end, and one bent rim tapering to the tail; round all
-of that off and you get an oval table. `StageScene.tsx` projects those plan
-coordinates through one transform and builds every other part on the result. The
-baritone is drawn in a 200×420 box so the classical proportions — head a seventh
-and a half of the height, shoulders a quarter, legs just under half — are
-numbers rather than guesses.
+**Two registers of harmony.** Above the staff, the chord symbol — `Bm`, `B+`,
+`Em`, `C♯°7`, `D/A`, `A7`, `D` — which names the object. Below it, the roman
+numeral, which names what the chord is *doing* to the key. The progression and
+the word for each move (`secondary dominant`, `pivot`, `cadential six-four`)
+live in `PROGRESSION` and `HARMONY` in `src/data/piano.ts`.
 
-**On a phone** the hall would crop to the middle of the piano, so the stage
-becomes a band at the foot of the screen framed on the performers, and the
-system sits above it.
+### The engineer stop: the terminal
+
+At the engineer stop the staves have said what they can, and a REPL takes their
+place rather than crowding in beside them. It answers one question — why does
+this sound the way it does — with arithmetic instead of adjectives.
+
+```
+>>> chord 7
+freqs = [73.42, 185.00, 220.00, 293.66]
+y = sum(np.sin(2*np.pi*f*t) for f in freqs)
+  [the summed waveform]
+D2     73.42 Hz   1/1     root
+F♯3   185.00 Hz   5/2     +14¢ from just
+A3    220.00 Hz   3/1      −2¢ from just
+D4    293.66 Hz   4/1      +0¢ from just
+repeats every 2 periods of D2 — locked
+```
+
+Commands: `melody`, `chords`, `wave <note>`, `chord <1-7>`, `beats <a> <b>`,
+`why`, `help`, `clear`. They are clickable as well as typeable, because typing
+in a fake terminal on a phone is nobody's idea of a good time.
+
+**It is not CPython, and `help` says so.** It is a small interpreter over that
+command set. What *is* real is every number it prints: `src/lib/acoustics.ts`
+computes them from the same pitches the score is engraved from, so changing a
+note in `piano.ts` changes the answers here too. The Python it prints beside
+each answer is the code that expresses the same calculation.
+
+The interesting one is `periodicity`. Write every frequency in a chord as a
+whole number over a common denominator; the sum of those sines repeats at the
+greatest common divisor of those numbers. Small ratios mean the repeat comes
+round in two or three periods and the ear hears one thing with a pitch; stretch
+them and the repeat period runs away and the same notes turn into roughness.
+`beats F#3 G3` draws the other half of that: two notes 11 Hz apart, and you can
+see the amplitude envelope going in and out eleven times a second.
+
+The caveat the terminal states itself: `ratioTo` snaps to the *nearest* simple
+ratio, so the ratio column is the interval the ear is listening for, not the
+tempered one the piano actually plays. The cents column is the gap — and it is
+why the major third in that chord reads +14¢, which is the familiar error of
+equal temperament.
 
 ## The three readings
 

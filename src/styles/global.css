@@ -71,7 +71,10 @@ pre {
    ============================================================ */
 .hall {
   position: relative; overflow: hidden;
-  min-height: 100vh; min-height: 100dvh;
+  /* A definite height, not a minimum: the terminal's scrollback would
+     otherwise push the room taller than the screen, and the page can't be
+     scrolled while the hall has the wheel. */
+  height: 100vh; height: 100dvh;
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   /* carries the hall colour above the stage wherever the drawing doesn't
      reach the top of the viewport (phones, very tall windows) */
@@ -104,7 +107,7 @@ pre {
 .score-system {
   position: relative; z-index: 1; margin: 0; min-height: 0;
   padding: var(--space-4) clamp(1rem, 5vw, 4rem) 0;
-  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   /* Pinned to the top of its row rather than centred: the stage drawing is
      anchored to the bottom of the viewport, so a centred system lands its
      bass staff across the lid of the piano. (align-items, not
@@ -130,7 +133,120 @@ pre {
   padding-bottom: 6px; margin-bottom: var(--space-3);
 }
 .score-tag b { font-weight: inherit; color: var(--accent); }
+
+/* Something for the score to sit in front of. The stage behind it is
+   softened and dimmed in the drawing itself; this is the shadow the score
+   casts back onto the room. */
+.score-system::before {
+  content: ''; position: absolute; z-index: -1;
+  left: 0; right: 0; top: -2vh; height: 78%;
+  background: radial-gradient(
+    ellipse 64% 72% at 50% 40%,
+    color-mix(in srgb, var(--bg) 56%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 34%, transparent) 50%,
+    transparent 78%);
+  pointer-events: none;
+}
+
+/* The score and the terminal share one cell and cross-fade. The stack
+   stretches to the row it is in so the terminal has a definite height and
+   its scrollback scrolls rather than growing. */
+.score-stack {
+  display: grid; width: 100%; align-self: stretch; min-height: 0;
+}
+.score-layer {
+  grid-area: 1 / 1; display: grid; justify-items: center; align-items: start;
+  min-width: 0; min-height: 0;
+}
+.score-layer-term { align-items: stretch; }
 .score-svg { width: 100%; max-width: 68rem; max-height: 46vh; }
+
+/* The three translations and the two notes, at the language stop only. */
+.score-apparatus {
+  width: 100%; max-width: 68rem;
+  display: grid; gap: var(--space-4) var(--space-7);
+  padding-top: var(--space-4); margin-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+.apparatus-col { margin: 0; display: grid; gap: 1px; align-content: start; }
+.apparatus-col dt {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: 0.68rem; letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--ink-3);
+}
+.apparatus-col dd {
+  margin: 0 0 var(--space-3); color: var(--ink-2);
+  font-size: var(--step--1); line-height: 1.5; max-width: 52ch;
+}
+.apparatus-col dd .han { font-size: var(--step-0); color: var(--ink); }
+.apparatus-note {
+  margin: 0; color: var(--ink-3); font-size: var(--step--1);
+  line-height: 1.5; max-width: 46ch; align-self: end;
+}
+@media (min-width: 64rem) {
+  .score-apparatus { grid-template-columns: 1.1fr 1fr; }
+}
+
+/* ============================================================
+   The terminal — the engineer's reading, where the score was
+   ============================================================ */
+.term {
+  width: 100%; max-width: 68rem; max-height: 100%;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55;
+  color: var(--ink-2);
+  min-height: 0;
+}
+.term-bar {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4);
+  padding: 7px var(--space-4);
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.term-name { color: var(--accent); }
+.term-hint { color: var(--ink-3); }
+.term-scroll {
+  overflow-y: auto; padding: var(--space-3) var(--space-4);
+  scrollbar-width: thin; min-height: 0;
+}
+.term-scroll > * { margin: 0; }
+.term-in { color: var(--ink); white-space: pre-wrap; }
+.term-in span { color: var(--accent); margin-right: 0.6em; }
+.term-out { white-space: pre-wrap; }
+.term-out.is-dim { color: var(--ink-3); }
+.term-py {
+  white-space: pre-wrap; background: none; border: 0; padding: 0;
+  margin: 4px 0 6px; color: var(--accent-soft); font-size: 0.74rem;
+}
+.term-rule { border: 0; border-top: 1px solid var(--rule); margin: 7px 0; }
+.term-wave { margin: 4px 0 8px; }
+.term-wave figcaption { color: var(--ink-3); font-size: 0.7rem; margin-top: 2px; }
+.term-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--rule);
+}
+.term-chips button {
+  font: inherit; font-size: 0.72rem;
+  background: none; border: 1px solid var(--rule); color: var(--ink-3);
+  padding: 3px 9px; cursor: pointer;
+  transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
+}
+.term-chips button:hover { border-color: var(--accent); color: var(--accent); }
+.term-prompt {
+  display: flex; align-items: baseline; gap: 0.6em;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--rule);
+}
+.term-prompt span { color: var(--accent); }
+.term-prompt input {
+  flex: 1; min-width: 0; font: inherit; color: var(--ink);
+  background: none; border: 0; outline: none; padding: 0;
+}
+.term-prompt input::placeholder { color: var(--ink-3); opacity: 0.6; }
 
 /* --- the recording ----------------------------------------------- */
 .transport { display: flex; }
@@ -384,6 +500,22 @@ pre {
   .score-title { font-size: var(--step-0); }
   .score-tag { font-size: 0.66rem; letter-spacing: 0.08em; gap: var(--space-3); }
   .score-svg { max-height: 28vh; }
+  .score-layer { align-items: center; }
+  /* At the language stop a phone has to find room for three translations
+     under the system, so the room itself gives some back — and the legend
+     drops, because the band below the hall explains the same thing at
+     length and a phone cannot carry both. */
+  .apparatus-note { display: none; }
+  html[data-mode='linguist'] .score-svg { max-height: 23vh; }
+  html[data-mode='linguist'] .stage-svg { height: 17vh; }
+  html[data-mode='linguist'] .hall-foot { padding-bottom: calc(17vh + var(--space-4)); }
+  .score-apparatus { gap: var(--space-3); padding-top: var(--space-3); }
+  .apparatus-col dd { margin-bottom: var(--space-2); }
+  .term { font-size: 0.7rem; }
+  .term-py { font-size: 0.66rem; }
+  .term-scroll { padding: var(--space-2) var(--space-3); }
+  .term-chips { padding: var(--space-2) var(--space-3); }
+  .term-prompt { padding: var(--space-2) var(--space-3); }
   .transport-play { padding: 4px 9px; }
   .transport-play span { display: none; }
 
