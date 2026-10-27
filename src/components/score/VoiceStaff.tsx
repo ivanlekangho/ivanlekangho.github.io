@@ -1,23 +1,18 @@
 import { PHRASE, PIECE, type Note } from '../../data/phrase'
 import {
-  accidentalPaths, barlineXs, bassClef, bassKeySharps, beatXs, cutTime, dotY,
-  flagPath, hasFlag, HEAD_X, isDotted, ledgerLines, melismaGroups,
-  needsAccidental, noteY, quarterRestPath, slurPath, staffLineYs,
-  stemDirections, type StaffGeom,
+  accidentalPaths, bassClef, bassKeySharps, cutTime, dotY, flagPath, hasFlag,
+  HEAD_X, isDotted, ledgerLines, melismaGroups, needsAccidental, noteY,
+  quarterRestPath, slurPath, staffLineYs, stemDirections, type StaffGeom,
 } from '../../lib/notation'
 
 /**
- * ONE engraving of the vocal line, used by both places it appears.
- *
- * The recital sheet and the staff hanging over the stage are the same two
- * bars of Schubert, so they are engraved by the same code: same cut time,
- * same barlines, same augmentation dots, same flags, same slur across
- * "Fremd", same closing rest. They used to be two renderers and they
+ * The engraving of the vocal line: cut time, barlines, augmentation dots,
+ * flags, the one slur across "Fremd", the closing rest. Kept apart from the
+ * component that draws it because it was once duplicated, and the copies
  * drifted — the stage score lost every rhythm mark and showed nine
  * undifferentiated noteheads, which is a different piece of music.
  *
- * What differs between the two is only the horizontal axis. On its own the
- * sheet spaces itself; over the stage it borrows the system's axis, so the
+ * Positions come from the system's shared axis (lib/beatmap.ts), so the
  * singer's notes sit directly above the pianist's.
  *
  * The noteheads themselves are NOT drawn here. On the stage they morph into
@@ -35,29 +30,17 @@ export function headFor(g: StaffGeom): Head {
 }
 
 export function voiceLayout(
-  g: StaffGeom, width: number, notes: Note[] = PHRASE, axis?: Axis,
+  g: StaffGeom, notes: Note[] = PHRASE, axis: Axis,
 ) {
-  if (axis) {
-    const onsets: number[] = []
-    let at = 0
-    for (const n of notes) { onsets.push(at); at += n.beats }
-    return {
-      xs: onsets.map(axis.xAt),
-      restX: axis.xAt(at),
-      bars: [PIECE.pickupBeats, PIECE.pickupBeats + PIECE.beatsPerBar]
-        .map((b) => axis.barX(b, g.gap)),
-      dirs: stemDirections(notes, g),
-      lyricY: g.bottomY + g.gap * 2.8,
-    }
-  }
-  /* Standalone: the closing rest takes part in the spacing, so the last
-     note is not flung at the final barline. */
-  const all = beatXs([...notes, { beats: PIECE.trailingRest }], HEAD_X.firstNote(g), width - g.gap * 3)
-  const xs = all.slice(0, notes.length)
+  const onsets: number[] = []
+  let at = 0
+  for (const n of notes) { onsets.push(at); at += n.beats }
   return {
-    xs,
-    restX: all[notes.length],
-    bars: barlineXs(notes, xs, PIECE.pickupBeats, PIECE.beatsPerBar),
+    xs: onsets.map(axis.xAt),
+    /* The closing rest sits where the next note would have been. */
+    restX: axis.xAt(at),
+    bars: [PIECE.pickupBeats, PIECE.pickupBeats + PIECE.beatsPerBar]
+      .map((b) => axis.barX(b, g.gap)),
     dirs: stemDirections(notes, g),
     lyricY: g.bottomY + g.gap * 2.8,
   }

@@ -1,77 +1,109 @@
-import { Link, Navigate, Route, Routes, useParams } from 'react-router-dom'
-import FloatingNav, { SECTIONS } from './components/FloatingNav'
-import Panel from './components/Panel'
-import RecitalRoom from './components/stage/RecitalRoom'
+import { useEffect } from 'react'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import Menu from './components/Menu'
+import Hall from './components/stage/Hall'
+import { useHallScroll } from './lib/hallScroll'
+import Room from './sections/Room'
 import About from './sections/About'
 import Work from './sections/Work'
-import Recital from './sections/Recital'
+import Writing from './sections/Writing'
 import Contact from './sections/Contact'
-import Writing from './pages/Writing'
+import Post from './pages/Post'
 
 /**
- * The hall is always mounted. Every other route is a sheet over the top of
- * it, which is why the stage never reloads, the lighting never resets, and
- * the back button closes a panel instead of leaving the site.
+ * One page.
  *
- * Five destinations, down from eleven. The old eleven were mostly one thin
- * page each — a four-line education page, a stack page, a now page — and a
- * reader who opens "About" has already asked for all three. Everything
- * those pages held is still here; it is just no longer eleven doors.
+ * The hall is the first screen and the wheel walks its three readings;
+ * past the last one the page scrolls normally through everything else, and
+ * the menu bar arrives as soon as the hall is behind you. Sections are
+ * anchors on that page rather than routes, because the thing a reader
+ * wants after the hall is the explanation of it, not a destination to go
+ * and find.
+ *
+ * The URLs that used to open panels still work: they land on the matching
+ * anchor, so nobody's bookmark breaks.
  */
 
-const PANELS: Record<string, React.ReactNode> = {
-  '/about': <About />,
-  '/recital': <Recital />,
-  '/work': <Work />,
-  '/writing': <Writing />,
-  '/contact': <Contact />,
-}
-
-/** Where the eleven old URLs went. Someone's bookmark should still land. */
+/** Where the old panel URLs went. */
 const MOVED: [string, string][] = [
-  ['/impact', '/work'],
-  ['/projects', '/work'],
-  ['/education', '/about'],
-  ['/skills', '/about'],
-  ['/now', '/about'],
-  ['/how-i-think', '/writing'],
-  ['/log', '/writing'],
+  ['/recital', '/#room'],
+  ['/about', '/#about'],
+  ['/work', '/#work'],
+  ['/impact', '/#work'],
+  ['/projects', '/#work'],
+  ['/skills', '/#about'],
+  ['/education', '/#about'],
+  ['/now', '/#about'],
+  ['/writing', '/#writing'],
+  ['/how-i-think', '/#writing'],
+  ['/log', '/#writing'],
+  ['/contact', '/#contact'],
 ]
 
-/** /log/<slug> is now /writing/<slug>; the slug has to survive the move. */
 function MovedPost() {
   const { slug } = useParams()
   return <Navigate to={`/writing/${slug}`} replace />
 }
 
-export default function App() {
+function Home() {
   return (
     <>
-      <a href="#main" className="sr-only">Skip to content</a>
-      <Link to="/" className="brand-mark">
-        <span className="brand-name">Ivan Ho</span>
-        <span className="brand-sub">Baritone · Stanford CS</span>
-      </Link>
+      <Hall />
+      <Room />
+      <About />
+      <Work />
+      <Writing />
+      <Contact />
+    </>
+  )
+}
 
+/**
+ * React Router owns the path but not the fragment, so arriving at /#work
+ * from outside — or from a redirect — needs the scroll done by hand. One
+ * frame later, because the section has to exist first.
+ */
+function HashScroll() {
+  const { pathname, hash, key } = useLocation()
+  useEffect(() => {
+    if (!hash) return
+    const id = decodeURIComponent(hash.slice(1))
+    /* The section may not be laid out yet on a first load or a redirect —
+       web fonts alone move everything — so this keeps asking for a few
+       frames rather than scrolling once into the wrong place. */
+    let raf = 0
+    let tries = 0
+    const go = () => {
+      const el = document.getElementById(id)
+      if (el) { el.scrollIntoView({ behavior: 'smooth' }); return }
+      if (tries++ < 30) raf = requestAnimationFrame(go)
+    }
+    raf = requestAnimationFrame(go)
+    return () => cancelAnimationFrame(raf)
+  }, [pathname, hash, key])
+  return null
+}
+
+export default function App() {
+  const onHome = useLocation().pathname === '/'
+  useHallScroll(onHome)
+
+  return (
+    <>
+      <a href="#room" className="sr-only">Skip to content</a>
+      <Menu />
+      <HashScroll />
       <main id="main">
-        <RecitalRoom />
         <Routes>
-          <Route path="/" element={null} />
-          {SECTIONS.map((s) => (
-            <Route key={s.to} path={s.to}
-              element={<Panel title={s.label} index={s.num} wide={s.wide}>{PANELS[s.to]}</Panel>} />
-          ))}
-          <Route path="/writing/:slug"
-            element={<Panel title="Writing" index="04" wide>{<Writing />}</Panel>} />
+          <Route path="/" element={<Home />} />
+          <Route path="/writing/:slug" element={<Post />} />
           {MOVED.map(([from, to]) => (
             <Route key={from} path={from} element={<Navigate to={to} replace />} />
           ))}
           <Route path="/log/:slug" element={<MovedPost />} />
-          <Route path="*" element={null} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-
-      <FloatingNav />
     </>
   )
 }

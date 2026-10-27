@@ -33,7 +33,7 @@ const P_MAX = Math.max(...PITCH_IDX)
 
 export default function VoiceStaves({ p, beat }: { p: number; beat: number | null }) {
   const s = staging(p)
-  const L = voiceLayout(GEO, SYS.w, PHRASE, { xAt, barX })
+  const L = voiceLayout(GEO, PHRASE, { xAt, barX })
   const xs = L.xs
   const dataY = (i: number) =>
     DATA_BASE - ((PITCH_IDX[i] - P_MIN) / (P_MAX - P_MIN)) * DATA_H

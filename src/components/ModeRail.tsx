@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useMode } from '../lib/mode'
-import { MODES, STOP_AT, type Mode } from '../lib/palette'
+import { MODES, STOP_AT } from '../lib/palette'
 
 /**
  * The dimmer.
@@ -14,12 +14,6 @@ import { MODES, STOP_AT, type Mode } from '../lib/palette'
  *   linguist   Mandarin tone and harmony, lights to half
  *   engineer   code and physics, full cold wash
  */
-
-const BLURB: Record<Mode, string> = {
-  musician: 'As written',
-  linguist: 'As tone, as harmony',
-  engineer: 'As data, as moving air',
-}
 
 export default function ModeRail() {
   const { pos, mode, setPos, goTo } = useMode()
@@ -64,8 +58,6 @@ export default function ModeRail() {
 
   return (
     <div className="rail">
-      <p className="rail-blurb">{BLURB[mode]}</p>
-
       <div
         ref={track}
         className="rail-track"
@@ -104,8 +96,6 @@ export default function ModeRail() {
           </button>
         ))}
       </div>
-
-      <p className="rail-hint" aria-hidden="true">scroll · drag · ← →</p>
     </div>
   )
 }

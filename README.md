@@ -33,10 +33,12 @@ npm run dev
 
 Then open the URL it prints (usually http://localhost:5173).
 
-The page never scrolls. Everything is driven by the rail at the foot of the
-room: **scroll the wheel, swipe, drag the rail, click a stop, or use the arrow
-keys.** All five do the same thing — walk the room from musician through
-linguist to engineer. Your last stop is remembered in `localStorage` under
+**The first screen is the hall, and scrolling it walks the lights** — musician,
+then linguist, then engineer. Dragging the rail, clicking a stop and the arrow
+keys all do the same thing. Past the last stop the wheel stops being
+intercepted and the page scrolls like any other page; coming back up to the top
+walks the rail in reverse, so the room is never something you can only pass
+through once. Your last stop is remembered in `localStorage` under
 `ivan-site-mode`; clear it if you want to see the first-load state again.
 
 ```bash
@@ -54,33 +56,33 @@ Everything you'll want to edit is a plain file. No CMS.
 Every section is its own route and opens as a panel over the hall, so each one
 has a URL you can link to directly.
 
-| What | Opens at | File |
-|---|---|---|
-| The centerpiece phrase (notes, syllables, tones) | — | `src/data/phrase.ts` |
-| The piano part, harmony, slurs | — | `src/data/piano.ts` |
-| Type scale, spacing, per-stop typography | — | `src/styles/tokens.css` |
-| Every colour, as three lighting keyframes | — | `src/lib/palette.ts` |
-| The hall, the Steinway, the baritone | — | `src/components/stage/StageScene.tsx` |
-| The one system both performers read | — | `src/components/stage/Score.tsx` |
-| The horizontal axis they share | — | `src/lib/beatmap.ts` |
-| Where the recording lines up with the score | — | `src/data/timing.ts` |
-| The vocal engraving, used in both places it appears | — | `src/components/score/VoiceStaff.tsx` |
-| Tone systems (Mandarin; Hakka stub) | — | `src/data/tones.ts` |
-| Bio, now, study, stack, the palette legend | `/about` | `src/sections/About.tsx` |
-| Roles, Cancer Society, projects | `/work` | `src/sections/Work.tsx` |
-| Recital room | `/recital` | `src/sections/Recital.tsx` |
-| The essay and the log | `/writing` | `src/pages/Writing.tsx` |
-| Log posts | `/writing/<slug>` | `src/content/log/*.md` |
-| Contact | `/contact` | `src/sections/Contact.tsx` |
+| What | File |
+|---|---|
+| The centerpiece phrase (notes, syllables, tones) | `src/data/phrase.ts` |
+| The piano part, harmony, slurs | `src/data/piano.ts` |
+| Where the recording lines up with the score | `src/data/timing.ts` |
+| Type scale, spacing, per-stop typography | `src/styles/tokens.css` |
+| Every colour, as three lighting keyframes | `src/lib/palette.ts` |
+| The hall, the Steinway, the baritone | `src/components/stage/StageScene.tsx` |
+| The one system both performers read | `src/components/stage/Score.tsx` |
+| The horizontal axis they share | `src/lib/beatmap.ts` |
+| Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
+| Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
+| The room, explained — the piece, the three readings | `src/sections/Room.tsx` |
+| Bio, languages, study, stack, the palette legend | `src/sections/About.tsx` |
+| Roles, Cancer Society, projects, service | `src/sections/Work.tsx` |
+| The essay, what he's reading toward, the log index | `src/sections/Writing.tsx` |
+| Contact | `src/sections/Contact.tsx` |
+| A log post on its own page | `src/pages/Post.tsx` |
+| The menu bar and its section list | `src/components/Menu.tsx` |
+| Log posts | `src/content/log/*.md` |
 
-**Five destinations, down from eleven.** The old set was mostly one thin page
-each — a four-line education page, a stack page, a now page — and a reader who
-opens "About" has already asked for all three. Nothing was deleted; it was
-merged. The eleven old URLs all redirect (see `MOVED` in `src/App.tsx`), so
-anyone's bookmark still lands somewhere real.
-
-Anything still needing your words renders as a loud dashed **needs your
-content** box. If a reader ever sees one of those, something shipped early.
+**One page, five anchors.** `#room`, `#about`, `#work`, `#writing`, `#contact`
+all live on `/`, and the menu bar — which arrives the moment the hall is behind
+you — is how you get back to any of them, the hall included. Every URL this site
+has ever had still works: the old panel routes redirect to the matching anchor
+(see `MOVED` in `src/App.tsx`), and `/log/<slug>` redirects to
+`/writing/<slug>`.
 
 ### Adding a log post
 
@@ -197,23 +199,33 @@ The Actions flow doesn't run Jekyll at all.)
 
 ---
 
+## How the page is shaped
+
+One scrolling page. The first screen is a hall — a Steinway, a baritone, and
+hanging over them the one system they are both reading. Below it, five bands:
+the room explained, about, work, writing, contact.
+
+**The hall takes the wheel, once.** While you are at the top of the page the
+wheel drives the rail instead of the document, so scrolling walks the three
+readings (`src/lib/hallScroll.ts`). At the last stop it lets go. There is a
+grace period when you arrive back at the top from below, because momentum from
+a flick keeps arriving for a few hundred milliseconds and without it the rail
+rewinds itself the instant you scroll back up.
+
+**The menu bar is not there while you are in the hall.** The hall is one screen
+with one control on it; a navigation bar across the top would be a second thing
+to read. It arrives as soon as you leave and then never goes away, and it marks
+which section you are in with an `IntersectionObserver` band in the upper third
+of the viewport.
+
+**The bands take the colour of the reading you chose.** Colour is a custom
+property on `<html>`, so if you leave the hall at the engineer stop the rest of
+the site is lit in steel; leave at musician and it is lit in warm gold. Nothing
+special makes this happen — it is the same lighting board.
+
 ## How the room works
 
-The front page is a hall: a Steinway, a baritone, and hanging over them the one
-system they are both reading. Nothing scrolls. One number — the rail position,
-0 to 1 — drives all of it at once.
-
-**It is one system, not two ribbons.** The voice staff sits directly above the
-piano's two, bracketed at the left the way a vocal score is, and neither staff
-lays itself out any more: both read their horizontal positions out of
-`src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both. The
-page is claiming these two are playing together, so the geometry had better say
-so — side by side, it said the opposite.
-
-The frame closes in and opens out as the rail moves (`FRAME` in `Score.tsx`).
-Notation is two compact staves; acoustics needs nearly twice the height. A
-viewBox big enough for the tallest reading left the staves shrunk and
-letterboxed at the stop most people land on.
+The hall is driven by one number: the rail position, 0 to 1.
 
 | Rail | Voice score | Piano score | The hall |
 |---|---|---|---|
@@ -221,19 +233,23 @@ letterboxed at the stop most people land on.
 | **linguist** | Mandarin tone contours | roman numerals, key regions | half light, plum dusk, tone marks in the air |
 | **engineer** | code encoding | frequency, wavelength, ratios | full cold wash, measured grid |
 
+**It is one system, not two ribbons.** The voice staff sits directly above the
+piano's two, bracketed at the left the way a vocal score is, and neither staff
+lays itself out: both read their horizontal positions out of
+`src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both. The
+page is claiming these two are playing together, so the geometry had better say
+so — side by side, it said the opposite.
+
 The important part: **the same `<ellipse>` elements are the noteheads, the tone
 contour onsets, and the data points.** Nothing crossfades between three separate
 graphics; the objects themselves move. The page is claiming that music, language
 and code are three views of one thing, so that had better be literally true in
 the DOM.
 
-**The engraving is one implementation, not two.** The sheet in the recital panel
-and the score hanging over the stage are the same two bars, so they come out of
-`src/components/score/VoiceStaff.tsx`: same spacing, same cut time, same
-barlines, augmentation dots, flags, the one slur across "Fremd", the closing
-rest. They were two renderers once and they drifted — the stage score lost every
-rhythm mark and showed nine undifferentiated noteheads, which is a different
-piece of music.
+The frame closes in and opens out as the rail moves (`FRAME` in `Score.tsx`).
+Notation is two compact staves; acoustics needs nearly twice the height. A
+viewBox big enough for the tallest reading left the staves shrunk and
+letterboxed at the stop most people land on.
 
 Notation is engraved from note *names*, not MIDI numbers, so F♯ and F land on
 the same staff line and the key signature does its job. Positions are diatonic:
@@ -264,23 +280,19 @@ and a half of the height, shoulders a quarter, legs just under half — are
 numbers rather than guesses.
 
 **On a phone** the hall would crop to the middle of the piano, so the stage
-becomes a band at the foot of the room framed on the performers, and the two
-scores stack.
+becomes a band at the foot of the screen framed on the performers, and the
+system sits above it.
 
 ## The three readings
 
 `musician`, `linguist`, `engineer`, set by the rail and remembered in
-`localStorage`. The wheel and a vertical swipe drive the same rail
-(`src/lib/railScroll.ts`) — the page has nothing else to scroll, so on a site
-this unusual a dead wheel reads as broken rather than as deliberate. Either one
-scrubs while the gesture is running and settles on the nearest stop when it
-ends, the same contract as dragging. It is switched off while a sheet is open,
-where the wheel belongs to the sheet.
+`localStorage`. The wheel, a vertical swipe, a drag, a click on a stop and the
+arrow keys all move it. Scrubbing is continuous and releasing always lands on a
+stop — leaving the house half-lit is a state nobody chose.
 
-The rail re-weights the navigation — destinations that belong to the current
-reading come forward, the rest recede — but it never hides anything, so no
-visitor can miss half the site by not touching a control. Route order and URLs
-never change, so deep links can't break.
+Nothing is gated behind a reading. Every section of the site is below the hall
+whatever the rail says, so no visitor can miss half the portfolio by not
+touching a control; the rail changes how the site is *lit*, not what is in it.
 
 `prefers-reduced-motion` turns the lighting cue into a cut: `mode.tsx` skips the
 tween and the CSS collapses every transition.
@@ -301,3 +313,8 @@ tween and the CSS collapses every transition.
 - `npm audit` reports two moderate advisories in `react-router-dom`. Worth a
   version bump; neither is exploitable in a static site with no server-side
   routing.
+- The Cancer Society work is described without the product name, the schema, or
+  anyone's name, which was Ivan's own call and is the right one. If he ever
+  wants the product named, that is a one-line change and his decision to make.
+- The résumé's GPA reads 4.10/4.00. That cannot be right on a 4.00 scale, and
+  the figure is deliberately not on the site.

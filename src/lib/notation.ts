@@ -119,47 +119,6 @@ export const isDotted = (beats: number) => [0.75, 1.5, 3, 6].includes(beats)
 /** Anything shorter than a quarter gets a flag. This phrase only has eighths. */
 export const hasFlag = (beats: number) => beats < 1
 
-export const totalBeats = (notes: Note[]) => notes.reduce((s, n) => s + n.beats, 0)
-
-/**
- * x positions for noteheads.
- *
- * Space is allocated per note as `beats ** 0.6`, not linearly. Strict
- * proportional spacing is what engravers call "mathematically correct and
- * visually wrong": an eighth next to a dotted quarter gets a third of the
- * room and the pair reads as cramped. The sub-linear curve is roughly what
- * hand engravers used, and it's why "ein Fremd" stops colliding.
- */
-export function beatXs(notes: { beats: number }[], x0: number, x1: number, exponent = 0.6) {
-  const w = notes.map((n) => Math.pow(n.beats, exponent))
-  const total = w.reduce((a, b) => a + b, 0)
-  let acc = 0
-  return notes.map((_, i) => {
-    const x = x0 + ((x1 - x0) * acc) / total
-    acc += w[i]
-    return x
-  })
-}
-
-export function barlineXs(
-  notes: Note[],
-  xs: number[],
-  pickup: number,
-  perBar: number,
-): number[] {
-  const out: number[] = []
-  let acc = 0
-  let nextBar = pickup > 0 ? pickup : perBar
-  for (let i = 0; i < notes.length; i++) {
-    acc += notes[i].beats
-    if (acc >= nextBar - 1e-9 && i < notes.length - 1) {
-      out.push((xs[i] + xs[i + 1]) / 2)
-      nextBar += perBar
-    }
-  }
-  return out
-}
-
 /** Contiguous index runs that share a melisma id. */
 export function melismaGroups(notes: Note[]): [number, number][] {
   const out: [number, number][] = []
