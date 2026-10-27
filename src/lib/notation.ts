@@ -198,58 +198,6 @@ export function needsAccidental(n: Note, keySharps: readonly string[]) {
   return true // naturals and flats always contradict something
 }
 
-/* ------------------------------------------------------------------
-   Hand-drawn feel.
-
-   The staff stays ruled — it's printed manuscript paper. Everything written
-   ON it wobbles: noteheads are slightly irregular blobs at varying angles,
-   stems bow a little and aren't quite vertical, flags vary. The variation is
-   deterministic (seeded by note id) so it never changes between renders or
-   flickers during the centerpiece morph.
-   ------------------------------------------------------------------ */
-
-/** Deterministic pseudo-random in [-1, 1] from a string seed and a salt. */
-export function wobble(seed: string, salt: number) {
-  let h = 2166136261
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  h = Math.imul(h ^ salt, 16777619)
-  h ^= h >>> 13
-  h = Math.imul(h, 1274126177)
-  h ^= h >>> 16
-  return ((h >>> 0) / 0xffffffff) * 2 - 1
-}
-
-/** A line with a slight bow, as if drawn by hand rather than ruled. */
-export function penLine(x1: number, y1: number, x2: number, y2: number, bow: number) {
-  const mx = (x1 + x2) / 2
-  const my = (y1 + y2) / 2
-  const dx = x2 - x1
-  const dy = y2 - y1
-  const len = Math.hypot(dx, dy) || 1
-  return `M ${x1},${y1} Q ${mx + (-dy / len) * bow},${my + (dx / len) * bow} ${x2},${y2}`
-}
-
-/**
- * An irregular notehead: four bezier quarters whose radii each vary a little,
- * so no two noteheads on the staff are quite the same shape. Drawn around the
- * origin — position and tilt it with a transform.
- */
-export function noteheadPath(rx: number, ry: number, seed: string) {
-  const k = 0.5523
-  const j = (salt: number) => 1 + wobble(seed, salt) * 0.14
-  const l = rx * j(1), r = rx * j(2), t = ry * j(3), b = ry * j(4)
-  return (
-    `M ${-l},0 ` +
-    `C ${-l},${-t * k} ${-r * k},${-t} 0,${-t} ` +
-    `C ${r * k},${-t} ${r},${-t * k} ${r},0 ` +
-    `C ${r},${b * k} ${r * k},${b} 0,${b} ` +
-    `C ${-l * k},${b} ${-l},${b * k} ${-l},0 Z`
-  )
-}
-
 /**
  * Cut time (alla breve): a C open to the right, spanning the middle two staff
  * spaces, with a vertical stroke through it. Built from two explicit beziers
@@ -322,4 +270,95 @@ export function ledgersFor(idx: number, bottomIdx: number, g: StaffGeom): number
   for (let i = bottomIdx - 2; i >= idx; i -= 2) out.push(stepYFrom(i, bottomIdx, g))
   for (let i = topIdx + 2; i <= idx; i += 2) out.push(stepYFrom(i, bottomIdx, g))
   return out
+}
+
+/* ------------------------------------------------------------------
+   Engraved marks.
+
+   Nothing here wobbles. An earlier version jittered every line with a
+   hash so the score looked hand-copied; at the sizes this page uses it
+   just read as imprecision, which is the opposite of what a score is
+   for. These are ruled.
+   ------------------------------------------------------------------ */
+
+/** True when a staff y sits ON a line rather than in a space. */
+export const onLine = (y: number, g: StaffGeom) =>
+  Math.round((g.bottomY - y) / (g.gap / 2)) % 2 === 0
+
+/** An augmentation dot never sits on a line, so a notehead on a line
+ *  pushes its dot up into the space above. */
+export const dotY = (y: number, g: StaffGeom) => (onLine(y, g) ? y - g.gap / 2 : y)
+
+/**
+ * Which noteheads of a chord have to leave the column.
+ *
+ * Two notes a second apart cannot share a column — they would overlap. One
+ * of the pair moves to the far side of the stem: with an up stem the UPPER
+ * note goes right, with a down stem the LOWER note goes left. `idxs` must be
+ * sorted low to high; the result is a displacement in notehead widths.
+ */
+export function clusterShifts(idxs: number[], dir: 'up' | 'down'): number[] {
+  const out = idxs.map(() => 0)
+  if (dir === 'up') {
+    for (let i = 1; i < idxs.length; i++) {
+      if (idxs[i] - idxs[i - 1] === 1 && out[i - 1] === 0) out[i] = 1
+    }
+  } else {
+    for (let i = idxs.length - 2; i >= 0; i--) {
+      if (idxs[i + 1] - idxs[i] === 1 && out[i + 1] === 0) out[i] = -1
+    }
+  }
+  return out
+}
+
+/** An eighth rest: the hook and the slanted stroke falling away from it. */
+export function eighthRestPath(x: number, g: StaffGeom) {
+  const u = g.gap
+  const y = g.bottomY - 2 * u
+  return (
+    `M ${x + 0.42 * u},${y - 0.85 * u} L ${x - 0.1 * u},${y + 0.95 * u} ` +
+    `M ${x + 0.42 * u},${y - 0.85 * u} C ${x + 0.1 * u},${y - 0.5 * u} ` +
+    `${x - 0.3 * u},${y - 0.42 * u} ${x - 0.46 * u},${y - 0.66 * u}`
+  )
+}
+
+export type AccidentalKind = 'sharp' | 'flat' | 'natural'
+
+/**
+ * Accidentals as stroked line-art, in the same idiom as the clefs. Returned
+ * as a list of subpaths so a caller can set one stroke width for the lot.
+ */
+export function accidentalPaths(kind: AccidentalKind, x: number, y: number, g: StaffGeom): string[] {
+  const u = g.gap
+  if (kind === 'flat') {
+    return [
+      `M ${x - 0.2 * u},${y - 1.3 * u} L ${x - 0.2 * u},${y + 0.45 * u}`,
+      `M ${x - 0.2 * u},${y + 0.45 * u} C ${x + 0.5 * u},${y + 0.02 * u} ` +
+        `${x + 0.46 * u},${y - 0.45 * u} ${x - 0.2 * u},${y - 0.08 * u}`,
+    ]
+  }
+  if (kind === 'natural') {
+    return [
+      `M ${x - 0.22 * u},${y - 0.58 * u} L ${x - 0.22 * u},${y + 0.98 * u}`,
+      `M ${x + 0.22 * u},${y - 0.98 * u} L ${x + 0.22 * u},${y + 0.58 * u}`,
+      `M ${x - 0.22 * u},${y - 0.26 * u} L ${x + 0.22 * u},${y - 0.42 * u}`,
+      `M ${x - 0.22 * u},${y + 0.3 * u} L ${x + 0.22 * u},${y + 0.14 * u}`,
+    ]
+  }
+  return [
+    `M ${x - 0.18 * u},${y - 0.78 * u} L ${x - 0.18 * u},${y + 0.92 * u}`,
+    `M ${x + 0.18 * u},${y - 0.92 * u} L ${x + 0.18 * u},${y + 0.78 * u}`,
+    `M ${x - 0.44 * u},${y - 0.2 * u} L ${x + 0.44 * u},${y - 0.38 * u}`,
+    `M ${x - 0.44 * u},${y + 0.36 * u} L ${x + 0.44 * u},${y + 0.18 * u}`,
+  ]
+}
+
+/** How far the clef, key signature and time signature reach before the
+ *  first notehead. Shared so every staff on the site starts in the same
+ *  place and the two voice scores stay in step. */
+export const HEAD_X = {
+  clef: (g: StaffGeom) => g.gap * 0.6,
+  keySig: (g: StaffGeom) => g.gap * 5.3,
+  time: (g: StaffGeom) => g.gap * 8.2,
+  firstNote: (g: StaffGeom) => g.gap * 11.5,
 }

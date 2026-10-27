@@ -10,12 +10,14 @@ import { useNavigate } from 'react-router-dom'
  * to the room.
  */
 export default function Panel({
-  title, children, wide = false,
+  title, index, children, wide = false,
 }: {
   /** Names the sheet for assistive tech and labels its header. The section
    *  inside keeps its own heading — the header here stays a small label so
    *  the two don't say the same thing twice. */
   title: string
+  /** Its place in the index — the same number the navigation shows. */
+  index?: string
   children: React.ReactNode
   wide?: boolean
 }) {
@@ -56,7 +58,9 @@ export default function Panel({
         tabIndex={-1}
       >
         <header className="panel-head">
-          <p className="panel-eyebrow">{title}</p>
+          <p className="panel-eyebrow">
+            {index && <span className="panel-num">{index}</span>}{title}
+          </p>
           <button type="button" className="panel-close" onClick={close} aria-label="Close">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor"

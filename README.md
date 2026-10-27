@@ -7,6 +7,13 @@ No CSS framework and no animation library. The front page is a drawn concert
 hall; the scores on it are hand-rolled SVG, which is both smaller and more
 honest than crossfading three graphics (see below).
 
+**Two typefaces, and no third.** Cabinet Grotesk (Fontshare, loaded in
+`index.html`) sets everything that is read; Commit Mono (self-hosted via
+`@fontsource/commit-mono`) sets everything that is measured — labels, data,
+roman numerals, frequencies. Cabinet Grotesk ships no italic, so nothing in
+the CSS asks for one: `em` carries weight instead, because a synthesised
+oblique on a grotesk reads as a rendering fault.
+
 ---
 
 ## Running it locally
@@ -19,9 +26,10 @@ npm run dev
 Then open the URL it prints (usually http://localhost:5173).
 
 The page never scrolls. Everything is driven by the rail at the foot of the
-room — drag it to scrub the lights and both scores continuously, or click a
-stop. Your last stop is remembered in `localStorage` under `ivan-site-mode`;
-clear it if you want to see the first-load state again.
+room: **scroll the wheel, swipe, drag the rail, click a stop, or use the arrow
+keys.** All five do the same thing — walk the room from musician through
+linguist to engineer. Your last stop is remembered in `localStorage` under
+`ivan-site-mode`; clear it if you want to see the first-load state again.
 
 ```bash
 npm run build      # type-checks, then builds to dist/
@@ -41,19 +49,24 @@ has a URL you can link to directly.
 | What | Opens at | File |
 |---|---|---|
 | The centerpiece phrase (notes, syllables, tones) | — | `src/data/phrase.ts` |
+| The piano part, harmony, slurs | — | `src/data/piano.ts` |
 | Type scale, spacing, per-stop typography | — | `src/styles/tokens.css` |
 | Every colour, as three lighting keyframes | — | `src/lib/palette.ts` |
 | The hall, the Steinway, the baritone | — | `src/components/stage/StageScene.tsx` |
+| The vocal engraving, used in both places it appears | — | `src/components/score/VoiceStaff.tsx` |
 | Tone systems (Mandarin; Hakka stub) | — | `src/data/tones.ts` |
-| About / bio | `/about` | `src/sections/About.tsx` |
-| Work experience | `/work` | `src/sections/Work.tsx` |
-| Cancer Society | `/impact` | `src/sections/Impact.tsx` |
-| Projects | `/projects` | `src/sections/Projects.tsx` |
+| Bio, now, study, stack, the palette legend | `/about` | `src/sections/About.tsx` |
+| Roles, Cancer Society, projects | `/work` | `src/sections/Work.tsx` |
 | Recital room | `/recital` | `src/sections/Recital.tsx` |
-| Education, skills, contact | `/education` `/skills` `/contact` | `src/sections/{Education,Skills,Contact}.tsx` |
-| How I think | `/how-i-think` | `src/pages/HowIThink.tsx` |
-| Now page | `/now` | `src/pages/Now.tsx` |
-| Log posts | `/log` | `src/content/log/*.md` |
+| The essay and the log | `/writing` | `src/pages/Writing.tsx` |
+| Log posts | `/writing/<slug>` | `src/content/log/*.md` |
+| Contact | `/contact` | `src/sections/Contact.tsx` |
+
+**Five destinations, down from eleven.** The old set was mostly one thin page
+each — a four-line education page, a stack page, a now page — and a reader who
+opens "About" has already asked for all three. Nothing was deleted; it was
+merged. The eleven old URLs all redirect (see `MOVED` in `src/App.tsx`), so
+anyone's bookmark still lands somewhere real.
 
 Anything still needing your words renders as a loud dashed **needs your
 content** box. If a reader ever sees one of those, something shipped early.
@@ -74,7 +87,7 @@ draft: false
 Body in normal markdown.
 ```
 
-Filename becomes the URL (`my-post.md` → `/log/my-post`). Posts sort by date,
+Filename becomes the URL (`my-post.md` → `/writing/my-post`). Posts sort by date,
 newest first. `draft: true` still renders but is labelled.
 
 ### Adding audio to the recital room
@@ -159,7 +172,7 @@ drives all of it at once.
 | Rail | Voice score | Piano score | The hall |
 |---|---|---|---|
 | **musician** | bass-clef notation | grand staff | house lights down, one warm pool |
-| **linguist** | Mandarin tone contours | roman numerals, key regions | half light, plum dusk |
+| **linguist** | Mandarin tone contours | roman numerals, key regions | half light, plum dusk, tone marks in the air |
 | **engineer** | code encoding | frequency, wavelength, ratios | full cold wash, measured grid |
 
 The important part: **the same `<ellipse>` elements are the noteheads, the tone
@@ -168,9 +181,27 @@ graphics; the objects themselves move. The page is claiming that music, language
 and code are three views of one thing, so that had better be literally true in
 the DOM.
 
+**The engraving is one implementation, not two.** The sheet in the recital panel
+and the score hanging over the stage are the same two bars, so they come out of
+`src/components/score/VoiceStaff.tsx`: same spacing, same cut time, same
+barlines, augmentation dots, flags, the one slur across "Fremd", the closing
+rest. They were two renderers once and they drifted — the stage score lost every
+rhythm mark and showed nine undifferentiated noteheads, which is a different
+piece of music.
+
 Notation is engraved from note *names*, not MIDI numbers, so F♯ and F land on
 the same staff line and the key signature does its job. Positions are diatonic:
-bass clef, bottom line G2, one staff step = half a line gap.
+bass clef, bottom line G2, one staff step = half a line gap. Nothing wobbles —
+an earlier version jittered every line with a hash so the score looked
+hand-copied, and at these sizes that just read as imprecision.
+
+Three engraving rules in the piano part that a reader notices immediately if
+you break them: two notes a second apart cannot share a column, so one of the
+pair crosses the stem (`clusterShifts`); an accidental holds for the rest of its
+bar at that staff position, so the D♯ on the first beamed chord is written and
+the identical one on the second is not; and a pitch altered in the previous bar
+gets a cautionary sign when it reverts, which is the natural on the first chord
+of bar 2 undoing that D♯.
 
 **The lighting board** is `src/lib/palette.ts`. Three keyframes, and every lit
 value is interpolated between them and written onto `<html>` as a custom
@@ -193,10 +224,17 @@ scores stack.
 ## The three readings
 
 `musician`, `linguist`, `engineer`, set by the rail and remembered in
-`localStorage`. The rail re-weights the navigation — destinations that belong to
-the current reading come forward, the rest recede — but it never hides anything,
-so no visitor can miss half the site by not touching a control. Route order and
-URLs never change, so deep links can't break.
+`localStorage`. The wheel and a vertical swipe drive the same rail
+(`src/lib/railScroll.ts`) — the page has nothing else to scroll, so on a site
+this unusual a dead wheel reads as broken rather than as deliberate. Either one
+scrubs while the gesture is running and settles on the nearest stop when it
+ends, the same contract as dragging. It is switched off while a sheet is open,
+where the wheel belongs to the sheet.
+
+The rail re-weights the navigation — destinations that belong to the current
+reading come forward, the rest recede — but it never hides anything, so no
+visitor can miss half the site by not touching a control. Route order and URLs
+never change, so deep links can't break.
 
 `prefers-reduced-motion` turns the lighting cue into a cut: `mode.tsx` skips the
 tween and the CSS collapses every transition.
@@ -206,7 +244,9 @@ tween and the CSS collapses every transition.
 - The piano chord voicings in `src/data/piano.ts` are **measured off a
   screenshot, not transcribed** — see `PIANO_UNVERIFIED`. The pitches are good
   (the same pipeline reproduced the vocal line exactly) but a MusicXML or MIDI
-  export would make the voicings certain. The vocal line is confirmed.
+  export would make the voicings certain. The vocal line is confirmed. The one
+  phrasing slur in `SLURS` is visible in Ivan's score image but where it ends
+  is read, not measured.
 - Chinese text falls back to a system CJK face. Ship a subsetted `LXGW WenKai`
   containing only the glyphs used — the full font is several megabytes.
 - `react-markdown` is most of the ~128 KB gzipped bundle. If the log stays

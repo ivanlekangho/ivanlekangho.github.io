@@ -93,6 +93,16 @@ export const HARMONY: HarmonyStep[] = [
   { atBeat: 6.5, beats: 1.0, numeral: 'I',      name: 'D major',      key: 'D' },
 ]
 
+/**
+ * Phrasing slurs in the accompaniment, by onset beat. Only one is visible in
+ * the score image Ivan sent: it opens on the first chord of bar 2 and carries
+ * across the rest of the bar. Where it ends is the one part of this that is
+ * read rather than measured.
+ */
+export const SLURS: { hand: 'rh' | 'lh'; from: number; to: number }[] = [
+  { hand: 'rh', from: 4.5, to: 6.5 },
+]
+
 export const PIANO_PIECE = {
   startKey: 'B minor',
   endKey: 'D major',

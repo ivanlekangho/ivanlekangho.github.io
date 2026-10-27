@@ -68,30 +68,40 @@
   --t4-wash: #F5E4E0;  --t4-mid: #DFA69D;  --t4-deep: #9C4F47;
   --t0-wash: #F1EDE7;  --t0-mid: #C9BFB4;  --t0-deep: #6E6259;
 
-  /* --- type ------------------------------------------------------- */
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-body:    'Karla', system-ui, -apple-system, sans-serif;
-  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* --- type -------------------------------------------------------
+     Two faces, and no third. Cabinet Grotesk sets everything that is
+     read; Commit Mono sets everything that is measured — labels, data,
+     frequencies, roman numerals. Cabinet Grotesk ships no italic, so
+     emphasis is carried by weight and colour instead of a synthesised
+     oblique, which on a grotesk looks like a mistake.
+     ------------------------------------------------------------------ */
+  --font-display: 'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-body:    'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    'Commit Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   /* TODO(font): the Mandarin line renders in a system CJK face for now.
      Ship a subsetted LXGW WenKai containing only the glyphs actually used
      (我处处皆为异客 …) — the full font is several megabytes. */
   --font-han: 'LXGW WenKai', 'Noto Serif CJK SC', 'Songti SC', 'Source Han Serif SC', serif;
 
-  /* Fluid modular scale, ~1.25 at small widths opening to ~1.33 */
-  --step--1: clamp(0.80rem, 0.78rem + 0.10vw, 0.86rem);
-  --step-0:  clamp(1.00rem, 0.96rem + 0.20vw, 1.10rem);
-  --step-1:  clamp(1.25rem, 1.17rem + 0.40vw, 1.46rem);
-  --step-2:  clamp(1.56rem, 1.41rem + 0.75vw, 1.95rem);
-  --step-3:  clamp(1.95rem, 1.68rem + 1.35vw, 2.59rem);
-  --step-4:  clamp(2.44rem, 1.98rem + 2.30vw, 3.45rem);
-  --step-5:  clamp(3.05rem, 2.28rem + 3.85vw, 4.60rem);
+  /* Fluid modular scale, ~1.25 at small widths opening to ~1.33. The top
+     of it is deliberately far from the bottom: the scale IS the hierarchy
+     here, since there is no second typeface to carry it. */
+  --step--1: clamp(0.78rem, 0.76rem + 0.10vw, 0.84rem);
+  --step-0:  clamp(1.00rem, 0.96rem + 0.20vw, 1.08rem);
+  --step-1:  clamp(1.22rem, 1.14rem + 0.40vw, 1.44rem);
+  --step-2:  clamp(1.52rem, 1.37rem + 0.75vw, 1.92rem);
+  --step-3:  clamp(1.90rem, 1.63rem + 1.35vw, 2.56rem);
+  --step-4:  clamp(2.38rem, 1.92rem + 2.30vw, 3.42rem);
+  --step-5:  clamp(2.70rem, 1.70rem + 4.60vw, 5.25rem);
 
   /* --- space & shape --------------------------------------------- */
   --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;
   --space-4: 1rem;    --space-5: 1.5rem;  --space-6: 2rem;
   --space-7: 3rem;    --space-8: 4.5rem;  --space-9: 7rem;
-  --radius:   8px;
-  --radius-lg: 14px;
+  /* Sharp. A rounded corner is the single fastest way to make a page
+     look like every other page; the room is built out of hairlines. */
+  --radius:   0px;
+  --radius-lg: 2px;
   --measure: 34rem;
   --gutter: clamp(1.25rem, 5vw, 4.5rem);
   --max-w: 72rem;
@@ -109,29 +119,29 @@
    Same DOM order in every mode: anchors never break.
    ============================================================ */
 
-/* Warm, rounded terminals, generous tracking. Reads as programme note. */
+/* Light and open. Large display type set thin reads as a programme cover. */
 html[data-mode='musician'] {
-  --display-soft: 100; --display-wonk: 1; --display-weight: 400;
-  --display-tracking: -0.013em; --display-leading: 1.06;
-  --label-tracking: 0.16em;
+  --display-weight: 300;
+  --display-tracking: -0.018em; --display-leading: 1.02;
+  --label-tracking: 0.18em;
   --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 11px);
   --motif-size: 100% 55px;
 }
 
-/* The language stop: slightly tighter, a shade more upright. Pinyin and
-   Han sit next to Latin here, and wonk makes the mix look unsteady. */
+/* The language stop: a shade more body, because pinyin and Han sit beside
+   Latin here and a thin grotesk loses against a Han glyph. */
 html[data-mode='linguist'] {
-  --display-soft: 50; --display-wonk: 0; --display-weight: 450;
-  --display-tracking: -0.020em; --display-leading: 1.04;
-  --label-tracking: 0.13em;
+  --display-weight: 400;
+  --display-tracking: -0.024em; --display-leading: 1.00;
+  --label-tracking: 0.14em;
   --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 13px);
   --motif-size: 100% 65px;
 }
 
-/* Sharp terminals, tight tracking, mono labels. */
+/* Structural. Heavier, tighter, closer to a drawing title block. */
 html[data-mode='engineer'] {
-  --display-soft: 0; --display-wonk: 0; --display-weight: 600;
-  --display-tracking: -0.030em; --display-leading: 1.02;
+  --display-weight: 500;
+  --display-tracking: -0.034em; --display-leading: 0.98;
   --label-tracking: 0.10em;
   --motif:
     repeating-linear-gradient(to bottom, var(--panel-rule) 0 0.75px, transparent 0.75px 16px),

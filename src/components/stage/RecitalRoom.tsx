@@ -1,5 +1,7 @@
+import { useLocation } from 'react-router-dom'
 import { PIECE } from '../../data/phrase'
 import { useMode } from '../../lib/mode'
+import { useRailScroll } from '../../lib/railScroll'
 import ModeRail from '../ModeRail'
 import PianoRibbon from './PianoRibbon'
 import StageScene from './StageScene'
@@ -15,10 +17,14 @@ import { STATE_LABELS, staging } from './staging'
  * notation to harmony to physics — and brings the house lights up as it
  * goes. They change together because it's one performance, not two widgets.
  *
- * Nothing scrolls. Sections arrive as lit sheets over the top (Panel).
+ * The wheel drives the same rail, so scrolling walks the room. It is
+ * switched off while a sheet is open, where the wheel belongs to the sheet.
  */
 export default function RecitalRoom() {
   const { pos } = useMode()
+  const atHome = useLocation().pathname === '/'
+  useRailScroll(atHome)
+
   const s = staging(pos)
   const labels = STATE_LABELS[s.index]
 
@@ -28,18 +34,19 @@ export default function RecitalRoom() {
 
       <div className="room-head">
         <p className="room-piece">
-          Schubert · <em>{PIECE.title}</em>, {PIECE.catalogue}
-          <span>“{PIECE.german}”</span>
+          <span className="room-piece-work">{PIECE.title}</span>
+          <span className="room-piece-meta">Schubert · {PIECE.catalogue} · {PIECE.key}</span>
+          <span className="room-piece-line">{PIECE.german}</span>
         </p>
       </div>
 
       <div className="room-ribbons">
         <figure className="room-ribbon">
-          <figcaption className="room-ribbon-tag">Piano — <span>{labels.piano}</span></figcaption>
+          <figcaption className="room-ribbon-tag">Piano<span>{labels.piano}</span></figcaption>
           <PianoRibbon p={pos} />
         </figure>
         <figure className="room-ribbon">
-          <figcaption className="room-ribbon-tag">Voice — <span>{labels.voice}</span></figcaption>
+          <figcaption className="room-ribbon-tag">Voice<span>{labels.voice}</span></figcaption>
           <VoiceRibbon p={pos} />
         </figure>
       </div>

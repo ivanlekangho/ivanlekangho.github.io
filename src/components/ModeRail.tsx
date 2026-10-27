@@ -5,10 +5,10 @@ import { MODES, STOP_AT, type Mode } from '../lib/palette'
 /**
  * The dimmer.
  *
- * This is the most important control on the site, so it is a rail rather
- * than a button: three stops you can click, or drag between to scrub the
- * lights and both scores continuously. Releasing always lands on a stop —
- * leaving the house half-lit is a state nobody chose.
+ * The most important control on the site, so it is a rail rather than a
+ * button: three stops you can click, drag between, or reach with the
+ * wheel. Releasing always lands on a stop — leaving the house half-lit is
+ * a state nobody chose.
  *
  *   musician   score as written, house lights down
  *   linguist   Mandarin tone and harmony, lights to half
@@ -100,10 +100,12 @@ export default function ModeRail() {
             aria-pressed={m === mode}
             onClick={() => goTo(m)}
           >
-            {m}
+            <span className="rail-stop-num">{`0${i + 1}`}</span>{m}
           </button>
         ))}
       </div>
+
+      <p className="rail-hint" aria-hidden="true">scroll · drag · ← →</p>
     </div>
   )
 }

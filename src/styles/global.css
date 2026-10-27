@@ -18,30 +18,34 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ============================================================
+   Type
+
+   Cabinet Grotesk has no italic, so nothing here asks for one: a
+   synthesised oblique on a grotesk looks like a rendering fault. Work
+   titles and emphasis carry weight and colour instead.
+   ============================================================ */
 h1, h2, h3, .display {
   font-family: var(--font-display);
-  font-variation-settings:
-    'SOFT' var(--display-soft), 'WONK' var(--display-wonk), 'opsz' 100;
   font-weight: var(--display-weight);
   letter-spacing: var(--display-tracking);
   line-height: var(--display-leading);
   margin: 0 0 var(--space-4);
-  transition: font-variation-settings var(--dur) var(--ease),
-              letter-spacing var(--dur) var(--ease);
+  transition: font-weight var(--dur) var(--ease), letter-spacing var(--dur) var(--ease);
 }
 h1 { font-size: var(--step-4); }
 h2 { font-size: var(--step-2); }
 h3 { font-size: var(--step-1); }
+em, i, cite { font-style: normal; font-weight: 500; }
 
 p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 a { color: var(--accent-deep); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
 a:hover { text-decoration-thickness: 2px; }
 
-code, kbd, pre { font-family: var(--font-mono); font-size: 0.92em; }
+code, kbd, pre { font-family: var(--font-mono); font-size: 0.9em; }
 pre {
   background: var(--paper-2); border: 1px solid var(--rule);
-  border-radius: var(--radius); padding: var(--space-4);
-  overflow-x: auto; line-height: 1.55;
+  padding: var(--space-4); overflow-x: auto; line-height: 1.55;
 }
 :lang(zh), .han { font-family: var(--font-han); }
 
@@ -49,18 +53,16 @@ pre {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
 
 .eyebrow {
   font-family: var(--font-mono); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-3); margin-bottom: var(--space-3);
 }
-.lede { font-size: var(--step-1); color: var(--ink-2); max-width: 30rem; }
+.lede { font-size: var(--step-1); color: var(--ink-2); max-width: 32rem; line-height: 1.45; }
 .muted { color: var(--ink-2); }
-.rule-short { height: 1px; width: 3.75rem; background: var(--accent-mid); margin: var(--space-4) 0 var(--space-5); }
 .motif { background-image: var(--motif); background-size: var(--motif-size); }
-.motif-divider { height: 55px; opacity: 0.6; margin-block: var(--space-6); }
 
 /* ============================================================
    The hall
@@ -77,22 +79,29 @@ pre {
   display: block; z-index: 0;
 }
 
-/* Right-aligned so it clears the name in the top-left corner. */
+/* Hung in the top-right corner, clear of the name in the top-left. The
+   title is set large and the apparatus small underneath it — a programme
+   cover, not a caption. */
 .room-head {
-  position: relative; z-index: 1; text-align: right;
+  position: relative; z-index: 1;
   padding: var(--space-5) clamp(3.5rem, 7vw, 5rem) 0 var(--space-5);
+  display: flex; justify-content: flex-end;
 }
-.room-piece {
-  font-family: var(--font-mono); font-size: var(--step--1);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--ink-3); margin: 0 0 0 auto; max-width: 26ch;
+.room-piece { margin: 0; text-align: right; max-width: 30ch; display: grid; gap: 2px; }
+.room-piece-work {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-size: var(--step-2); letter-spacing: var(--display-tracking); color: var(--ink);
 }
-.room-piece em { font-style: italic; text-transform: none; letter-spacing: 0.02em; color: var(--ink-2); }
-.room-piece span { display: block; text-transform: none; letter-spacing: 0.02em; }
+.room-piece-meta,
+.room-piece-line {
+  font-family: var(--font-mono); font-size: var(--step--1); color: var(--ink-3);
+}
+.room-piece-meta { letter-spacing: var(--label-tracking); text-transform: uppercase; }
+.room-piece-line { color: var(--ink-2); }
 
 /* The two scores hang in the air over the performer each belongs to: the
    piano's on the left above the instrument, the voice's on the right
-   above the singer. They are what the threads in the stage lead up to. */
+   above the singer. */
 .room-ribbons {
   position: relative; z-index: 1;
   display: grid; grid-template-columns: 1fr 1fr;
@@ -103,11 +112,13 @@ pre {
 .room-ribbon { margin: 0; min-width: 0; }
 .room-ribbon svg { max-height: 30vh; width: 100%; }
 .room-ribbon-tag {
+  display: flex; align-items: baseline; gap: var(--space-3);
   font-family: var(--font-mono); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-3); margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule); padding-bottom: 4px;
 }
-.room-ribbon-tag span { color: var(--accent); }
+.room-ribbon-tag span { margin-left: auto; color: var(--accent); }
 
 .room-foot {
   position: relative; z-index: 2;
@@ -118,73 +129,84 @@ pre {
 .brand-mark {
   position: fixed; z-index: 40;
   top: clamp(0.75rem, 2vw, 1.5rem); left: clamp(0.9rem, 3vw, 2.5rem);
-  font-family: var(--font-display);
-  font-variation-settings: 'SOFT' var(--display-soft), 'opsz' 40;
-  font-size: var(--step-1); color: var(--ink); text-decoration: none;
+  text-decoration: none; display: grid; gap: 1px;
 }
-.brand-mark small {
-  display: block; font-family: var(--font-mono); font-size: var(--step--1);
+.brand-name {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: var(--step-1); letter-spacing: -0.02em; color: var(--ink);
+}
+.brand-sub {
+  font-family: var(--font-mono); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--ink-3);
 }
 
 /* ============================================================
    The dimmer
    ============================================================ */
-.rail { width: min(30rem, 76vw); text-align: center; }
+.rail { width: min(32rem, 78vw); text-align: center; }
 .rail-blurb {
-  font-family: var(--font-display);
-  font-variation-settings: 'SOFT' var(--display-soft), 'opsz' 60;
-  font-size: var(--step-1); color: var(--ink);
-  margin: 0 0 var(--space-4); max-width: none;
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-size: var(--step-2); letter-spacing: var(--display-tracking);
+  color: var(--ink); margin: 0 0 var(--space-4); max-width: none;
 }
-.rail-track {
-  position: relative; height: 28px; cursor: grab; touch-action: none;
-}
+.rail-track { position: relative; height: 26px; cursor: grab; touch-action: none; }
 .rail-track:active { cursor: grabbing; }
-.rail-line, .rail-fill {
-  position: absolute; top: 13px; left: 0; height: 2px; border-radius: 2px;
-}
+.rail-line, .rail-fill { position: absolute; top: 12px; left: 0; height: 1px; }
 .rail-line { right: 0; background: var(--rule); }
 .rail-fill { background: var(--accent); }
 .rail-tick {
-  position: absolute; top: 10px; width: 8px; height: 8px; margin-left: -4px;
-  border-radius: 50%; background: var(--rule);
+  position: absolute; top: 9px; width: 7px; height: 7px; margin-left: -3.5px;
+  background: var(--rule); transform: rotate(45deg);
 }
 .rail-knob {
-  position: absolute; top: 4px; width: 20px; height: 20px; margin-left: -10px;
-  border-radius: 50%; background: var(--accent);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent);
+  position: absolute; top: 5px; width: 15px; height: 15px; margin-left: -7.5px;
+  background: var(--accent); transform: rotate(45deg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-.rail-stops { position: relative; height: 1.6rem; margin-top: var(--space-2); }
+.rail-stops { position: relative; height: 1.5rem; margin-top: var(--space-3); }
 .rail-stop {
   position: absolute; top: 0; transform: translateX(-50%);
+  display: flex; align-items: baseline; gap: 6px;
   font: inherit; font-family: var(--font-mono); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   background: none; border: 0; padding: 2px 4px; cursor: pointer;
   color: var(--ink-3);
   transition: color var(--dur-ui) var(--ease);
 }
-.rail-stop:first-child { transform: translateX(-12%); }
-.rail-stop:last-child  { transform: translateX(-88%); }
+.rail-stop-num { color: var(--ink-3); opacity: 0.6; }
+.rail-stop:first-child { transform: translateX(-10%); }
+.rail-stop:last-child  { transform: translateX(-90%); }
 .rail-stop:hover { color: var(--ink-2); }
 .rail-stop.is-on { color: var(--accent); }
+.rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
+.rail-hint {
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-3); opacity: 0.55;
+  margin: var(--space-4) 0 0; max-width: none;
+}
 
 /* ============================================================
    Panels — a section as a lit sheet over the hall
    ============================================================ */
-.panel-layer { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; }
-.panel-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
+.panel-layer {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  /* The index runs down the right edge of the room and stays live while a
+     sheet is open, so the sheet is centred in what's left rather than
+     sliding under it. */
+  padding-right: var(--nav-gutter, 0px);
+}
+.panel-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.6); }
 
 .panel {
   position: relative;
-  width: min(46rem, calc(100vw - 2 * var(--space-5)));
-  max-height: min(82vh, 56rem);
+  width: min(46rem, calc(100% - 2 * var(--space-5)));
+  max-height: min(84vh, 58rem);
   display: flex; flex-direction: column;
   background: var(--panel);
   color: var(--panel-ink);
   border-radius: var(--radius-lg);
-  box-shadow: 0 32px 80px rgb(0 0 0 / 0.55), 0 2px 0 rgb(255 255 255 / 0.06) inset;
-  animation: panel-in 320ms var(--ease) both;
+  box-shadow: 0 40px 90px rgb(0 0 0 / 0.6);
+  animation: panel-in 300ms var(--ease) both;
 
   /* inside the sheet, paper is paper again, so the sections keep working */
   --ink: var(--panel-ink);
@@ -199,138 +221,244 @@ pre {
   --accent-mid: color-mix(in srgb, var(--panel-accent) 42%, var(--panel));
   --accent-wash: color-mix(in srgb, var(--panel-accent) 12%, var(--panel));
 }
-.panel-wide { width: min(62rem, calc(100vw - 2 * var(--space-5))); }
+.panel-wide { width: min(66rem, calc(100% - 2 * var(--space-5))); }
 
 @keyframes panel-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
 
 .panel-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-5) var(--space-6) var(--space-4);
+  padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--panel-rule);
 }
 .panel-eyebrow {
+  display: flex; align-items: baseline; gap: var(--space-4);
   font-family: var(--font-mono); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--panel-accent); margin: 0 0 var(--space-1);
+  color: var(--panel-ink-2); margin: 0;
 }
-.panel-title {
-  font-size: var(--step-2); margin: 0; color: var(--panel-ink);
-}
+.panel-num { color: var(--panel-accent); }
 .panel-close {
   flex: none; display: grid; place-items: center;
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 32px; height: 32px;
   background: none; border: 1px solid var(--panel-rule);
   color: var(--panel-ink-2); cursor: pointer;
   transition: background var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
 }
 .panel-close:hover { background: var(--accent-wash); color: var(--panel-accent); }
 
-.panel-body { padding: var(--space-5) var(--space-6) var(--space-6); overflow-y: auto; }
+.panel-body { padding: var(--space-7) var(--space-6) var(--space-8); overflow-y: auto; }
 
-/* Sections were written as full-page bands. Inside a sheet they are just
-   the content, so the band chrome is taken back off here rather than
-   forked into a second copy of every section. */
-.panel .section { padding-block: 0; }
-.panel .section + .section { border-top: 0; }
-.panel .shell { padding-inline: 0; max-width: none; }
-.panel .section > .shell > h1:first-child,
-.panel .section > .shell > .eyebrow:first-child { margin-top: 0; }
-.panel h1 { font-size: var(--step-3); }
+/* ============================================================
+   Editorial layout inside a sheet
 
-/* --- things that live on a sheet --------------------------------- */
-.card {
-  background: var(--paper-2); border: 1px solid var(--rule);
-  border-radius: var(--radius-lg); padding: var(--space-5);
-  transition: border-color var(--dur-ui) var(--ease);
+   Headings hang in a left margin beside the material they introduce, and
+   the material runs in one measured column. No centred stacks, no card
+   grids, no rounded boxes — the structure is made of hairlines.
+   ============================================================ */
+.section { display: grid; gap: 0; }
+
+@media (min-width: 60rem) {
+  .panel-wide .section {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    column-gap: var(--space-7);
+  }
+  .panel-wide .section > * { grid-column: 2; }
+  .panel-wide .section > h1 { grid-column: 1 / -1; }
+  .panel-wide .section > .h-rule { grid-column: 1; }
+  /* The heading and the block it introduces share a grid row, so they
+     need the same top margin or the heading floats below its own
+     material. */
+  .panel-wide .section > .h-rule + * { margin-top: var(--space-8); }
 }
-.card:hover { border-color: var(--accent-mid); }
-.grid { display: grid; gap: var(--space-4); }
-@media (min-width: 48rem) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+.h-hero {
+  font-size: var(--step-5);
+  max-width: 16ch;
+  margin: 0 0 var(--space-6);
+}
+.h-rule {
+  font-family: var(--font-mono); font-weight: 400;
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--panel-accent);
+  margin: var(--space-8) 0 var(--space-4);
+  padding-top: var(--space-3); border-top: 1px solid var(--rule);
+}
+.panel-wide .h-rule { border-top: 0; padding-top: 0; }
+
+.prose p { max-width: var(--measure); }
+.pull {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-size: var(--step-3); letter-spacing: var(--display-tracking);
+  line-height: 1.1; color: var(--ink); max-width: 20ch;
+  margin: var(--space-6) 0 var(--space-2);
+}
+.pull-gloss {
+  font-family: var(--font-mono); font-size: var(--step--1);
+  letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: var(--space-6);
+}
+.colophon {
+  font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.7;
+  color: var(--ink-3); margin-top: var(--space-8);
+  padding-top: var(--space-4); border-top: 1px solid var(--rule);
+}
+
+/* --- the vertical index: a contents list, not a card grid -------- */
+.index { list-style: none; margin: 0 0 var(--space-5); padding: 0; }
+.index-row {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--rule);
+}
+.index-row:last-child { border-bottom: 1px solid var(--rule); }
+.index-main { font-size: var(--step-0); color: var(--ink); font-weight: 500; }
+.index-main a { color: inherit; text-decoration: none; }
+.index-main a:hover { color: var(--accent-deep); text-decoration: underline; }
+.index-sub { color: var(--ink-2); font-size: var(--step--1); line-height: 1.5; }
+.index-meta {
+  font-family: var(--font-mono); font-size: var(--step--1);
+  letter-spacing: 0.04em; color: var(--ink-3);
+}
+@media (min-width: 48rem) {
+  .index-row {
+    grid-template-columns: minmax(10rem, 17rem) minmax(0, 1fr) 11rem;
+    column-gap: var(--space-5); align-items: baseline;
+  }
+  .index-meta { text-align: right; }
+}
+
+/* --- a long-form entry: heading and apparatus, then the body ----- */
+.entry { margin: 0 0 var(--space-7); }
+.entry-head {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  justify-content: space-between; gap: var(--space-3);
+  padding-bottom: var(--space-3); margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--rule);
+}
+.entry-head h3 { margin: 0; font-size: var(--step-2); }
+.entry-meta {
+  font-family: var(--font-mono); font-size: var(--step--1);
+  letter-spacing: 0.04em; color: var(--ink-3); margin: 0; max-width: none;
+}
+.entry-body { max-width: var(--measure); }
+.panel-wide .entry-body { max-width: none; }
+.bullets { padding-left: 1.1rem; margin: 0 0 var(--space-4); }
+.bullets li { margin-bottom: var(--space-2); max-width: var(--measure); }
+
+/* --- label / value pairs ---------------------------------------- */
+.field { margin: 0 0 var(--space-5); display: grid; gap: var(--space-2); }
+.field dt {
+  font-family: var(--font-mono); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--ink-3);
+}
+.field dd { margin: 0 0 var(--space-3); max-width: var(--measure); color: var(--ink-2); }
+.field dd .han { font-size: var(--step-0); color: var(--ink); }
+@media (min-width: 48rem) {
+  .field { grid-template-columns: 7rem minmax(0, 1fr); column-gap: var(--space-5); }
+  .field dt { grid-column: 1; }
+  .field dd { grid-column: 2; }
+}
+
+.score-sheet {
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--space-5);
+}
+
 .tag {
   display: inline-block; font-family: var(--font-mono); font-size: var(--step--1);
-  padding: 2px 8px; border-radius: 999px;
-  background: var(--accent-wash); color: var(--accent-deep);
+  padding: 2px 7px; border: 1px solid var(--rule);
+  color: var(--ink-2); letter-spacing: 0.04em;
 }
 
 /* Deliberately loud. Nothing ships to a real reader wearing this. */
 .todo {
-  border: 1px dashed var(--t2-deep); background: var(--t2-wash); color: var(--t2-deep);
-  border-radius: var(--radius); padding: var(--space-3) var(--space-4);
-  font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.5;
-  max-width: var(--measure); margin-bottom: var(--space-4);
+  border-left: 2px solid var(--t2-deep); background: var(--t2-wash); color: var(--t2-deep);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.6;
+  max-width: var(--measure); margin: 0 0 var(--space-5);
 }
-.todo b { font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.todo b { font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
 
 /* ============================================================
-   Floating navigation
+   The index — five numbered lines down the edge of the room
    ============================================================ */
 .float-nav { position: fixed; z-index: 60; }
-.float-nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+.float-nav ol { list-style: none; margin: 0; padding: 0; display: flex; }
 .float-nav a {
-  display: flex; align-items: center; gap: 0;
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: var(--font-mono); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-2); text-decoration: none;
-  background: color-mix(in srgb, var(--hall) 70%, transparent);
-  border: 1px solid var(--rule); border-radius: 999px;
-  backdrop-filter: blur(8px);
-  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease),
-              background var(--dur-ui) var(--ease), opacity var(--dur) var(--ease);
+  transition: color var(--dur-ui) var(--ease), opacity var(--dur) var(--ease);
 }
-/* The rail re-weights the nav; it never hides anything. A destination that
-   doesn't belong to this reading recedes, and is still one click away. */
-.float-nav a.is-lit { opacity: 1; color: var(--ink); border-color: var(--accent-soft); }
-.float-nav a.is-dim { opacity: 0.52; }
-.float-nav a.is-open { color: var(--accent); border-color: var(--accent); opacity: 1; }
-.float-nav a:hover, .float-nav a:focus-visible {
-  opacity: 1; color: var(--accent); border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, var(--hall));
-}
-.float-nav a span {
-  font-size: var(--step--1); white-space: nowrap;
-  max-width: 0; overflow: hidden; transition: max-width var(--dur-ui) var(--ease);
-}
-.float-nav a:hover span, .float-nav a:focus-visible span { max-width: 10rem; }
+.nav-num { color: var(--ink-3); font-size: 0.68rem; }
+/* The rail re-weights the index; it never hides anything. A destination
+   that doesn't belong to this reading recedes, and is still one click
+   away. */
+.float-nav a.is-lit { opacity: 1; color: var(--ink); }
+.float-nav a.is-dim { opacity: 0.45; }
+.float-nav a.is-open { color: var(--accent); opacity: 1; }
+.float-nav a.is-open .nav-num { color: var(--accent); }
+.float-nav a:hover, .float-nav a:focus-visible { opacity: 1; color: var(--accent); }
+.float-nav a:hover .nav-num { color: var(--accent); }
 
 @media (min-width: 62.01rem) {
-  .float-nav { right: clamp(0.75rem, 2vw, 1.75rem); top: 50%; transform: translateY(-50%); }
-  .float-nav ul { flex-direction: column; gap: 7px; align-items: flex-end; }
-  .float-nav a { padding: 9px; }
-  .float-nav a:hover span, .float-nav a:focus-visible span { margin-left: 8px; margin-right: 4px; }
+  :root { --nav-gutter: 10rem; }
+  .float-nav {
+    right: clamp(1rem, 2.5vw, 2rem); top: 50%; transform: translateY(-50%);
+    border-right: 1px solid var(--rule); padding-right: 0;
+  }
+  .float-nav ol { flex-direction: column; gap: 12px; align-items: flex-end; }
+  .float-nav a { padding-right: var(--space-4); }
 }
 
 @media (max-width: 62rem) {
   .float-nav {
     left: 0; right: 0; bottom: 0;
-    padding: 8px var(--space-3) calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 10px var(--space-3) calc(10px + env(safe-area-inset-bottom, 0px));
     background: color-mix(in srgb, var(--bg) 92%, transparent);
     border-top: 1px solid var(--rule); backdrop-filter: blur(8px);
   }
-  .float-nav ul { gap: 6px; overflow-x: auto; scrollbar-width: none; }
-  .float-nav ul::-webkit-scrollbar { display: none; }
-  .float-nav a { padding: 8px; }
-  .float-nav a span { display: none; }
+  .float-nav ol {
+    gap: var(--space-4); overflow-x: auto; scrollbar-width: none;
+    justify-content: space-between;
+  }
+  .float-nav ol::-webkit-scrollbar { display: none; }
+  .nav-num { display: none; }
 
-  /* the scores can't share a phone screen side by side and stay honest */
-  .room-ribbons { grid-template-columns: 1fr; gap: var(--space-3); overflow: hidden; }
-  .room-ribbon svg { max-height: 14vh; }
-  .room-foot { padding-bottom: 64px; }
+  /* The scores can't share a phone screen side by side and stay honest,
+     so they stack. Aligned to the start, not centred: centring a stack
+     taller than its row clips the top of it, which ate the piano's
+     label. */
+  .room-ribbons {
+    grid-template-columns: 1fr; gap: var(--space-4);
+    overflow: hidden; align-content: start;
+  }
+  .room-ribbon svg { max-height: 13vh; }
 
   /* the stage becomes a band at the foot of the room, and the rail sits
      clear above it rather than across the piano */
-  .stage-svg { top: auto; bottom: 0; height: 30vh; }
-  .room-ribbons { align-content: center; }
-  .room-foot { padding-bottom: calc(30vh + 64px); }
+  .stage-svg { top: auto; bottom: 0; height: 28vh; }
+  .room-foot { padding-bottom: calc(28vh + 56px); }
+  .rail-hint { display: none; }
 
   /* clears the fixed name in the corner instead of running under it */
-  .room-head {
-    text-align: left;
-    padding: 4.25rem var(--space-4) 0;
-  }
-  .room-piece { margin-left: 0; max-width: none; }
+  .room-head { justify-content: flex-start; padding: 4.5rem var(--space-4) 0; }
+  .room-piece { text-align: left; max-width: none; }
+
+  /* three stops and their numbers do not fit across a phone */
+  .rail { width: 92vw; }
+  .rail-stop { font-size: 0.68rem; letter-spacing: 0.08em; padding: 2px; }
+  .rail-stop-num { display: none; }
+  .float-nav a { font-size: 0.7rem; letter-spacing: 0.06em; }
+
   .panel { max-height: calc(100vh - 7rem); margin-bottom: 3rem; }
-  .panel-head { padding: var(--space-4) var(--space-4) var(--space-3); }
-  .panel-body { padding: var(--space-4); }
+  .panel-head { padding: var(--space-3) var(--space-4); }
+  .panel-body { padding: var(--space-5) var(--space-4) var(--space-6); }
+  .h-hero { font-size: var(--step-4); }
 }

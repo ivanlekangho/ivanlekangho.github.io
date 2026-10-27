@@ -216,16 +216,19 @@ export default function StageScene({ p = 0 }: { p?: number }) {
 
       <rect x="0" y="0" width={W} height={H} fill="url(#pool)" />
 
-      {/* tone marks hanging in the air — only at the language stop, and
-          only in the band between the scores and the boards, which is the
-          one part of the hall no text ever occupies */}
+      {/* Tone marks hanging in the air — only at the language stop. They
+          all live in one band: below the hanging scores, above the lid of
+          the piano, and left of the singer. The right-hand side of the
+          hall belongs to the index, and `slice` crops this drawing
+          differently at every window size, so anything placed out there
+          lands on the navigation sooner or later. */}
       <g opacity={tone} fill="none" strokeWidth="3" strokeLinecap="round">
-        <path d="M108 252 L164 252" stroke="var(--t1-mid)" />
-        <path d="M196 300 L244 258" stroke="var(--t2-mid)" />
-        <path d="M940 300 C952 334 978 334 990 300" stroke="var(--t3-mid)" />
-        <path d="M1016 246 L1062 284" stroke="var(--t4-mid)" />
-        <path d="M286 222 L330 222" stroke="var(--t1-mid)" opacity="0.45" />
-        <path d="M1012 338 L1050 312" stroke="var(--t2-mid)" opacity="0.4" />
+        <path d="M96 262 L152 262" stroke="var(--t1-mid)" />
+        <path d="M196 292 L244 250" stroke="var(--t2-mid)" />
+        <path d="M300 250 C312 282 338 282 350 250" stroke="var(--t3-mid)" />
+        <path d="M400 244 L446 286" stroke="var(--t4-mid)" />
+        <path d="M520 232 L562 232" stroke="var(--t1-mid)" opacity="0.4" />
+        <path d="M620 266 L658 238" stroke="var(--t2-mid)" opacity="0.35" />
       </g>
 
       {/* ---------------- score threads ---------------- */}
