@@ -7,6 +7,7 @@ import {
   type AccidentalKind, type StaffGeom,
 } from '../../lib/notation'
 import { lerp } from '../../lib/easing'
+import { BAR_BEATS, SYS, barX, xAt } from '../../lib/beatmap'
 import { staging } from './staging'
 
 /**
@@ -23,32 +24,18 @@ import { staging } from './staging'
  * the unbeamed eighths, a beam over the pair that shares one, rests, and
  * seconds displaced across the stem so a cluster reads as a cluster rather
  * than as one smudged notehead.
+ *
+ * It draws into the system's coordinates, under the voice staff, on the
+ * axis they share — see lib/beatmap.ts.
  */
 
-const VB = { w: 760, h: 345 }
+const RIGHT = SYS.w - 14
 const TREBLE: StaffGeom = { gap: 11, bottomY: 86 }
 const BASS: StaffGeom = { gap: 11, bottomY: 196 }
+export const PIANO_H = 300
 const BASS_BOTTOM_IDX = diatonic('G', 2)
 const HEAD_W = 12.6          /* one notehead across — the displacement unit */
 const STEM = 3.5             /* stem length in staff spaces, standard */
-
-/** Every onset in the phrase, both hands, plus the final barline. */
-const ONSETS = [0, 0.5, 1.5, 2.0, 2.5, 4.0, 4.5, 5.5, 6.5, 7.5, 8.5]
-const X0 = 126
-const X1 = VB.w - 34
-
-const xMap = (() => {
-  const w = ONSETS.slice(1).map((b, i) => Math.pow(b - ONSETS[i], 0.6))
-  const total = w.reduce((a, b) => a + b, 0)
-  const out = new Map<number, number>()
-  let acc = 0
-  ONSETS.forEach((b, i) => {
-    out.set(b, X0 + ((X1 - X0) * acc) / total)
-    if (i < w.length) acc += w[i]
-  })
-  return out
-})()
-const xAt = (beat: number) => xMap.get(beat) ?? X0
 
 const geoFor = (hand: 'rh' | 'lh') => (hand === 'rh' ? TREBLE : BASS)
 const bottomFor = (hand: 'rh' | 'lh') => (hand === 'rh' ? TREBLE_BOTTOM : BASS_BOTTOM_IDX)
@@ -149,7 +136,7 @@ const physicsY = (f: Flat) =>
  * sign when it reverts — which is the natural visible on the first chord of
  * bar 2 in Ivan's score, undoing that D♯.
  */
-const BARLINES = [0.5, 4.5]
+const BARLINES = BAR_BEATS
 const WRITTEN = new Map<string, AccidentalKind>()
 ;(() => {
   const inForce = new Map<string, string>()
@@ -201,36 +188,36 @@ const F_REF = Math.min(...NOTES.map((n) => hz(n.pitch)))
 
 /** How far a note's wave may run before the next chord needs the space. */
 function waveLen(atBeat: number) {
-  const next = ONSETS.find((b) => b > atBeat)
-  const room = next === undefined ? 56 : xAt(next) - xAt(atBeat) - 10
+  const room = xAt(atBeat + 0.5) - xAt(atBeat) - 10
   return Math.max(16, Math.min(54, room))
 }
 
 /** The closing D major chord, used for the ratio annotation. */
 const FINAL = NOTES.filter((n) => n.atBeat === 6.5).sort((a, b) => midi(a.pitch) - midi(b.pitch))
 
-export default function PianoRibbon({ p }: { p: number }) {
+export default function PianoStaves({ p, beat }: { p: number; beat: number | null }) {
   const s = staging(p)
-  const sounding = EVENTS.filter((e) => !e.rest)
-  const beamed = new Set(sounding.filter((e) => e.beam).map((e) => e.beam))
+  const voiced = EVENTS.filter((e) => !e.rest)
+  const beamed = new Set(voiced.filter((e) => e.beam).map((e) => e.beam))
+  const live = (e: { atBeat: number; event: PianoEvent }) =>
+    beat !== null && beat >= e.atBeat - 0.02 && beat < e.atBeat + e.event.beats
 
   return (
-    <svg viewBox={`0 0 ${VB.w} ${VB.h}`} width="100%" role="img"
-      aria-label="The piano accompaniment shown three ways: as a grand staff, as a harmonic analysis moving from B minor to D major, and as the frequencies and whole-number ratios the chords are built from."
-      style={{ display: 'block', overflow: 'visible' }}>
+    <g>
 
       {/* ---------- A: grand staff ---------- */}
       <g opacity={s.oA}>
         <g stroke="var(--staff)" strokeWidth="1">
-          {staffLineYs(TREBLE).map((y) => <line key={`t${y}`} x1="30" y1={y} x2={VB.w - 16} y2={y} />)}
-          {staffLineYs(BASS).map((y) => <line key={`b${y}`} x1="30" y1={y} x2={VB.w - 16} y2={y} />)}
+          {staffLineYs(TREBLE).map((y) => <line key={`t${y}`} x1={SYS.staffLeft} y1={y} x2={RIGHT} y2={y} />)}
+          {staffLineYs(BASS).map((y) => <line key={`b${y}`} x1={SYS.staffLeft} y1={y} x2={RIGHT} y2={y} />)}
         </g>
-        <path d={`M 22,${TREBLE.bottomY - 4 * TREBLE.gap} C 6,${TREBLE.bottomY - 2 * TREBLE.gap} 6,${BASS.bottomY - 2 * BASS.gap} 22,${BASS.bottomY}`}
+        {/* the brace that marks these two staves as one instrument */}
+        <path d={`M ${SYS.staffLeft - 8},${TREBLE.bottomY - 4 * TREBLE.gap} C ${SYS.staffLeft - 24},${TREBLE.bottomY - 2 * TREBLE.gap} ${SYS.staffLeft - 24},${BASS.bottomY - 2 * BASS.gap} ${SYS.staffLeft - 8},${BASS.bottomY}`}
           fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-        <line x1="30" y1={TREBLE.bottomY - 4 * TREBLE.gap} x2="30" y2={BASS.bottomY} stroke="var(--staff)" strokeWidth="1.2" />
+        <line x1={SYS.staffLeft} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={SYS.staffLeft} y2={BASS.bottomY} stroke="var(--staff)" strokeWidth="1.2" />
 
         {(() => {
-          const t = trebleClef(48, TREBLE.bottomY - TREBLE.gap, TREBLE)
+          const t = trebleClef(SYS.clef + 14, TREBLE.bottomY - TREBLE.gap, TREBLE)
           return (
             <g fill="none" stroke="var(--ink)" strokeWidth={TREBLE.gap * 0.19}
               strokeLinecap="round" opacity="0.85">
@@ -239,7 +226,7 @@ export default function PianoRibbon({ p }: { p: number }) {
           )
         })()}
         {(() => {
-          const c = bassClef(40, BASS.bottomY - 3 * BASS.gap, BASS)
+          const c = bassClef(SYS.clef, BASS.bottomY - 3 * BASS.gap, BASS)
           return (
             <g opacity="0.85">
               <path d={c.curl} fill="none" stroke="var(--ink)" strokeWidth={BASS.gap * 0.22} strokeLinecap="round" />
@@ -252,10 +239,10 @@ export default function PianoRibbon({ p }: { p: number }) {
         {/* key signatures — two sharps on each staff */}
         <g stroke="var(--ink-2)" strokeWidth="1" fill="none" strokeLinecap="round">
           {[
-            { y: stepYFrom(diatonic('F', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: 80 },
-            { y: stepYFrom(diatonic('C', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: 87 },
-            { y: bassKeySharps(BASS)[0].y, g: BASS, x: 80 },
-            { y: bassKeySharps(BASS)[1].y, g: BASS, x: 87 },
+            { y: stepYFrom(diatonic('F', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: SYS.keySig },
+            { y: stepYFrom(diatonic('C', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: SYS.keySig + 8 },
+            { y: bassKeySharps(BASS)[0].y, g: BASS, x: SYS.keySig },
+            { y: bassKeySharps(BASS)[1].y, g: BASS, x: SYS.keySig + 8 },
           ].map((k, i) =>
             accidentalPaths('sharp', k.x, k.y, k.g).map((d) => <path key={`${i}${d}`} d={d} />),
           )}
@@ -264,7 +251,7 @@ export default function PianoRibbon({ p }: { p: number }) {
         {/* cut time, on both staves */}
         <g stroke="var(--ink)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.85">
           {[TREBLE, BASS].map((g, i) => {
-            const t = cutTime(104, g)
+            const t = cutTime(SYS.time, g)
             return (
               <g key={i}>
                 <path d={t.c} />
@@ -277,15 +264,15 @@ export default function PianoRibbon({ p }: { p: number }) {
         {/* barlines: after the pickup and after bar 1, then the final double */}
         <g stroke="var(--staff)" strokeWidth="1.2">
           {BARLINES.map((b) => (
-            <line key={b} x1={xAt(b) - 13} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={xAt(b) - 13} y2={BASS.bottomY} />
+            <line key={b} x1={barX(b, TREBLE.gap)} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={barX(b, TREBLE.gap)} y2={BASS.bottomY} />
           ))}
-          <line x1={VB.w - 21} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={VB.w - 21} y2={BASS.bottomY} strokeWidth="1.1" />
-          <line x1={VB.w - 16} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={VB.w - 16} y2={BASS.bottomY} strokeWidth="3" />
+          <line x1={RIGHT - 5} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={RIGHT - 5} y2={BASS.bottomY} strokeWidth="1.1" />
+          <line x1={RIGHT} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={RIGHT} y2={BASS.bottomY} strokeWidth="3" />
         </g>
 
         {/* stems and flags, then the one beam */}
         <g stroke="var(--ink)" fill="none" strokeWidth="1.2" opacity="0.75" strokeLinecap="round">
-          {sounding.filter((e) => !e.beam).map((e) => {
+          {voiced.filter((e) => !e.beam).map((e) => {
             const tip = tipOf([e])
             const foot = e.up ? Math.max(...e.ys) : Math.min(...e.ys)
             return (
@@ -298,7 +285,7 @@ export default function PianoRibbon({ p }: { p: number }) {
             )
           })}
           {[...beamed].map((b) => {
-            const grp = sounding.filter((e) => e.beam === b)
+            const grp = voiced.filter((e) => e.beam === b)
             const tip = tipOf(grp)
             return (
               <g key={b}>
@@ -359,9 +346,9 @@ export default function PianoRibbon({ p }: { p: number }) {
           return (
             <g key={h.atBeat}>
               <rect x={x - 16} y={B_TOP - 12} width={w} height={B_BOT - B_TOP + 24}
-                fill={`var(--${fam}-wash)`} opacity="0.5" />
+                fill={`var(--${fam}-wash)`} opacity="0.34" />
               <text x={x - 16 + w / 2} y={B_BOT + 36} textAnchor="middle"
-                fontFamily="var(--font-mono)" fontSize="13" fill={`var(--${fam}-deep)`}>{h.numeral}</text>
+                fontFamily="var(--font-display)" fontWeight="500" fontSize="15" fill={`var(--${fam}-deep)`}>{h.numeral}</text>
               <text x={x - 16 + w / 2} y={B_BOT + 50} textAnchor="middle"
                 fontFamily="var(--font-body)" fontSize="9" fill="var(--ink-3)">{h.name}</text>
             </g>
@@ -370,8 +357,8 @@ export default function PianoRibbon({ p }: { p: number }) {
         <g stroke="var(--ink-3)" strokeWidth="1" strokeDasharray="3 3" opacity="0.8">
           {COMMON.map((c, i) => <line key={i} x1={c.x1} y1={c.y} x2={c.x2} y2={c.y} />)}
         </g>
-        <text x={X0 - 16} y={B_TOP - 20} fontFamily="var(--font-mono)" fontSize="9" fill="var(--t3-deep)">B minor</text>
-        <text x={xAt(4.5) - 16} y={B_TOP - 20} fontFamily="var(--font-mono)" fontSize="9" fill="var(--t1-deep)">D major</text>
+        <text x={SYS.staffLeft} y={B_TOP - 20} fontFamily="var(--font-label)" fontSize="10" fill="var(--t3-deep)">B minor</text>
+        <text x={xAt(4.5) - 16} y={B_TOP - 20} fontFamily="var(--font-label)" fontSize="10" fill="var(--t1-deep)">D major</text>
       </g>
 
       {/* ---------- C: physics ---------- */}
@@ -386,13 +373,13 @@ export default function PianoRibbon({ p }: { p: number }) {
           {FINAL.map((n, i) => {
             const r = ratioTo(FINAL[0].pitch, n.pitch)
             return (
-              <text key={n.key} x={VB.w - 30} y={physicsY(n) + 3} textAnchor="end" fill="var(--ink-2)">
+              <text key={n.key} x={RIGHT - 14} y={physicsY(n) + 3} textAnchor="end" fill="var(--ink-2)">
                 {label(n.pitch)} · {Math.round(hz(n.pitch))} Hz{i ? ` · ${r.num}:${r.den}` : ''}
               </text>
             )
           })}
         </g>
-        <text x={X0 - 16} y={C_BOT + 54} fontFamily="var(--font-body)" fontSize="11" fill="var(--ink-2)">
+        <text x={SYS.staffLeft} y={C_BOT + 54} fontFamily="var(--font-body)" fontSize="11" fill="var(--ink-2)">
           Every note at its own wavelength. The closing D major locks because its
           frequencies sit at small whole-number ratios.
         </text>
@@ -411,6 +398,7 @@ export default function PianoRibbon({ p }: { p: number }) {
         /* a half note or longer is hollow — the octave opening bar 2 is one */
         const hollow = n.event.beats >= 2
         const acc = WRITTEN.get(n.key)
+        const on = live(n)
         return (
           <g key={n.key}>
             <g opacity={s.oA} stroke="var(--staff)" strokeWidth="1">
@@ -418,10 +406,11 @@ export default function PianoRibbon({ p }: { p: number }) {
                 <line key={ly} x1={xA - 9} y1={ly} x2={xA + 9} y2={ly} />
               ))}
             </g>
+            {on && <circle cx={x} cy={y} r={13} fill={`var(--${fam}-mid)`} opacity="0.18" />}
             <ellipse cx={0} cy={0} rx={6.3} ry={4.5}
-              fill={hollow ? 'var(--hall)' : `var(--${fam}-${s.tBC > 0.5 ? 'deep' : 'mid'})`}
-              stroke={hollow ? `var(--${fam}-mid)` : 'none'} strokeWidth={hollow ? 1.8 : 0}
-              transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale})`} />
+              fill={hollow ? 'var(--hall)' : `var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
+              stroke={hollow ? `var(--${fam}-${on ? 'deep' : 'mid'})` : 'none'} strokeWidth={hollow ? 1.8 : 0}
+              transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale * (on ? 1.4 : 1)})`} />
             {acc && (
               <g opacity={s.oA} stroke="var(--ink-2)" strokeWidth="1" fill="none" strokeLinecap="round">
                 {accidentalPaths(acc, xA - g.gap * 1.45, yA, g).map((d) => <path key={d} d={d} />)}
@@ -430,6 +419,6 @@ export default function PianoRibbon({ p }: { p: number }) {
           </g>
         )
       })}
-    </svg>
+    </g>
   )
 }

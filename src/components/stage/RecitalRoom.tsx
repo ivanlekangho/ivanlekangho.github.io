@@ -1,29 +1,30 @@
 import { useLocation } from 'react-router-dom'
 import { PIECE } from '../../data/phrase'
 import { useMode } from '../../lib/mode'
+import { usePlayback } from '../../lib/playback'
 import { useRailScroll } from '../../lib/railScroll'
 import ModeRail from '../ModeRail'
-import PianoRibbon from './PianoRibbon'
+import Score from './Score'
 import StageScene from './StageScene'
-import VoiceRibbon from './VoiceRibbon'
+import Transport from './Transport'
 import { STATE_LABELS, staging } from './staging'
 
 /**
  * The recital room: the whole site, all the time.
  *
- * A hall with two performers, pinned to the viewport. The rail at the foot
- * of it moves both their scores through three readings at once — the
- * singer's from notation to Mandarin tone to code, the pianist's from
- * notation to harmony to physics — and brings the house lights up as it
- * goes. They change together because it's one performance, not two widgets.
- *
- * The wheel drives the same rail, so scrolling walks the room. It is
- * switched off while a sheet is open, where the wheel belongs to the sheet.
+ * A hall with two performers and, hanging over them, the one system they
+ * are both reading — voice above piano, bracketed, on a shared axis. The
+ * rail at the foot of the room moves that system through three readings at
+ * once, the singer's from notation to Mandarin tone to code and the
+ * pianist's from notation to harmony to physics, and brings the house
+ * lights up as it goes. They change together because it is one
+ * performance, not two widgets.
  */
 export default function RecitalRoom() {
   const { pos } = useMode()
   const atHome = useLocation().pathname === '/'
   useRailScroll(atHome)
+  const pb = usePlayback()
 
   const s = staging(pos)
   const labels = STATE_LABELS[s.index]
@@ -40,16 +41,14 @@ export default function RecitalRoom() {
         </p>
       </div>
 
-      <div className="room-ribbons">
-        <figure className="room-ribbon">
-          <figcaption className="room-ribbon-tag">Piano<span>{labels.piano}</span></figcaption>
-          <PianoRibbon p={pos} />
-        </figure>
-        <figure className="room-ribbon">
-          <figcaption className="room-ribbon-tag">Voice<span>{labels.voice}</span></figcaption>
-          <VoiceRibbon p={pos} />
-        </figure>
-      </div>
+      <figure className="score-system">
+        <figcaption className="score-tag">
+          <span>Voice <b>{labels.voice}</b></span>
+          <Transport pb={pb} />
+          <span>Piano <b>{labels.piano}</b></span>
+        </figcaption>
+        <Score p={pos} beat={pb.beat} />
+      </figure>
 
       <div className="room-foot">
         <ModeRail />

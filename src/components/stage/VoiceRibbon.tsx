@@ -1,60 +1,61 @@
-import { PHRASE, PIECE } from '../../data/phrase'
+import { PHRASE } from '../../data/phrase'
 import { MANDARIN } from '../../data/tones'
+import { SYS, VOICE_ONSET, barX, xAt } from '../../lib/beatmap'
 import { diatonic, noteY, type StaffGeom } from '../../lib/notation'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
 import { lerp } from '../../lib/easing'
 import { staging } from './staging'
 
 /**
- * The singer's score: notation → Mandarin tone contour → code.
+ * The singer's staff: notation → Mandarin tone contour → code.
  *
  * The same ellipses are the noteheads, the tone onsets and the data
  * points. They move; nothing crossfades between three separate pictures.
  *
- * State A is engraved by score/VoiceStaff — the same code that sets the
- * sheet in the recital panel — so this is literally the same two bars of
- * music, dots, flags, barlines and all, and not a simplified sketch of it.
+ * It draws into the system's own coordinates rather than its own viewBox,
+ * because it is the top staff of a vocal score now and has to line up
+ * vertically with the piano underneath it.
  */
 
-const VB = { w: 700, h: 300 }
+export const VOICE_H = 224
 const GEO: StaffGeom = { gap: 13, bottomY: 150 }
-const TONE_TOP = 56
-const TONE_BOT = 156
+const HEAD = { clef: SYS.clef, keySig: SYS.keySig, time: SYS.time }
+const TONE_TOP = 34
+const TONE_BOT = 134
 const TONE_H = TONE_BOT - TONE_TOP
-const SLOT = 24
-const DATA_BASE = 222
-const DATA_H = 112
+const SLOT = 26
+const DATA_BASE = 176
+const DATA_H = 104
 
 const PITCH_IDX = PHRASE.map((n) => diatonic(n.step, n.octave))
 const P_MIN = Math.min(...PITCH_IDX)
 const P_MAX = Math.max(...PITCH_IDX)
 
-export default function VoiceRibbon({ p }: { p: number }) {
+export default function VoiceStaves({ p, beat }: { p: number; beat: number | null }) {
   const s = staging(p)
-  const L = voiceLayout(GEO, VB.w - 14)
+  const L = voiceLayout(GEO, SYS.w, PHRASE, { xAt, barX })
   const xs = L.xs
   const dataY = (i: number) =>
     DATA_BASE - ((PITCH_IDX[i] - P_MIN) / (P_MAX - P_MIN)) * DATA_H
+  const sounding = (i: number) =>
+    beat !== null && beat >= VOICE_ONSET[i] - 0.02 && beat < VOICE_ONSET[i] + PHRASE[i].beats
 
   return (
-    <svg viewBox={`0 0 ${VB.w} ${VB.h}`} width="100%" role="img"
-      aria-label={`The sung phrase "${PIECE.german}" shown as bass-clef notation, as the Mandarin tone contours of ${PIECE.mandarin}, and as a data series.`}
-      style={{ display: 'block', overflow: 'visible' }}>
-
+    <g>
       {/* ---- state A: the engraved staff ---- */}
       <g opacity={s.oA}>
-        <VoiceStaffFurniture g={GEO} width={VB.w - 14} layout={L} />
+        <VoiceStaffFurniture g={GEO} width={SYS.w - 14} layout={L} lineX0={SYS.staffLeft} head={HEAD} />
       </g>
 
       {/* ---- state B: tone box ---- */}
       <g opacity={s.oB}>
         <g stroke="var(--rule)" strokeWidth="1" strokeDasharray="2 4">
           {[TONE_TOP, (TONE_TOP + TONE_BOT) / 2, TONE_BOT].map((y) => (
-            <line key={y} x1="40" y1={y} x2={VB.w - 20} y2={y} />
+            <line key={y} x1={SYS.staffLeft + 30} y1={y} x2={SYS.x1 + 20} y2={y} />
           ))}
         </g>
-        <text x="32" y={TONE_TOP + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="var(--ink-3)">5</text>
-        <text x="32" y={TONE_BOT + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="var(--ink-3)">1</text>
+        <text x={SYS.staffLeft + 22} y={TONE_TOP + 4} textAnchor="end" fontFamily="var(--font-label)" fontSize="10" fill="var(--ink-3)">5</text>
+        <text x={SYS.staffLeft + 22} y={TONE_BOT + 4} textAnchor="end" fontFamily="var(--font-label)" fontSize="10" fill="var(--ink-3)">1</text>
         {PHRASE.map((n, i) => {
           if (n.tone === undefined) return null
           const t = MANDARIN[n.tone]
@@ -62,13 +63,13 @@ export default function VoiceRibbon({ p }: { p: number }) {
             .map((v, j) => `${xs[i] - SLOT / 2 + (SLOT * j) / (t.contour.length - 1)},${TONE_BOT - v * TONE_H}`)
             .join(' ')
           return <polyline key={n.id} points={pts} fill="none" stroke={`var(--${t.family}-mid)`}
-            strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            strokeWidth={sounding(i) ? 4.5 : 3} strokeLinecap="round" strokeLinejoin="round" />
         })}
       </g>
 
       {/* ---- state C: data axis ---- */}
       <g opacity={s.oC}>
-        <line x1="40" y1={DATA_BASE} x2={VB.w - 20} y2={DATA_BASE} stroke="var(--ink-3)" strokeWidth="1" />
+        <line x1={SYS.staffLeft + 30} y1={DATA_BASE} x2={SYS.x1 + 20} y2={DATA_BASE} stroke="var(--ink-3)" strokeWidth="1" />
         {PHRASE.map((n, i) => (
           <line key={n.id} x1={xs[i]} y1={DATA_BASE} x2={xs[i]} y2={dataY(i)}
             stroke={`var(--t${n.tone ?? 0}-wash)`} strokeWidth="9" />
@@ -87,38 +88,44 @@ export default function VoiceRibbon({ p }: { p: number }) {
         const xB = tone ? xs[i] - SLOT / 2 : xs[parent] ?? xs[i]
         const x = lerp(lerp(xs[i], xB, s.tAB), xs[i], s.tBC)
         const y = lerp(lerp(yA, yB, s.tAB), dataY(i), s.tBC)
-        const scale = lerp(1, 0.68, s.tBC)
+        const on = sounding(i)
+        const scale = lerp(1, 0.68, s.tBC) * (on ? 1.5 : 1)
         const dim = sung ? 1 : lerp(1, 0.22, s.tAB)
+        const fam = `t${n.tone ?? 0}`
         return (
           <g key={n.id} opacity={dim}>
             <NoteMarks n={n} x={x} y={y} dir={L.dirs[i]} g={GEO} opacity={s.oA} />
+            {on && (
+              <circle cx={x} cy={y} r={15} fill={`var(--${fam}-mid)`} opacity="0.2" />
+            )}
             <ellipse cx={0} cy={0} rx={7.4} ry={5.3}
-              fill={`var(--t${n.tone ?? 0}-${s.tBC > 0.5 ? 'deep' : 'mid'})`}
+              fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
+              style={{ transition: 'none' }}
               transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale})`} />
             {n.han && (
               <g opacity={s.oB}>
-                <text x={xs[i]} y={TONE_BOT + 24} textAnchor="middle" fontFamily="var(--font-han)"
-                  fontSize="16" fill="var(--ink)">{n.han}</text>
-                <text x={xs[i]} y={TONE_BOT + 39} textAnchor="middle" fontFamily="var(--font-mono)"
-                  fontSize="10" fill={`var(--t${n.tone}-deep)`}>{n.pinyin}</text>
+                <text x={xs[i]} y={TONE_BOT + 26} textAnchor="middle" fontFamily="var(--font-han)"
+                  fontSize="17" fill={on ? `var(--${fam}-deep)` : 'var(--ink)'}>{n.han}</text>
+                <text x={xs[i]} y={TONE_BOT + 41} textAnchor="middle" fontFamily="var(--font-body)"
+                  fontSize="11" fill={`var(--${fam}-deep)`}>{n.pinyin}</text>
               </g>
             )}
           </g>
         )
       })}
 
-      <VoiceLyrics g={GEO} layout={L} fontSize={11} opacity={s.oA} />
+      <VoiceLyrics g={GEO} layout={L} fontSize={12} opacity={s.oA} />
 
       {/* ---- state C annotation ---- */}
       <g opacity={s.oC} fontFamily="var(--font-mono)" fontSize="10" fill="var(--ink-3)">
-        <text x="40" y={DATA_BASE + 24}>phrase.map(n =&gt; [n.han, n.tone, pitch(n)])</text>
-        <text x="40" y={DATA_BASE + 40} fill="var(--ink-2)">
+        <text x={SYS.staffLeft + 30} y={DATA_BASE + 22}>phrase.map(n =&gt; [n.han, n.tone, pitch(n)])</text>
+        <text x={SYS.staffLeft + 30} y={DATA_BASE + 36} fill="var(--ink-2)">
           [['我',3,'F♯3'], ['处',4,'F♯3'], ['处',4,'F♯3'], ['皆',1,'B3'],
         </text>
-        <text x="40" y={DATA_BASE + 54} fill="var(--ink-2)">
+        <text x={SYS.staffLeft + 30} y={DATA_BASE + 48} fill="var(--ink-2)">
           &nbsp;['为',2,'E3'], ['异',4,'A3'], ['客',4,'C♯3']]
         </text>
       </g>
-    </svg>
+    </g>
   )
 }

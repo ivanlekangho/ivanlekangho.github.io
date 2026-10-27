@@ -19,6 +19,9 @@ import { ease, range } from '../../lib/easing'
  *
  * The room itself changes with the rail: tone marks hang in the air at the
  * linguist stop, and the boards take a measured grid at the engineer stop.
+ * Nothing else leaves the performers — two drawn lines used to run from the
+ * lid and the singer up off the top of the frame, and with the score now
+ * bracketed as one system directly above them they read as stray marks.
  */
 
 const W = 1200
@@ -74,39 +77,11 @@ function leg(xTop: number, yTop: number, xFoot: number, yFoot: number, wTop: num
 L${xFoot - wFoot} ${yFoot} Z`
 }
 
-/* --- the score threads --------------------------------------------
-   One line each, leaving the lid and the singer and running off the top
-   of the frame. At the engineer stop they stop being gestures and become
-   waveforms, because that is what the piano ribbon is saying by then. */
-function thread(x0: number, y0: number, x1: number, drift: number, wave: number) {
-  const pts: string[] = []
-  const N = 26
-  for (let i = 0; i <= N; i++) {
-    const t = i / N
-    const y = y0 + (-80 - y0) * t
-    const x = x0 + (x1 - x0) * t + Math.sin(t * 3.1) * drift
-    const w = Math.sin(t * 15 + 0.6) * wave * Math.min(1, t * 2.4)
-    pts.push(`${(x + w).toFixed(1)} ${y.toFixed(1)}`)
-  }
-  return 'M' + pts.join(' L')
-}
-
 /* The whole stage is drawn at a comfortable working size and then placed
    with one transform, so the camera can be pulled back without touching a
    single coordinate. SCENE is that placement; STAGE_* are the numbers it
    was drawn against. */
 const SCENE = { x: 241.2, y: 191.2, k: 0.70 }
-const onStage = (x: number, y: number) => ({
-  x: SCENE.x + x * SCENE.k,
-  y: SCENE.y + y * SCENE.k,
-})
-
-/** Where the two score threads leave the performers, in viewBox units. */
-export const ANCHORS = {
-  pianoLid: onStage(470, 164),
-  singer: onStage(858, 230),
-  viewBox: { w: W, h: H },
-}
 
 /** A phone viewport is far taller than the stage, and covering it with the
  *  full drawing crops away everything but the middle of the instrument. So
@@ -217,26 +192,17 @@ export default function StageScene({ p = 0 }: { p?: number }) {
       <rect x="0" y="0" width={W} height={H} fill="url(#pool)" />
 
       {/* Tone marks hanging in the air — only at the language stop. They
-          all live in one band: below the hanging scores, above the lid of
-          the piano, and left of the singer. The right-hand side of the
-          hall belongs to the index, and `slice` crops this drawing
-          differently at every window size, so anything placed out there
-          lands on the navigation sooner or later. */}
+          keep to the left of the instrument and below the hanging score,
+          which is the one part of the hall nothing else occupies. The
+          right-hand side belongs to the index, and `slice` crops this
+          drawing differently at every window size, so anything placed out
+          there lands on the navigation sooner or later. */}
       <g opacity={tone} fill="none" strokeWidth="3" strokeLinecap="round">
-        <path d="M96 262 L152 262" stroke="var(--t1-mid)" />
-        <path d="M196 292 L244 250" stroke="var(--t2-mid)" />
-        <path d="M300 250 C312 282 338 282 350 250" stroke="var(--t3-mid)" />
-        <path d="M400 244 L446 286" stroke="var(--t4-mid)" />
-        <path d="M520 232 L562 232" stroke="var(--t1-mid)" opacity="0.4" />
-        <path d="M620 266 L658 238" stroke="var(--t2-mid)" opacity="0.35" />
-      </g>
-
-      {/* ---------------- score threads ---------------- */}
-      <g fill="none" strokeWidth="1.3" strokeLinecap="round" opacity="0.85">
-        <path d={thread(ANCHORS.pianoLid.x, ANCHORS.pianoLid.y, 400, 16, eng * 9)}
-          stroke="var(--accent)" />
-        <path d={thread(ANCHORS.singer.x, ANCHORS.singer.y, 962, -14, eng * 9)}
-          stroke={tone > 0.3 ? 'var(--t3-mid)' : 'var(--accent)'} />
+        <path d="M134 300 L190 300" stroke="var(--t1-mid)" />
+        <path d="M226 324 L274 282" stroke="var(--t2-mid)" />
+        <path d="M308 288 C320 320 346 320 358 288" stroke="var(--t3-mid)" />
+        <path d="M140 250 L186 288" stroke="var(--t4-mid)" opacity="0.5" />
+        <path d="M258 244 L300 244" stroke="var(--t1-mid)" opacity="0.35" />
       </g>
 
       {/* ---------------- everything standing on the boards ---------------- */}

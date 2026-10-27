@@ -9,10 +9,18 @@ honest than crossfading three graphics (see below).
 
 **Two typefaces, and no third.** Cabinet Grotesk (Fontshare, loaded in
 `index.html`) sets everything that is read; Commit Mono (self-hosted via
-`@fontsource/commit-mono`) sets everything that is measured — labels, data,
-roman numerals, frequencies. Cabinet Grotesk ships no italic, so nothing in
-the CSS asks for one: `em` carries weight instead, because a synthesised
-oblique on a grotesk reads as a rendering fault.
+`@fontsource/commit-mono`) sets everything that is measured. Cabinet Grotesk
+ships no italic, so nothing in the CSS asks for one: `em` carries weight
+instead, because a synthesised oblique on a grotesk reads as a rendering
+fault.
+
+**Mono belongs to the engineer stop.** Every label on the site reads
+`--font-label`, which is Cabinet Grotesk at the musician and linguist stops
+and Commit Mono at the engineer stop — so the mono face *means* something
+(measured, instrumented) instead of being a texture. Only three things stay
+monospaced everywhere: code, the physics annotations, and the dashed
+placeholder boxes, which should look like machine output and not like
+content.
 
 ---
 
@@ -53,6 +61,9 @@ has a URL you can link to directly.
 | Type scale, spacing, per-stop typography | — | `src/styles/tokens.css` |
 | Every colour, as three lighting keyframes | — | `src/lib/palette.ts` |
 | The hall, the Steinway, the baritone | — | `src/components/stage/StageScene.tsx` |
+| The one system both performers read | — | `src/components/stage/Score.tsx` |
+| The horizontal axis they share | — | `src/lib/beatmap.ts` |
+| Where the recording lines up with the score | — | `src/data/timing.ts` |
 | The vocal engraving, used in both places it appears | — | `src/components/score/VoiceStaff.tsx` |
 | Tone systems (Mandarin; Hakka stub) | — | `src/data/tones.ts` |
 | Bio, now, study, stack, the palette legend | `/about` | `src/sections/About.tsx` |
@@ -90,15 +101,38 @@ Body in normal markdown.
 Filename becomes the URL (`my-post.md` → `/writing/my-post`). Posts sort by date,
 newest first. `draft: true` still renders but is labelled.
 
-### Adding audio to the recital room
+### Adding a recording, and making the score follow it
 
-Put files in `public/audio/`. **Use m4a or mp3, not WAV.** A three-minute WAV is
-~30 MB; the same take as m4a is ~3 MB. Git keeps every version of every binary
-you ever commit forever, so a few re-uploads of WAVs will bloat the repo
+Put the file in `public/audio/`. **Use m4a or mp3, not WAV.** A three-minute
+WAV is ~30 MB; the same take as m4a is ~3 MB. Git keeps every version of every
+binary you ever commit forever, so a few re-uploads of WAVs will bloat the repo
 permanently — and GitHub starts warning past 1 GB. Compressed audio also means
 the page actually loads on a phone.
 
----
+**Step one: drop the file at `public/audio/der-wanderer.m4a`.** That is all.
+A PLAY button appears over the score, and while it plays a playhead sweeps the
+system and the notes sounding at that instant light up on *both* staves —
+voice and piano together, because they share one time axis.
+
+The page checks whether that file exists before it offers the button, so until
+you add it there is nothing to see and no broken control. (It checks the
+content type too: a dev server answers a missing path with `index.html` and a
+200, which would otherwise light the button up for a file that isn't there.)
+
+**Step two: teach it your rubato.** Out of the box the animation is timed by
+`TEMPO` in `src/data/timing.ts` — a metronome at 66. Schubert sung to a
+metronome is not Schubert, so the lights will drift off the voice within a bar.
+To fix it:
+
+1. Open the site with `?tap` on the end of the URL.
+2. Press play, and tap the **space bar** on each of the nine syllables as you
+   hear them: *ich — bin — ein — Fremd — (lä) — ling — ü — ber — all*.
+3. The console prints a line. Paste it over `RECORDING` in `src/data/timing.ts`.
+
+The timing map becomes piecewise linear through your own taps, so it follows
+the performance instead of fighting it — and because the piano's events are
+read off the same map, the accompaniment lights up in time too without any
+extra numbers. Nine taps is the whole calibration.
 
 ## Deploying to GitHub Pages
 
@@ -165,9 +199,21 @@ The Actions flow doesn't run Jekyll at all.)
 
 ## How the room works
 
-The front page is a hall: a Steinway, a baritone, and both their scores hanging
-in the air above them. Nothing scrolls. One number — the rail position, 0 to 1 —
-drives all of it at once.
+The front page is a hall: a Steinway, a baritone, and hanging over them the one
+system they are both reading. Nothing scrolls. One number — the rail position,
+0 to 1 — drives all of it at once.
+
+**It is one system, not two ribbons.** The voice staff sits directly above the
+piano's two, bracketed at the left the way a vocal score is, and neither staff
+lays itself out any more: both read their horizontal positions out of
+`src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both. The
+page is claiming these two are playing together, so the geometry had better say
+so — side by side, it said the opposite.
+
+The frame closes in and opens out as the rail moves (`FRAME` in `Score.tsx`).
+Notation is two compact staves; acoustics needs nearly twice the height. A
+viewBox big enough for the tallest reading left the staves shrunk and
+letterboxed at the stop most people land on.
 
 | Rail | Voice score | Piano score | The hall |
 |---|---|---|---|

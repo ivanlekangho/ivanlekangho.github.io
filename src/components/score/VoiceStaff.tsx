@@ -9,23 +9,49 @@ import {
 /**
  * ONE engraving of the vocal line, used by both places it appears.
  *
- * The recital sheet and the score hanging over the stage are the same two
- * bars of Schubert, so they are engraved by the same code: same spacing,
- * same cut time, same barlines, same augmentation dots, same flags, same
- * slur across "Fremd", same closing rest. They used to be two renderers
- * and they drifted — the stage score lost every rhythm mark and showed
- * nine undifferentiated noteheads, which is a different piece of music.
+ * The recital sheet and the staff hanging over the stage are the same two
+ * bars of Schubert, so they are engraved by the same code: same cut time,
+ * same barlines, same augmentation dots, same flags, same slur across
+ * "Fremd", same closing rest. They used to be two renderers and they
+ * drifted — the stage score lost every rhythm mark and showed nine
+ * undifferentiated noteheads, which is a different piece of music.
  *
- * The noteheads themselves are NOT drawn here. On the stage they morph
- * into tone contours and data points, so each caller owns them; this file
- * owns everything that is true only while the staff is being read as
- * notation.
+ * What differs between the two is only the horizontal axis. On its own the
+ * sheet spaces itself; over the stage it borrows the system's axis, so the
+ * singer's notes sit directly above the pianist's.
+ *
+ * The noteheads themselves are NOT drawn here. On the stage they morph into
+ * tone contours and data points, so each caller owns them; this file owns
+ * everything that is true only while the staff is being read as notation.
  */
 
-/** Everything the layout depends on, derived once from a geometry. */
-export function voiceLayout(g: StaffGeom, width: number, notes: Note[] = PHRASE) {
-  /* The closing rest takes part in the spacing, so the last note is not
-     flung at the final barline. */
+/** Hand the layout a shared axis and it will use it instead of its own. */
+export type Axis = { xAt: (beat: number) => number; barX: (beat: number, gap: number) => number }
+
+export type Head = { clef: number; keySig: number; time: number }
+
+export function headFor(g: StaffGeom): Head {
+  return { clef: HEAD_X.clef(g), keySig: HEAD_X.keySig(g), time: HEAD_X.time(g) }
+}
+
+export function voiceLayout(
+  g: StaffGeom, width: number, notes: Note[] = PHRASE, axis?: Axis,
+) {
+  if (axis) {
+    const onsets: number[] = []
+    let at = 0
+    for (const n of notes) { onsets.push(at); at += n.beats }
+    return {
+      xs: onsets.map(axis.xAt),
+      restX: axis.xAt(at),
+      bars: [PIECE.pickupBeats, PIECE.pickupBeats + PIECE.beatsPerBar]
+        .map((b) => axis.barX(b, g.gap)),
+      dirs: stemDirections(notes, g),
+      lyricY: g.bottomY + g.gap * 2.8,
+    }
+  }
+  /* Standalone: the closing rest takes part in the spacing, so the last
+     note is not flung at the final barline. */
   const all = beatXs([...notes, { beats: PIECE.trailingRest }], HEAD_X.firstNote(g), width - g.gap * 3)
   const xs = all.slice(0, notes.length)
   return {
@@ -41,11 +67,12 @@ type L = ReturnType<typeof voiceLayout>
 
 /** Staff, clef, key signature, cut time, barlines, closing rest, final bar. */
 export function VoiceStaffFurniture({
-  g, width, layout, lineX0 = 0,
-}: { g: StaffGeom; width: number; layout: L; lineX0?: number }) {
+  g, width, layout, lineX0 = 0, head,
+}: { g: StaffGeom; width: number; layout: L; lineX0?: number; head?: Head }) {
   const u = g.gap
-  const clef = bassClef(HEAD_X.clef(g), g.bottomY - 3 * u, g)
-  const time = cutTime(HEAD_X.time(g), g)
+  const h = head ?? headFor(g)
+  const clef = bassClef(h.clef, g.bottomY - 3 * u, g)
+  const time = cutTime(h.time, g)
 
   return (
     <>
@@ -63,7 +90,7 @@ export function VoiceStaffFurniture({
       <g stroke="var(--ink-2)" strokeWidth={u * 0.095} fill="none" strokeLinecap="round">
         {bassKeySharps(g).map((k, i) => (
           <g key={i}>
-            {accidentalPaths('sharp', HEAD_X.keySig(g) + k.x, k.y, g).map((d) => (
+            {accidentalPaths('sharp', h.keySig + k.x, k.y, g).map((d) => (
               <path key={d} d={d} />
             ))}
           </g>

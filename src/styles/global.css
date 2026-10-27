@@ -56,7 +56,7 @@ pre {
 :focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
 
 .eyebrow {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-3); margin-bottom: var(--space-3);
 }
@@ -94,31 +94,45 @@ pre {
 }
 .room-piece-meta,
 .room-piece-line {
-  font-family: var(--font-mono); font-size: var(--step--1); color: var(--ink-3);
+  font-family: var(--font-label); font-size: var(--step--1); color: var(--ink-3);
 }
 .room-piece-meta { letter-spacing: var(--label-tracking); text-transform: uppercase; }
 .room-piece-line { color: var(--ink-2); }
 
-/* The two scores hang in the air over the performer each belongs to: the
-   piano's on the left above the instrument, the voice's on the right
-   above the singer. */
-.room-ribbons {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr 1fr;
-  align-items: start; gap: clamp(1rem, 3vw, 3rem);
-  padding: var(--space-4) clamp(1rem, 4vw, 3.5rem) 0;
-  min-height: 0;
+/* ONE system, hanging over the performers: the voice staff above the
+   piano's two, bracketed, on a shared horizontal axis. Two ribbons side by
+   side said the opposite of what the page is claiming. */
+.score-system {
+  position: relative; z-index: 1; margin: 0; min-height: 0;
+  padding: var(--space-3) clamp(1rem, 5vw, 4rem) 0;
+  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center; align-content: start;
 }
-.room-ribbon { margin: 0; min-width: 0; }
-.room-ribbon svg { max-height: 30vh; width: 100%; }
-.room-ribbon-tag {
-  display: flex; align-items: baseline; gap: var(--space-3);
-  font-family: var(--font-mono); font-size: var(--step--1);
+.score-tag {
+  width: 100%; max-width: 68rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4);
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--ink-3);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 6px; margin-bottom: var(--space-3);
+}
+.score-tag b { font-weight: inherit; color: var(--accent); }
+.score-svg { width: 100%; max-width: 68rem; max-height: 46vh; }
+
+/* --- the recording ----------------------------------------------- */
+.transport { display: flex; }
+.transport-play {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: inherit; font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--ink-3); margin-bottom: var(--space-2);
-  border-bottom: 1px solid var(--rule); padding-bottom: 4px;
+  background: none; border: 1px solid var(--rule); color: var(--ink-2);
+  padding: 5px 13px; cursor: pointer;
+  transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
 }
-.room-ribbon-tag span { margin-left: auto; color: var(--accent); }
+.transport-play:hover { border-color: var(--accent); color: var(--accent); }
 
 .room-foot {
   position: relative; z-index: 2;
@@ -136,7 +150,7 @@ pre {
   font-size: var(--step-1); letter-spacing: -0.02em; color: var(--ink);
 }
 .brand-sub {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--ink-3);
 }
 
@@ -167,7 +181,7 @@ pre {
 .rail-stop {
   position: absolute; top: 0; transform: translateX(-50%);
   display: flex; align-items: baseline; gap: 6px;
-  font: inherit; font-family: var(--font-mono); font-size: var(--step--1);
+  font: inherit; font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   background: none; border: 0; padding: 2px 4px; cursor: pointer;
   color: var(--ink-3);
@@ -180,7 +194,7 @@ pre {
 .rail-stop.is-on { color: var(--accent); }
 .rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
 .rail-hint {
-  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em;
+  font-family: var(--font-label); font-size: 0.68rem; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--ink-3); opacity: 0.55;
   margin: var(--space-4) 0 0; max-width: none;
 }
@@ -236,7 +250,7 @@ pre {
 }
 .panel-eyebrow {
   display: flex; align-items: baseline; gap: var(--space-4);
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--panel-ink-2); margin: 0;
 }
@@ -281,7 +295,7 @@ pre {
   margin: 0 0 var(--space-6);
 }
 .h-rule {
-  font-family: var(--font-mono); font-weight: 400;
+  font-family: var(--font-label); font-weight: 400;
   font-size: var(--step--1); letter-spacing: var(--label-tracking);
   text-transform: uppercase; color: var(--panel-accent);
   margin: var(--space-8) 0 var(--space-4);
@@ -297,11 +311,11 @@ pre {
   margin: var(--space-6) 0 var(--space-2);
 }
 .pull-gloss {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: var(--space-6);
 }
 .colophon {
-  font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.7;
+  font-family: var(--font-label); font-size: var(--step--1); line-height: 1.7;
   color: var(--ink-3); margin-top: var(--space-8);
   padding-top: var(--space-4); border-top: 1px solid var(--rule);
 }
@@ -319,7 +333,7 @@ pre {
 .index-main a:hover { color: var(--accent-deep); text-decoration: underline; }
 .index-sub { color: var(--ink-2); font-size: var(--step--1); line-height: 1.5; }
 .index-meta {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: 0.04em; color: var(--ink-3);
 }
 @media (min-width: 48rem) {
@@ -340,7 +354,7 @@ pre {
 }
 .entry-head h3 { margin: 0; font-size: var(--step-2); }
 .entry-meta {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: 0.04em; color: var(--ink-3); margin: 0; max-width: none;
 }
 .entry-body { max-width: var(--measure); }
@@ -351,7 +365,7 @@ pre {
 /* --- label / value pairs ---------------------------------------- */
 .field { margin: 0 0 var(--space-5); display: grid; gap: var(--space-2); }
 .field dt {
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-3);
 }
@@ -370,7 +384,7 @@ pre {
 }
 
 .tag {
-  display: inline-block; font-family: var(--font-mono); font-size: var(--step--1);
+  display: inline-block; font-family: var(--font-label); font-size: var(--step--1);
   padding: 2px 7px; border: 1px solid var(--rule);
   color: var(--ink-2); letter-spacing: 0.04em;
 }
@@ -391,7 +405,8 @@ pre {
 .float-nav ol { list-style: none; margin: 0; padding: 0; display: flex; }
 .float-nav a {
   display: flex; align-items: baseline; gap: 8px;
-  font-family: var(--font-mono); font-size: var(--step--1);
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--ink-2); text-decoration: none;
   transition: color var(--dur-ui) var(--ease), opacity var(--dur) var(--ease);
@@ -431,15 +446,11 @@ pre {
   .float-nav ol::-webkit-scrollbar { display: none; }
   .nav-num { display: none; }
 
-  /* The scores can't share a phone screen side by side and stay honest,
-     so they stack. Aligned to the start, not centred: centring a stack
-     taller than its row clips the top of it, which ate the piano's
-     label. */
-  .room-ribbons {
-    grid-template-columns: 1fr; gap: var(--space-4);
-    overflow: hidden; align-content: start;
-  }
-  .room-ribbon svg { max-height: 13vh; }
+  .score-system { padding-inline: var(--space-3); }
+  .score-tag { font-size: 0.66rem; letter-spacing: 0.08em; gap: var(--space-3); }
+  .score-svg { max-height: 26vh; }
+  .transport-play { padding: 4px 9px; }
+  .transport-play span { display: none; }
 
   /* the stage becomes a band at the foot of the room, and the rail sits
      clear above it rather than across the piano */

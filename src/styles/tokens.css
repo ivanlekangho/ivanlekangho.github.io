@@ -106,6 +106,12 @@
   --gutter: clamp(1.25rem, 5vw, 4.5rem);
   --max-w: 72rem;
 
+  /* Labels, ticks and small apparatus. Mono belongs to the engineer stop,
+     where it means "measured"; using it everywhere made the musician and
+     language readings look like a terminal. Overridden per stop below. */
+  --font-label: var(--font-display);
+  --label-weight: 500;
+
   /* Lighting cross-fades are slow on purpose; UI feedback is not. */
   --dur: 820ms;
   --dur-ui: 220ms;
@@ -123,7 +129,8 @@
 html[data-mode='musician'] {
   --display-weight: 300;
   --display-tracking: -0.018em; --display-leading: 1.02;
-  --label-tracking: 0.18em;
+  --font-label: var(--font-display); --label-weight: 500;
+  --label-tracking: 0.20em;
   --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 11px);
   --motif-size: 100% 55px;
 }
@@ -133,7 +140,8 @@ html[data-mode='musician'] {
 html[data-mode='linguist'] {
   --display-weight: 400;
   --display-tracking: -0.024em; --display-leading: 1.00;
-  --label-tracking: 0.14em;
+  --font-label: var(--font-display); --label-weight: 500;
+  --label-tracking: 0.16em;
   --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 13px);
   --motif-size: 100% 65px;
 }
@@ -142,6 +150,7 @@ html[data-mode='linguist'] {
 html[data-mode='engineer'] {
   --display-weight: 500;
   --display-tracking: -0.034em; --display-leading: 0.98;
+  --font-label: var(--font-mono); --label-weight: 400;
   --label-tracking: 0.10em;
   --motif:
     repeating-linear-gradient(to bottom, var(--panel-rule) 0 0.75px, transparent 0.75px 16px),
