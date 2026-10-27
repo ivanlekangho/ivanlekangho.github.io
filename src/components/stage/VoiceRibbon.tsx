@@ -4,7 +4,7 @@ import {
   bassClef, bassKeySharps, beatXs, diatonic, noteheadPath, noteY,
   staffLineYs, wobble, type StaffGeom,
 } from '../../lib/notation'
-import { lerp } from '../../lib/useScrollProgress'
+import { lerp } from '../../lib/easing'
 import { staging } from './staging'
 
 /**

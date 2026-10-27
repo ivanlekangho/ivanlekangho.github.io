@@ -3,9 +3,9 @@
 Personal site. Built from scratch — no template.
 
 **Stack:** Vite · React 19 · TypeScript · plain CSS custom properties.
-No CSS framework and no animation library: the scroll-driven centerpiece is
-hand-rolled SVG, which is both smaller and more honest than crossfading three
-graphics (see below).
+No CSS framework and no animation library. The front page is a drawn concert
+hall; the scores on it are hand-rolled SVG, which is both smaller and more
+honest than crossfading three graphics (see below).
 
 ---
 
@@ -18,9 +18,10 @@ npm run dev
 
 Then open the URL it prints (usually http://localhost:5173).
 
-Useful during development: **`/?p=0.42`** pins the centerpiece's scroll progress
-to any value between 0 and 1, so you can look at a specific moment of the morph
-without scrolling to it. Dev-only; it does nothing in the built site.
+The page never scrolls. Everything is driven by the rail at the foot of the
+room — drag it to scrub the lights and both scores continuously, or click a
+stop. Your last stop is remembered in `localStorage` under `ivan-site-mode`;
+clear it if you want to see the first-load state again.
 
 ```bash
 npm run build      # type-checks, then builds to dist/
@@ -34,20 +35,25 @@ npm run typecheck  # types only
 
 Everything you'll want to edit is a plain file. No CMS.
 
-| What | File |
-|---|---|
-| The centerpiece phrase (notes, syllables, tones) | `src/data/phrase.ts` |
-| Colours, type scale, spacing, both modes | `src/styles/tokens.css` |
-| Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
-| About / bio | `src/sections/About.tsx` |
-| Work experience | `src/sections/Work.tsx` |
-| Cancer Society | `src/sections/Impact.tsx` |
-| Projects | `src/sections/Projects.tsx` |
-| Recital room | `src/sections/Recital.tsx` |
-| Education, skills, contact | `src/sections/{Education,Skills,Contact}.tsx` |
-| How I think | `src/pages/HowIThink.tsx` |
-| Now page | `src/pages/Now.tsx` |
-| Log posts | `src/content/log/*.md` |
+Every section is its own route and opens as a panel over the hall, so each one
+has a URL you can link to directly.
+
+| What | Opens at | File |
+|---|---|---|
+| The centerpiece phrase (notes, syllables, tones) | — | `src/data/phrase.ts` |
+| Type scale, spacing, per-stop typography | — | `src/styles/tokens.css` |
+| Every colour, as three lighting keyframes | — | `src/lib/palette.ts` |
+| The hall, the Steinway, the baritone | — | `src/components/stage/StageScene.tsx` |
+| Tone systems (Mandarin; Hakka stub) | — | `src/data/tones.ts` |
+| About / bio | `/about` | `src/sections/About.tsx` |
+| Work experience | `/work` | `src/sections/Work.tsx` |
+| Cancer Society | `/impact` | `src/sections/Impact.tsx` |
+| Projects | `/projects` | `src/sections/Projects.tsx` |
+| Recital room | `/recital` | `src/sections/Recital.tsx` |
+| Education, skills, contact | `/education` `/skills` `/contact` | `src/sections/{Education,Skills,Contact}.tsx` |
+| How I think | `/how-i-think` | `src/pages/HowIThink.tsx` |
+| Now page | `/now` | `src/pages/Now.tsx` |
+| Log posts | `/log` | `src/content/log/*.md` |
 
 Anything still needing your words renders as a loud dashed **needs your
 content** box. If a reader ever sees one of those, something shipped early.
@@ -144,42 +150,63 @@ The Actions flow doesn't run Jekyll at all.)
 
 ---
 
-## How the centerpiece works
+## How the room works
 
-`src/components/Centerpiece.tsx`. One note array in `src/data/phrase.ts` is the
-only source of truth. Three projections of it — bass-clef notation, Mandarin
-tone contours, a pitch-and-tone data series — are all indexed by a single
-`progress` value from 0 to 1.
+The front page is a hall: a Steinway, a baritone, and both their scores hanging
+in the air above them. Nothing scrolls. One number — the rail position, 0 to 1 —
+drives all of it at once.
+
+| Rail | Voice score | Piano score | The hall |
+|---|---|---|---|
+| **musician** | bass-clef notation | grand staff | house lights down, one warm pool |
+| **linguist** | Mandarin tone contours | roman numerals, key regions | half light, plum dusk |
+| **engineer** | code encoding | frequency, wavelength, ratios | full cold wash, measured grid |
 
 The important part: **the same `<ellipse>` elements are the noteheads, the tone
 contour onsets, and the data points.** Nothing crossfades between three separate
-graphics; the objects themselves move. The section is claiming that music,
-language, and code are three views of one thing, so that had better be literally
-true in the DOM.
+graphics; the objects themselves move. The page is claiming that music, language
+and code are three views of one thing, so that had better be literally true in
+the DOM.
 
 Notation is engraved from note *names*, not MIDI numbers, so F♯ and F land on
 the same staff line and the key signature does its job. Positions are diatonic:
 bass clef, bottom line G2, one staff step = half a line gap.
 
-The scroll driver (`src/lib/useScrollProgress.ts`) uses a passive `scroll`
-listener as the reliable signal and a `requestAnimationFrame` loop as the
-smoothing layer. Either alone has a failure mode — rAF gets throttled in
-background tabs and freezes the morph part-way; scroll events arrive in clumps
-during iOS momentum scrolling and make it stutter. `prefers-reduced-motion`
-snaps to three discrete states instead of animating.
+**The lighting board** is `src/lib/palette.ts`. Three keyframes, and every lit
+value is interpolated between them and written onto `<html>` as a custom
+property as the rail moves — so the lights come up continuously instead of
+snapping at the stops. `src/styles/tokens.css` holds only what is allowed to
+snap: type, motion, spacing, and the four Mandarin tone families.
 
-## The two modes
+**The instrument** is projected, not sketched. A grand's plan is a long straight
+spine, a straight keyboard end, and one bent rim tapering to the tail; round all
+of that off and you get an oval table. `StageScene.tsx` projects those plan
+coordinates through one transform and builds every other part on the result. The
+baritone is drawn in a 200×420 box so the classical proportions — head a seventh
+and a half of the height, shoulders a quarter, legs just under half — are
+numbers rather than guesses.
 
-`musician` (default) and `engineer`, toggled in the nav and remembered in
-`localStorage`. Both modes read the same tokens from `src/styles/tokens.css`;
-only the weighting changes — accent hue, Fraunces' `SOFT` and `WONK` axes,
-weight, tracking, easing duration, and the background motif (staff lines vs
-graph paper). Section order never changes, so anchors and deep links can't break.
+**On a phone** the hall would crop to the middle of the piano, so the stage
+becomes a band at the foot of the room framed on the performers, and the two
+scores stack.
+
+## The three readings
+
+`musician`, `linguist`, `engineer`, set by the rail and remembered in
+`localStorage`. The rail re-weights the navigation — destinations that belong to
+the current reading come forward, the rest recede — but it never hides anything,
+so no visitor can miss half the site by not touching a control. Route order and
+URLs never change, so deep links can't break.
+
+`prefers-reduced-motion` turns the lighting cue into a cut: `mode.tsx` skips the
+tween and the CSS collapses every transition.
 
 ## Known gaps
 
-- The eight pitches in `src/data/phrase.ts` are a **placeholder** descending
-  B-minor line, not Schubert's actual notes. The syllable and tone mapping is real.
+- The piano chord voicings in `src/data/piano.ts` are **measured off a
+  screenshot, not transcribed** — see `PIANO_UNVERIFIED`. The pitches are good
+  (the same pipeline reproduced the vocal line exactly) but a MusicXML or MIDI
+  export would make the voicings certain. The vocal line is confirmed.
 - Chinese text falls back to a system CJK face. Ship a subsetted `LXGW WenKai`
   containing only the glyphs used — the full font is several megabytes.
 - `react-markdown` is most of the ~128 KB gzipped bundle. If the log stays

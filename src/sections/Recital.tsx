@@ -1,6 +1,7 @@
 import StaffNotation from '../components/StaffNotation'
 import Todo from '../components/Todo'
 import { PIECE } from '../data/phrase'
+import { PIANO_PIECE } from '../data/piano'
 
 export default function Recital() {
   return (
@@ -30,6 +31,18 @@ export default function Recital() {
             </p>
             <p className="muted" style={{ marginBottom: 0 }}>{PIECE.englishGloss}</p>
           </blockquote>
+
+          {/* The Mandarin reading of the line. This used to sit under the
+              stage; it belongs with the piece, not with the room. */}
+          <p className="muted" style={{ fontSize: 'var(--step--1)', maxWidth: '58ch' }}>
+            <span className="han" style={{ fontSize: 'var(--step-0)', color: 'var(--ink)' }}>
+              {PIECE.mandarin}
+            </span>{' '}— {PIECE.mandarinPinyin} — “{PIECE.mandarinGloss}”.
+            {' '}{PIECE.mandarinNote}
+          </p>
+          <p className="muted" style={{ fontSize: 'var(--step--1)', maxWidth: '58ch' }}>
+            {PIANO_PIECE.summary}
+          </p>
 
           {/* Native audio element, styled minimally. Waveform comes later from a
               pre-generated peaks file rather than decoding the whole track at runtime. */}

@@ -1,30 +1,86 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { MODES, STOP_AT, modeAt, paletteAt, type Mode } from './palette'
 
-export type Mode = 'musician' | 'engineer'
+export type { Mode }
+
 const KEY = 'ivan-site-mode'
+const REDUCED = () =>
+  typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const ModeCtx = createContext<{ mode: Mode; toggle: () => void }>({
-  mode: 'musician',
-  toggle: () => {},
-})
+type Ctx = {
+  /** Continuous rail position, 0 (musician) → 0.5 (linguist) → 1 (engineer). */
+  pos: number
+  /** Nearest named stop. What the copy and the nav weighting key off. */
+  mode: Mode
+  /** Scrub, for the drag handle. No easing — the pointer is the easing. */
+  setPos: (p: number) => void
+  /** Travel to a stop, bringing the lights up over the way. */
+  goTo: (m: Mode) => void
+}
+
+const ModeCtx = createContext<Ctx>({ pos: 0, mode: 'musician', setPos: () => {}, goTo: () => {} })
+
+/** Everything that reads as light is written straight onto <html>, so the
+ *  hall, the panels, the instrument and the score are lit by one source. */
+function paint(p: number) {
+  const el = document.documentElement
+  const vars = paletteAt(p)
+  for (const k in vars) el.style.setProperty(k, vars[k])
+  el.dataset.mode = modeAt(p)
+}
 
 export function ModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<Mode>(() => {
+  const [pos, setPosState] = useState<number>(() => {
     const saved = localStorage.getItem(KEY)
-    return saved === 'engineer' || saved === 'musician' ? saved : 'musician'
+    const i = MODES.indexOf(saved as Mode)
+    return i >= 0 ? STOP_AT[i] : 0
   })
 
+  const raf = useRef(0)
+  /* goTo reads the live position without re-creating itself every frame. */
+  const posRef = useRef(pos)
+  posRef.current = pos
+
+  /* Painted before the browser gets a chance to show the frame, or someone
+     who left in engineer mode sees a flash of the dark hall on load. */
+  useLayoutEffect(() => { paint(pos) }, [pos])
+
   useEffect(() => {
-    document.documentElement.dataset.mode = mode
-    localStorage.setItem(KEY, mode)
-  }, [mode])
+    localStorage.setItem(KEY, modeAt(pos))
+  }, [pos])
 
-  const toggle = useCallback(
-    () => setMode((m) => (m === 'musician' ? 'engineer' : 'musician')),
-    [],
+  useEffect(() => () => cancelAnimationFrame(raf.current), [])
+
+  const setPos = useCallback((p: number) => {
+    cancelAnimationFrame(raf.current)
+    setPosState(Math.min(1, Math.max(0, p)))
+  }, [])
+
+  const goTo = useCallback((m: Mode) => {
+    const to = STOP_AT[MODES.indexOf(m)]
+    cancelAnimationFrame(raf.current)
+    if (REDUCED()) { setPosState(to); return }
+
+    /* 820ms is slow enough to read as a lighting cue rather than a UI state
+       change — a board operator takes about a second on a cross-fade. */
+    const from = posRef.current
+    const t0 = performance.now()
+    const D = 820
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / D)
+      /* ease-in-out: lights don't snap on, and they don't snap off */
+      const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2
+      setPosState(from + (to - from) * e)
+      if (k < 1) raf.current = requestAnimationFrame(step)
+    }
+    raf.current = requestAnimationFrame(step)
+  }, [])
+
+  return (
+    <ModeCtx.Provider value={{ pos, mode: modeAt(pos), setPos, goTo }}>
+      {children}
+    </ModeCtx.Provider>
   )
-
-  return <ModeCtx.Provider value={{ mode, toggle }}>{children}</ModeCtx.Provider>
 }
 
 export const useMode = () => useContext(ModeCtx)

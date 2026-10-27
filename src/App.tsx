@@ -1,46 +1,60 @@
-import { useEffect } from 'react'
-import { Link, Route, Routes, useLocation } from 'react-router-dom'
-import Nav from './components/Nav'
+import { Link, Route, Routes } from 'react-router-dom'
 import FloatingNav from './components/FloatingNav'
-import Home from './pages/Home'
+import Panel from './components/Panel'
+import RecitalRoom from './components/stage/RecitalRoom'
+import About from './sections/About'
+import Work from './sections/Work'
+import Impact from './sections/Impact'
+import Projects from './sections/Projects'
+import Recital from './sections/Recital'
+import Education from './sections/Education'
+import Skills from './sections/Skills'
+import Contact from './sections/Contact'
 import HowIThink from './pages/HowIThink'
 import Log from './pages/Log'
 import Now from './pages/Now'
 
-/** Hash links from other routes (/#recital) need a nudge after navigation. */
-function HashScroll() {
-  const { pathname, hash } = useLocation()
-  useEffect(() => {
-    if (hash) {
-      const el = document.querySelector(hash)
-      if (el) { el.scrollIntoView({ behavior: 'smooth' }); return }
-    }
-    window.scrollTo({ top: 0 })
-  }, [pathname, hash])
-  return null
-}
+/**
+ * The hall is always mounted. Every other route is a sheet over the top of
+ * it, which is why the stage never reloads, the lighting never resets, and
+ * the back button closes a panel instead of leaving the site.
+ */
+
+const SHEETS: { path: string; title: string; wide?: boolean; el: React.ReactNode }[] = [
+  { path: '/about', title: 'About', el: <About /> },
+  { path: '/work', title: 'Work', el: <Work /> },
+  { path: '/impact', title: 'Cancer Society', wide: true, el: <Impact /> },
+  { path: '/projects', title: 'Projects', wide: true, el: <Projects /> },
+  { path: '/recital', title: 'Recital', el: <Recital /> },
+  { path: '/education', title: 'Education', el: <Education /> },
+  { path: '/skills', title: 'Skills', wide: true, el: <Skills /> },
+  { path: '/contact', title: 'Contact', el: <Contact /> },
+  { path: '/how-i-think', title: 'How I think', el: <HowIThink /> },
+  { path: '/now', title: 'Now', el: <Now /> },
+  { path: '/log', title: 'Log', el: <Log /> },
+  { path: '/log/:slug', title: 'Log', el: <Log /> },
+]
 
 export default function App() {
-  const home = useLocation().pathname === '/'
   return (
     <>
       <a href="#main" className="sr-only">Skip to content</a>
-      {/* The recital room is a full-viewport pinned stage, so it can't share
-          the top of the screen with a bar — the stage ends up cropped. On the
-          front page the floating rail is the navigation, and the name sits as
-          a small fixed mark instead. */}
-      {home ? <Link to="/" className="brand-mark">Ivan Ho</Link> : <Nav />}
-      <HashScroll />
+      <Link to="/" className="brand-mark">
+        Ivan Ho<small>Baritone · Stanford CS</small>
+      </Link>
+
       <main id="main">
+        <RecitalRoom />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/how-i-think" element={<HowIThink />} />
-          <Route path="/log" element={<Log />} />
-          <Route path="/log/:slug" element={<Log />} />
-          <Route path="/now" element={<Now />} />
-          <Route path="*" element={<Home />} />
+          <Route path="/" element={null} />
+          {SHEETS.map(({ path, title, wide, el }) => (
+            <Route key={path} path={path}
+              element={<Panel title={title} wide={wide}>{el}</Panel>} />
+          ))}
+          <Route path="*" element={null} />
         </Routes>
       </main>
+
       <FloatingNav />
     </>
   )

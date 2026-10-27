@@ -1,25 +1,61 @@
 /* ============================================================
-   Design tokens — "Four Tones, warm" (direction G)
-   Every colour is a three-stop family: wash (fills), mid (strokes,
-   noteheads, diagram lines), deep (anything that must be READ).
-   Pastels never carry text. That rule is the whole system.
+   Design tokens — the darkened hall.
+
+   Colour is NOT defined here. Every lit value (--bg, --ink, --panel,
+   --piano-*, …) is interpolated in src/lib/palette.ts and written onto
+   <html> as the rail moves, so the lights can come up continuously
+   instead of snapping between modes. The values below are the musician
+   keyframe, present only so the first paint is correct before React
+   mounts — keep them in step with MUSICIAN in palette.ts.
+
+   What lives here: the things that may snap — type, motion, space, and
+   the four Mandarin tone families, which are fixed site-wide so the
+   legend is true everywhere it appears.
    ============================================================ */
 
 :root {
-  /* --- paper & ink ------------------------------------------------ */
-  --paper:        #FAF7F3;
-  --paper-2:      #F6F1EA;
-  --wash:         #EFE7DE;
-  --rule:         #E0D5C9;
-  /* staff lines need a touch more weight than a UI hairline to stay legible */
-  --staff:        #CFC0AE;
-  --ink:          #2B2420;
-  --ink-2:        #5A4E46;
-  --ink-3:        #9C9088;
+  --bg: #120F0D;
+  --hall: #1A1512;
+  --boards: #231A12;
+  --hall-line: #241C16;
+  --floor-edge: #3A2E1E;
+  --pool: #C9A961;
+  --pool-alpha: 0.34;
+  --accent: #C9A961;
+  --accent-soft: #8A6F3F;
+  --ink: #F2EBDD;
+  --ink-2: #C3B6A2;
+  --ink-3: #8E8273;
+  --rule: #2E2419;
+  --staff: #6B5B3E;
+  --panel: #F7F2E8;
+  --panel-ink: #1A1512;
+  --panel-ink-2: #5E5345;
+  --panel-rule: #DFD4C2;
+  --panel-accent: #8A6A20;
+  --piano-body: #0B0908;
+  --piano-lid: #271E15;
+  --piano-edge: #8A6F3F;
+  --keys: #E8DFD0;
+  --string: #C9A961;
+  --shirt: #F2EBDD;
+  --skin: #C6A383;
+  --coat: #090807;
+
+  /* Aliases kept so the notation and section components, which were
+     written against the paper palette, read correctly on the dark hall.
+     They are redefined inside .panel, where the sheet IS paper again. */
+  --accent-deep: var(--accent);
+  --accent-mid:  var(--accent-soft);
+  --accent-wash: color-mix(in srgb, var(--accent) 18%, transparent);
+  --paper:       var(--hall);
+  --paper-2:     color-mix(in srgb, var(--hall) 72%, var(--bg));
+  --wash:        var(--hall-line);
 
   /* --- tone families ---------------------------------------------
-     Mandarin lexical tones. Mapping is fixed site-wide so the
-     legend is true everywhere it appears.
+     Mandarin lexical tones. These are content, not lighting, and they
+     only ever appear on a lit panel or against the pool, so they stay
+     fixed across the three stops.
        tone 1  level    ˉ   sage
        tone 2  rising   ˊ   honey
        tone 3  dipping  ˇ   wisteria
@@ -54,72 +90,59 @@
   --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;
   --space-4: 1rem;    --space-5: 1.5rem;  --space-6: 2rem;
   --space-7: 3rem;    --space-8: 4.5rem;  --space-9: 7rem;
-  --radius:   10px;
-  --radius-lg: 16px;
-  --measure: 34rem;          /* comfortable reading width */
+  --radius:   8px;
+  --radius-lg: 14px;
+  --measure: 34rem;
   --gutter: clamp(1.25rem, 5vw, 4.5rem);
   --max-w: 72rem;
+
+  /* Lighting cross-fades are slow on purpose; UI feedback is not. */
+  --dur: 820ms;
+  --dur-ui: 220ms;
+  --ease: cubic-bezier(0.37, 0, 0.26, 1);
 }
 
 /* ============================================================
-   MODE: musician (default) — serif, warm, rose-forward,
-   staff-line motif, slower easing.
+   Per-stop typography and motion. Colour never appears in these
+   blocks — it is already on <html> from the lighting board, and
+   duplicating it here would make the two fight at the midpoints.
+   Same DOM order in every mode: anchors never break.
    ============================================================ */
+
+/* Warm, rounded terminals, generous tracking. Reads as programme note. */
 html[data-mode='musician'] {
-  --bg:           var(--paper);
-  --accent-wash:  var(--t4-wash);
-  --accent-mid:   var(--t4-mid);
-  --accent-deep:  var(--t4-deep);
-
-  --display-soft:    100;   /* Fraunces SOFT axis: rounded terminals */
-  --display-wonk:    1;
-  --display-weight:  400;
-  --display-tracking: -0.013em;
-  --display-leading: 1.06;
-
-  --dur:  620ms;
-  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  /* five staff lines, drawn once and repeated */
-  --motif:
-    repeating-linear-gradient(
-      to bottom,
-      var(--rule) 0 1px,
-      transparent 1px 11px
-    );
+  --display-soft: 100; --display-wonk: 1; --display-weight: 400;
+  --display-tracking: -0.013em; --display-leading: 1.06;
+  --label-tracking: 0.16em;
+  --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 11px);
   --motif-size: 100% 55px;
 }
 
-/* ============================================================
-   MODE: engineer — same palette, re-weighted. Sharper terminals,
-   tighter tracking, wisteria-forward, graph-paper motif,
-   snappier easing. Same DOM order: anchors never break.
-   ============================================================ */
+/* The language stop: slightly tighter, a shade more upright. Pinyin and
+   Han sit next to Latin here, and wonk makes the mix look unsteady. */
+html[data-mode='linguist'] {
+  --display-soft: 50; --display-wonk: 0; --display-weight: 450;
+  --display-tracking: -0.020em; --display-leading: 1.04;
+  --label-tracking: 0.13em;
+  --motif: repeating-linear-gradient(to bottom, var(--panel-rule) 0 1px, transparent 1px 13px);
+  --motif-size: 100% 65px;
+}
+
+/* Sharp terminals, tight tracking, mono labels. */
 html[data-mode='engineer'] {
-  --bg:           #F8F7F4;
-  --accent-wash:  var(--t3-wash);
-  --accent-mid:   var(--t3-mid);
-  --accent-deep:  var(--t3-deep);
-
-  --display-soft:    0;
-  --display-wonk:    0;
-  --display-weight:  600;
-  --display-tracking: -0.030em;
-  --display-leading: 1.02;
-
-  --dur:  240ms;
-  --ease: cubic-bezier(0.30, 0.00, 0.20, 1);
-
+  --display-soft: 0; --display-wonk: 0; --display-weight: 600;
+  --display-tracking: -0.030em; --display-leading: 1.02;
+  --label-tracking: 0.10em;
   --motif:
-    repeating-linear-gradient(to bottom, var(--rule) 0 0.75px, transparent 0.75px 16px),
-    repeating-linear-gradient(to right,  var(--rule) 0 0.75px, transparent 0.75px 16px);
+    repeating-linear-gradient(to bottom, var(--panel-rule) 0 0.75px, transparent 0.75px 16px),
+    repeating-linear-gradient(to right,  var(--panel-rule) 0 0.75px, transparent 0.75px 16px);
   --motif-size: 16px 16px, 16px 16px;
 }
 
-/* Anyone who has asked their OS to calm down gets no scroll-driven
-   motion anywhere on the site. Honoured in useScrollProgress too. */
+/* Anyone who has asked their OS to calm down gets the lighting cue as a
+   cut rather than a fade. Honoured in mode.tsx too, which skips the tween. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur: 1ms; }
+  :root { --dur: 1ms; --dur-ui: 1ms; }
   *, *::before, *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;

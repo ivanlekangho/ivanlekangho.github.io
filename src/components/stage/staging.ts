@@ -1,26 +1,27 @@
-import { ease, range } from '../../lib/useScrollProgress'
+import { ease, range } from '../../lib/easing'
 
 /**
- * One scroll value drives both performers, so the singer's score and the
- * pianist's score change state together. Shared here rather than duplicated in
- * each ribbon, because the moment they drift apart the room stops reading as
- * one performance.
+ * One rail position drives both performers, so the singer's score and the
+ * pianist's score change together. Shared here rather than duplicated in
+ * each ribbon, because the moment they drift apart the room stops reading
+ * as one performance.
  *
- * The fades overlap on purpose: if an outgoing layer finished before the
- * incoming one started, both staves would blank mid-scroll.
+ * The stops sit at 0, 0.5 and 1, and each one is pure: at a stop you see
+ * exactly one reading, not a blend. The fades overlap in between so that
+ * no mid-drag position shows two blank staves.
  */
 export function staging(p: number) {
   return {
     /** notation */
-    oA: 1 - ease(range(p, 0.10, 0.30)),
-    /** middle state: tones for the voice, harmony for the piano */
-    oB: ease(range(p, 0.18, 0.38)) * (1 - ease(range(p, 0.58, 0.74))),
-    /** final state: code for the voice, waves for the piano */
-    oC: ease(range(p, 0.62, 0.86)),
-    /** morph weights */
-    tAB: ease(range(p, 0.12, 0.36)),
-    tBC: ease(range(p, 0.58, 0.82)),
-    index: p < 0.30 ? 0 : p < 0.62 ? 1 : 2,
+    oA: 1 - ease(range(p, 0.06, 0.44)),
+    /** middle stop: tones for the voice, harmony for the piano */
+    oB: ease(range(p, 0.06, 0.44)) * (1 - ease(range(p, 0.56, 0.94))),
+    /** final stop: code for the voice, waves for the piano */
+    oC: ease(range(p, 0.56, 0.94)),
+    /** morph weights — the same noteheads moving, not a crossfade */
+    tAB: ease(range(p, 0.04, 0.5)),
+    tBC: ease(range(p, 0.5, 0.96)),
+    index: p < 0.25 ? 0 : p < 0.75 ? 1 : 2,
   }
 }
 
