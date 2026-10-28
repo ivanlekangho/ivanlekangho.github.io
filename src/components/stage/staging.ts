@@ -37,8 +37,15 @@ export function staging(p: number) {
 export function screens(p: number) {
   const f = (a: number, b: number) => ease(range(p, a, b))
   return {
-    score: 1 - f(0.1, 0.3),
-    language: f(0.22, 0.42) * (1 - f(0.58, 0.74)),
+    /* The staves and the language table overlap on purpose, and only
+       they do: the words arrive from their own noteheads, so both have to
+       be on screen while that happens. The terminal has no such handoff
+       and takes over cleanly. */
+    score: 1 - f(0.16, 0.34),
+    /* Up early and quickly, while the staves are still lit: the words
+       arrive on their own noteheads and have to be legible there, or the
+       travel starts from nothing and the morph is lost. */
+    language: f(0.12, 0.24) * (1 - f(0.58, 0.74)),
     terminal: f(0.68, 0.88),
   }
 }

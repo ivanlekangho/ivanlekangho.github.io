@@ -252,7 +252,9 @@ One number drives it: the rail position, 0 to 1.
 | **engineer** | the terminal | full cold wash, measured grid |
 
 **One screen at a time.** The three share a cell and hand over in sequence —
-`screens()` in `staging.ts` — rather than crossfading through each other. An
+`screens()` in `staging.ts` — rather than crossfading through each other.
+The one deliberate overlap is the staves and the language table, which have
+to be lit together while the words travel off their noteheads. An
 overlapping fade put the staves on top of the language table halfway through
 every scroll, and the earlier layout was worse than that: the staff drew the
 tone contours and the chord chart while a table underneath repeated both, so
@@ -335,6 +337,26 @@ table. That vertical rhyme is the argument: the last row has a lexicon, an
 inflection (`⁶₄`, `⁷`) and a syntax — where a dominant is allowed to go — and
 it is sitting in the same table as three things nobody disputes are languages.
 Nothing on the page asserts that. The table shows it.
+
+**The words arrive from their notes.** Scroll into this stop and each
+syllable starts on its own notehead — the character where the note was, the
+German on the lyric line — and travels out to its slot in the row, left to
+right, while the staff dissolves underneath. What you watch is the notes
+becoming the words, which is the claim the room is making; the table is
+just where they come to rest. The chord symbols rise out of the grand staff
+the same way, since that is where that harmony was being played.
+
+The start positions are the engraver's own: `xAt` for the beat, `noteY` for
+the pitch, `lyricY` for the German, mapped through the score SVG's viewBox
+exactly as the browser maps it. The resting positions are measured, because
+the rows are laid out with `space-between` and where a word settles depends
+on how wide all the others are — a guess lands a few pixels off, which is
+the part the eye notices. Two traps worth knowing, both now commented in
+`Apparatus.tsx`: a transform makes the transformed element the glyph's
+`offsetParent`, so the measurement takes two hops and both elements are
+positioned in CSS to keep it deterministic; and the display face arrives
+over the network, so the slots are measured again on `document.fonts.ready`.
+`prefers-reduced-motion` puts everything home and skips the travel.
 
 Tone letters follow the IPA convention, contour to the left of a reference
 bar, rather than a tone box with a rule across the top — that rule hides the

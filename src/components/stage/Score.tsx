@@ -29,7 +29,7 @@ const PIANO_DY = 200
  * letterboxed at the stop most people land on. So the frame closes in on
  * the notation and opens out as the rail moves.
  */
-const FRAME = [
+export const FRAME = [
   { y: 78, h: 342 },   // musician: top line of the voice staff to the bass staff
   { y: 14, h: 450 },   // linguist: the tone arrows down to the progression
   { y: 52, h: 446 },   // engineer: data series down to the ratios

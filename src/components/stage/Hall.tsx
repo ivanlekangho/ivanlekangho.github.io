@@ -74,7 +74,7 @@ export default function Hall() {
           </div>
           <div className="score-layer score-layer-lang" aria-hidden={!language}
             style={{ opacity: show.language, pointerEvents: language ? 'auto' : 'none' }}>
-            <Apparatus />
+            <Apparatus p={pos} />
           </div>
           <div className="score-layer score-layer-term" aria-hidden={!engineer}
             style={{ opacity: show.terminal, pointerEvents: engineer ? 'auto' : 'none' }}>

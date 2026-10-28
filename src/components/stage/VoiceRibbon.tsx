@@ -25,7 +25,7 @@ import { staging } from './staging'
  */
 
 export const VOICE_H = 224
-const GEO: StaffGeom = { gap: 13, bottomY: 150 }
+export const GEO: StaffGeom = { gap: 13, bottomY: 150 }
 const HEAD = { clef: SYS.clef, keySig: SYS.keySig, time: SYS.time }
 
 const TONE_TOP = 38
