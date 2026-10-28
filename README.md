@@ -2,7 +2,7 @@
 
 Personal site. Built from scratch — no template.
 
-**Stack:** Vite · React 19 · TypeScript · plain CSS custom properties.
+**Stack:** Vite, React 19, TypeScript, plain CSS custom properties.
 No CSS framework and no animation library. The front page is a drawn concert
 hall; the scores on it are hand-rolled SVG, which is both smaller and more
 honest than crossfading three graphics (see below).
@@ -66,7 +66,7 @@ has a URL you can link to directly.
 | The hall, the Steinway, the baritone | `src/components/stage/StageScene.tsx` |
 | The one system both performers read | `src/components/stage/Score.tsx` |
 | The piece, on parchment | `src/components/stage/PieceSheet.tsx` |
-| Bravura's outlines, inlined | `src/lib/bravura.ts` · `tools/extract-bravura.py` |
+| Bravura's outlines, inlined | `src/lib/bravura.ts`, `tools/extract-bravura.py` |
 | Engraving thicknesses and the glyph renderer | `src/lib/smufl.tsx` |
 | The horizontal axis they share | `src/lib/beatmap.ts` |
 | The terminal at the engineer stop | `src/components/stage/Terminal.tsx` |
@@ -290,7 +290,7 @@ letterboxed at the stop most people land on.
 
 ### The piece, on parchment
 
-The credit over the stage — *Franz Schubert · Der Wanderer, D.489* — is a
+The credit over the stage — *Franz Schubert — Der Wanderer, D.489* — is a
 button. It lifts the piece out of the room as a sheet of aged paper: the vocal
 line engraved on its own, the three readings of the text, the Wang Wei echo,
 what the harmony is doing and how often the melody agrees with the Mandarin
@@ -306,9 +306,25 @@ would leave air wherever only the pianist plays.
 
 ### The linguist stop
 
-This is the stop that makes the argument, so it is the one with the most on
-it. The claim is printed under the system: **the same nine notes are a
-melody, a sentence and a chord chart.** Three things demonstrate it.
+This is the stop that makes the argument, and it makes it by laying four
+notations of one line in parallel rather than by arguing in prose. The claim
+is printed above them: **one line, four notations.**
+
+| Row | What is in it |
+|---|---|
+| Mandarin | 我处处皆为异客, each syllable under its Chao tone letter, with pinyin |
+| German | the sung text by syllable, each with its IPA |
+| English | *I am a stranger everywhere* |
+| Music | `Bm B+ Em C♯°7 D/A A7 D`, each over its roman numeral |
+
+The three syllable rows are set to one width and spread across it, so the
+characters, the German and the chord symbols line up in columns. That vertical
+rhyme is the argument: the last row has a lexicon, an inflection (`⁶₄`, `⁷`)
+and a syntax, and it is sitting in the same table as three things nobody
+disputes are languages. `Apparatus.tsx` draws it; the IPA lives on the notes
+in `phrase.ts`, so the text and its transcription cannot drift apart.
+
+Above the four rows, the system itself does three further things.
 
 **The noteheads become the words.** Each one travels to the start of its
 syllable's tone contour and turns into the Han character there — same place,
@@ -325,47 +341,69 @@ agree, two fight.
 **Stress against the bar.** Mandarin has no English-style lexical stress, but
 it has prosodic heads — the syllable a word leans on — and function words that
 want to stay out of the way. `src/data/mandarin.ts` records which is which;
-`prosody.ts` works out where cut time puts its weight and compares. The strip
-under the syllables is the bar: a long tick on each downbeat, a short one
-halfway through, and a mark under each word saying whether it got the weight
-it wanted.
+`prosody.ts` works out where cut time puts its weight and compares.
 
-Five of seven do. The function words behave — 我 takes the pickup and 为 sits
-off the beat, exactly where a pronoun and a copula belong. The one that does
-not is 异客: the downbeat of bar two lands on 异, *strange*, and 客, *guest*,
-the head of the compound, arrives off the beat and only reaches the next
-strong one by being held through it.
+Five of seven land where they want to. The function words behave — 我 takes
+the pickup and 为 sits off the beat, exactly where a pronoun and a copula
+belong. The one that does not is 异客: the downbeat of bar two lands on 异,
+*strange*, and 客, *guest*, the head of the compound, arrives off the beat and
+only reaches the next strong one by being held through it.
 
 Which is wrong, and is also the better reading. The song is called *Der
 Wanderer*. He had no way of knowing that — the Mandarin line is an overlay we
 chose, which is exactly why these are measurements rather than claims.
 
-**Two registers of harmony.** Above the staff, the chord symbol — `Bm`, `B+`,
-`Em`, `C♯°7`, `D/A`, `A7`, `D` — which names the object. Below it, the roman
-numeral and the word for the move: *secondary dominant*, *pivot*, *cadential
-six-four*. Two grammars describing one sound, which is as close to a definition
-of language as a chord chart gets.
-
-**On a phone** the language stop shows the singer's half only (`FRAME_NARROW`
-in `Score.tsx`): tone, characters, metre, German. There is no legible way to
-fit seven Han characters, their contours, the pinyin, the German and a
-seven-chord chart across 375 pixels, and shrinking it to fit would be a
-diagram nobody can read. The harmony is one tap away in the piece sheet, which
-is also where the stress table lives.
+**On a phone** all four rows stay: three of four is not the argument. What
+goes is the tally line, which the piece sheet carries at length. The system
+above crops to the singer's half (`FRAME_NARROW` in `Score.tsx`), because
+there is no legible way to fit the tone diagram and a seven-chord chart across
+375 pixels at once.
 
 ### The engineer stop: the terminal
 
 At the engineer stop the staves have said what they can, and a REPL takes
-their place. Type a chord — `Cmaj7`, `F#m7b5`, `Bb13`, `Dsus4/A`, `Eb7#9` — or
-click one of the phrase's own, and it answers the only question worth asking:
-why does that sound like that.
+their place, centred in the window rather than in the column the rail leaves
+behind. It opens on the phrase's own final chord and answers the only question
+worth asking: why does that sound like that.
 
-You get the summed waveform with every component sine faint behind it and the
-repeat period marked, a keyboard with the chord held down, the frequencies and
-their ratios, how far equal temperament sits from each one, and a sound toggle.
-**The audio is the picture:** one pure sine per note, no harmonics, no samples,
-so what is on screen is literally what comes out of the speakers. It sounds
-like an organ rather than a Steinway, and that is the honest trade.
+You get the chord named, the summed waveform, a keyboard with it held down,
+the frequencies with their ratios and their distance from pure, three lines of
+Python, and a sound toggle. **The audio is the picture:** one pure sine per
+note, no harmonics, no samples, so what is on screen is literally what comes
+out of the speakers. It sounds like an organ rather than a Steinway, and that
+is the honest trade.
+
+**You can play it.** Every key is a button; pressing one adds or removes a
+note and `identify()` in `chords.ts` names whatever is left. That is the
+opposite direction from parsing, and a genuinely ambiguous one — C E♭ G♭ A is
+a diminished seventh four different ways — so the rule is the one a musician
+uses by default: the lowest note sounding is the root unless nothing fits that
+way, and a set with no name in the table is reported as having no name rather
+than forced into the nearest one. Spelling comes back through the parser, so a
+chord you click is written the same way as the chord you type.
+
+**You can hover the waveform.** The sum is what you see first; moving across
+it brings the component sines up underneath, each in its own colour, with a
+crosshair marking the same instant on all of them. Hovering a row of the
+frequency table isolates that one note's sine. The window is a little over one
+repeat where the chord repeats soon and six cycles of the bass where it does
+not — past that the components cross each other too often to read as lines.
+
+**You can change the tuning.** `lib/temperament.ts` holds four systems, each
+as twelve ratios against the chord's lowest note, which is also how a choir
+tunes — to the bass, not to A440.
+
+| System | What it is | What the terminal shows |
+|---|---|---|
+| equal | twelve identical steps | the familiar errors: major third +14¢, fifth −2¢ |
+| choral | five-limit whole-number ratios | every interval 0¢, because this is the zero |
+| pythagorean | a chain of pure fifths | fifth pure, minor third −22¢ |
+| meantone | fifths narrowed to buy pure thirds | third pure, fifth −5¢ |
+
+The `JUST` table in `tuning.ts` is both the choral tuning and the reference
+the cents column is measured against, so the two cannot disagree. Switching to
+choral is the demonstration: every error collapses to zero and the waveform
+settles.
 
 **It does not scroll.** Each chord replaces the last. A pane with its own
 scrollbar would swallow the wheel and strand you at the bottom of the rail.
@@ -378,6 +416,11 @@ all, which is the correct notation. It also means the parser has to read `maj`
 by hand rather than by lookahead: a regex alternation backtracks into `ma` and
 quietly turns `Cmaj7` into a dominant seventh, which is a different chord.
 
+**`ratioTo` reduces into one octave and multiplies back out.** An octave and a
+fifth is 3/1; two octaves and a major second is 9/2. Searching a flat list of
+"simple" ratios instead — which this used to do — ran out of table above two
+octaves and reported the ninth of a `Bb13` as 12/5.
+
 **`periodicity` is the answer to the question.** Write every frequency as a
 whole number over a common denominator; the sum repeats at the greatest common
 divisor of those numbers. Small ratios mean the shape comes back round in two
@@ -388,15 +431,19 @@ are set against chords whose character is not in dispute:
 | Chord | Repeats after | Reads as |
 |---|---|---|
 | C major triad | 4 periods | locked |
-| C minor · Cmaj7 · Dsus4 | 8–10 | settled |
-| C augmented · G7 · CmMaj7 | 20–40 | restless |
-| Bb13 · Cdim7 · F♯m7♭5 | 180–1440 | rough |
+| C minor, Cmaj7, Dsus4 | 8–10 | settled |
+| C augmented, G7, CmMaj7 | 20–40 | restless |
+| Bb13, Cdim7, F♯m7♭5 | 180–1440 | rough |
 
-The caveat the terminal states itself: `ratioTo` snaps to the *nearest* simple
-ratio, so the ratio column is the interval the ear is listening for, not the
-tempered one the piano actually plays. The cents column is the gap — and it is
-why the major third in a C major seventh reads +14¢, the familiar error of
-equal temperament.
+**The dictionary question.** The Python line prints `QUALITY = {…, "maj7": (0,
+4, 7, 11)}` — a dict keyed by symbol suffix, holding semitones above the root.
+That is the right shape for the *lookup*: a chord quality is a name you ask
+for by key, and the values are fixed. The chord *instance* under it is a
+second dict, note name to frequency, looped over to build the sound. That one
+is a dict for display rather than by necessity — the real constraint is
+ordering and the possibility of a doubled note, which a dict loses, so the
+code holds the live chord as an ordered list of pitches and only prints it as
+a dict because `notes.values()` is the clearest way to show the loop.
 
 **Where an AI would plug in.** The original ask was to send what you type
 through a model. This site is static files on GitHub Pages: there is no server

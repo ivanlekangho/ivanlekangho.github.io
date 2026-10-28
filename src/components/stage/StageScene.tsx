@@ -37,7 +37,7 @@ const py = (x: number, y: number) => OY - x * 0.18 + y * 0.42
 const P = (x: number, y: number) => `${px(x, y).toFixed(0)} ${py(x, y).toFixed(0)}`
 
 /* The four corners everything else hangs off.
-   A spine-at-keyboard · B bent-rim-at-keyboard · C spine-at-tail · T tail */
+   A spine-at-keyboard, B bent-rim-at-keyboard, C spine-at-tail, T tail */
 
 /** Case seen from above: keyboard edge, bent rim tapering to the tail,
  *  then the spine straight back to where it started. */

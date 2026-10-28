@@ -132,7 +132,7 @@ export default function Music() {
         <article className="entry">
           <div className="entry-head">
             <h4>How does the shape of an alto saxophone mouthpiece affect its sound?</h4>
-            <p className="entry-meta">Cambridge International Project Qualification · 2024</p>
+            <p className="entry-meta">Cambridge International Project Qualification, 2024</p>
           </div>
           <div className="entry-body">
             <p>

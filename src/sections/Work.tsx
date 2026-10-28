@@ -16,7 +16,7 @@ import Todo from '../components/Todo'
 const ROLES = [
   {
     org: 'Cancer Society of New Zealand',
-    role: 'Software & Data Engineer Intern · Wellington',
+    role: 'Software & Data Engineer Intern, Wellington',
     when: 'Jun – Sep 2026',
   },
   {
@@ -31,12 +31,12 @@ const ROLES = [
   },
   {
     org: 'Kensway Engineering',
-    role: 'Project management intern · Auckland — coordinated engineers and suppliers on a solar installation, and spent the site visits shadowing the people doing the alignment',
+    role: 'Project management intern, Auckland — coordinated engineers and suppliers on a solar installation, and spent the site visits shadowing the people doing the alignment',
     when: '2024',
   },
   {
     org: 'JPMorgan Chase',
-    role: 'Software engineering virtual experience · Auckland — real-time trading dashboards in Python, JavaScript and Perspective',
+    role: 'Software engineering virtual experience, Auckland — real-time trading dashboards in Python, JavaScript and Perspective',
     when: 'Apr – Jun 2024',
   },
 ]
@@ -155,7 +155,7 @@ const SERVICE = [
   },
   {
     org: 'Student Volunteer Army',
-    role: '365 hours of community service · Silver Award',
+    role: '365 hours of community service, Silver Award',
     when: 'to 2024',
   },
 ]

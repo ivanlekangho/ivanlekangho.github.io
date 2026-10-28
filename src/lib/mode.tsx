@@ -61,11 +61,13 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
     cancelAnimationFrame(raf.current)
     if (REDUCED()) { setPosState(to); return }
 
-    /* 820ms is slow enough to read as a lighting cue rather than a UI state
-       change — a board operator takes about a second on a cross-fade. */
+    /* Long enough to read as a lighting cue rather than a UI state change,
+       short enough that walking the rail does not feel like waiting for it.
+       A board operator crossfades in about a second; this is the quick
+       version of that gesture. */
     const from = posRef.current
     const t0 = performance.now()
-    const D = 820
+    const D = 520
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / D)
       /* ease-in-out: lights don't snap on, and they don't snap off */

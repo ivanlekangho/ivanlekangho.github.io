@@ -18,7 +18,7 @@ export type { GlyphName }
 
 /**
  * SMuFL fonts are drawn on an em of exactly four staff spaces, so a glyph
- * scaled by 4·gap/1000 is the right size and its origin lands on the staff
+ * scaled by 4*gap/1000 is the right size and its origin lands on the staff
  * line it belongs to. That one rule is most of what makes this look engraved
  * rather than assembled. Font coordinates point up; SVG's point down.
  */

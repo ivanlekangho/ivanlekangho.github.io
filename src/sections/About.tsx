@@ -36,7 +36,7 @@ const HONOURS = [
   { what: '7A* and 1A', where: 'Cambridge International Examinations', when: '2024', family: 't0' },
   { what: 'Summa cum laude', where: 'National Latin Exam', when: '2021', family: 't0' },
   { what: 'A+ with distinction', where: 'University of Auckland Young Scholars — MATHS199: cryptography, modelling, graph theory', when: '2024', family: 't0' },
-  { what: 'Australasian Schools Debate Championships', where: 'Represented King’s College · Premier Advanced 1 team', when: '2024', family: 't0' },
+  { what: 'Australasian Schools Debate Championships', where: 'Represented King’s College, Premier Advanced 1 team', when: '2024', family: 't0' },
 ]
 
 const LANGUAGES = [
@@ -123,7 +123,7 @@ export default function About() {
         <ul className="index">
           <li className="index-row">
             <span className="index-main">Stanford University</span>
-            <span className="index-sub">B.S. Computer Science · B.S. Mathematics</span>
+            <span className="index-sub">B.S. Computer Science, B.S. Mathematics</span>
             <span className="index-meta">to Jun 2028</span>
           </li>
           <li className="index-row">
@@ -133,7 +133,7 @@ export default function About() {
           </li>
           <li className="index-row">
             <span className="index-main">King’s College, Auckland</span>
-            <span className="index-sub">Senior Prefect · Cultural Leader · CIE and NZQA</span>
+            <span className="index-sub">Senior Prefect, Cultural Leader, CIE and NZQA</span>
             <span className="index-meta">to 2024</span>
           </li>
         </ul>

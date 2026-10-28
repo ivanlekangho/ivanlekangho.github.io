@@ -22,7 +22,7 @@ export default function Post() {
   return (
     <article className="band band-last">
       <div className="shell">
-        <p className="eyebrow">{post.date}{post.draft && ' · draft'}</p>
+        <p className="eyebrow">{post.date}{post.draft && ' — draft'}</p>
         <h1 className="h-hero">{post.title}</h1>
         <div className="prose">
           <Markdown remarkPlugins={[remarkGfm]}>{post.body}</Markdown>

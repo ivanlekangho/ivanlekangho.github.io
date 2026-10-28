@@ -24,7 +24,7 @@ export const MANDARIN: Record<ToneId, Tone> = {
   2: { id: 2, name: 'rising',  mark: 'ˊ', contour: [0.5, 1.0],            family: 't2' },
   3: { id: 3, name: 'dipping', mark: 'ˇ', contour: [0.35, 0.0, 0.75],     family: 't3' },
   4: { id: 4, name: 'falling', mark: 'ˋ', contour: [1.0, 0.0],            family: 't4' },
-  0: { id: 0, name: 'neutral', mark: '·', contour: [0.45, 0.35],          family: 't0' },
+  0: { id: 0, name: 'neutral', mark: '˙', contour: [0.45, 0.35],          family: 't0' },
 }
 
 /**

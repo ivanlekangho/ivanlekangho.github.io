@@ -20,22 +20,46 @@ export const label = (p: Pitch) =>
   p.step + (p.accidental === 'sharp' ? '♯' : p.accidental === 'flat' ? '♭' : '') + p.octave
 
 /**
- * Just-intonation ratios against the lowest note of a chord, to the nearest
- * simple ratio. The physics view uses these to show WHY a chord locks: the
- * partials line up at small whole-number ratios.
+ * The five-limit just ratio for each interval inside an octave.
+ *
+ * This is the "pure" an ear is listening for, and it is also what the choral
+ * tuning in lib/temperament.ts actually builds a chord out of, so the two
+ * cannot disagree: switch the terminal to choral and every error reads zero,
+ * because zero is the definition of the thing it is being measured against.
+ *
+ * The minor seventh is 16/9, two pure fourths stacked, rather than the 9/5
+ * that some tables give — it is four cents from equal temperament where 9/5
+ * is eighteen, and a dominant seventh is where this interval mostly turns up.
  */
-const SIMPLE: [number, number][] = [
-  [1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3], [45, 32],
-  [3, 2], [8, 5], [5, 3], [16, 9], [15, 8], [2, 1], [12, 5], [5, 2], [3, 1], [4, 1],
+export const JUST: [number, number][] = [
+  [1, 1], [16, 15], [9, 8], [6, 5], [5, 4], [4, 3],
+  [45, 32], [3, 2], [8, 5], [5, 3], [16, 9], [15, 8],
 ]
 
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
+
+/**
+ * The interval between two pitches as a whole-number ratio.
+ *
+ * Reduced into one octave first and then multiplied back out, because that
+ * is how these ratios are built: an octave and a fifth is 3/1, two octaves
+ * and a major second is 9/2. Searching a flat list of "simple" ratios
+ * instead — which this used to do — ran out of table above two octaves and
+ * started reporting a ninth as 12/5.
+ */
 export function ratioTo(root: Pitch, p: Pitch) {
-  const r = hz(p) / hz(root)
-  let best = SIMPLE[0]
-  let err = Infinity
-  for (const [a, b] of SIMPLE) {
-    const e = Math.abs(a / b - r)
-    if (e < err) { err = e; best = [a, b] }
+  const semis = midi(p) - midi(root)
+  const oct = Math.floor(semis / 12)
+  const [a, b] = JUST[((semis % 12) + 12) % 12]
+  let num = a
+  let den = b
+  if (oct >= 0) num *= 2 ** oct
+  else den *= 2 ** -oct
+  const g = gcd(num, den)
+  return {
+    num: num / g,
+    den: den / g,
+    /* Equal-tempered cents, which is what the piano actually plays. */
+    cents: Math.round(100 * semis),
   }
-  return { num: best[0], den: best[1], cents: Math.round(1200 * Math.log2(r)) }
 }

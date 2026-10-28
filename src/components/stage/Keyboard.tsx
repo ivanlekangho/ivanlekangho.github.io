@@ -1,51 +1,89 @@
+import { KEY_NAME } from '../../lib/chords'
 import { midi, type Pitch } from '../../lib/tuning'
 
 /**
- * A keyboard with the chord pressed.
+ * A keyboard you can play.
  *
  * Ratios and a waveform say why a chord is what it is; a keyboard says what
- * it is, in the one picture every musician already reads. The range follows
- * the chord rather than being fixed, so a thirteenth doesn't shrink the
- * keys to nothing.
+ * it is, in the one picture every musician already reads — and once it is
+ * on screen the obvious thing to do with it is press a key, so pressing a
+ * key builds the chord.
+ *
+ * Drawn to the real proportions rather than stretched to the available
+ * width: a black key is about three-fifths the length of a white one and
+ * a little over half its width, and a keyboard with those numbers wrong
+ * looks wrong to anyone who has sat at one. So the SVG keeps its aspect
+ * ratio and is centred in whatever space it gets.
  */
 
 const WHITE_PC = [0, 2, 4, 5, 7, 9, 11]
 const BLACK_AFTER = [0, 2, 5, 7, 9]   /* white-key indices with a black key to their right */
 
-export default function Keyboard({ pitches, h = 64 }: { pitches: Pitch[]; h?: number }) {
-  if (!pitches.length) return null
-  const notes = new Set(pitches.map(midi))
-  const lo = Math.min(...notes)
-  const hi = Math.max(...notes)
-  /* Whole octaves, a little air each side, never less than two octaves. */
-  let from = Math.floor((lo - 2) / 12) * 12
-  let to = Math.ceil((hi + 3) / 12) * 12 - 1
-  while (to - from < 24) { to += 12 }
+/** Geometry in SVG units; one white key is KW wide. */
+const KW = 26
+const KH = 118
+const BW = 15
+const BH = 74
+const FELT = 5               /* the strip of cloth at the back of the keybed */
+
+type Props = {
+  /** Keys held down. */
+  pitches: Pitch[]
+  /** Inclusive MIDI range to draw. Fixed by the caller so the keyboard does
+   *  not shift under your finger while you are building a chord. */
+  from: number
+  to: number
+  onToggle?: (midi: number) => void
+}
+
+export default function Keyboard({ pitches, from, to, onToggle }: Props) {
+  const on = new Set(pitches.map(midi))
 
   const whites: number[] = []
   for (let m = from; m <= to; m++) if (WHITE_PC.includes(((m % 12) + 12) % 12)) whites.push(m)
+  if (!whites.length) return null
 
-  const w = 100 / whites.length
-  const bw = w * 0.62
-  const bh = h * 0.62
+  const W = whites.length * KW
+  const H = KH + FELT
+  const live = !!onToggle
+
+  const key = (m: number, black: boolean, x: number) => {
+    const held = on.has(m)
+    const cls = `${black ? 'key-black' : 'key'}${held ? ' is-on' : ''}`
+    return (
+      <rect
+        key={(black ? 'b' : 'w') + m}
+        x={x} y={FELT} width={black ? BW : KW} height={black ? BH : KH}
+        rx="2" className={cls} vectorEffect="non-scaling-stroke"
+        tabIndex={live ? 0 : undefined}
+        role={live ? 'button' : undefined}
+        aria-pressed={live ? held : undefined}
+        aria-label={live ? `${KEY_NAME[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}` : undefined}
+        onClick={live ? () => onToggle(m) : undefined}
+        onKeyDown={live ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(m) }
+        } : undefined}
+      />
+    )
+  }
 
   return (
-    <svg viewBox={`0 0 100 ${h}`} width="100%" height={h} className="keys"
-      preserveAspectRatio="none" role="img"
-      aria-label={`Keyboard with ${pitches.length} keys held down`}>
-      {whites.map((m, i) => (
-        <rect key={`w${m}`} x={i * w} y={0} width={w} height={h}
-          className={notes.has(m) ? 'key is-on' : 'key'} vectorEffect="non-scaling-stroke" />
-      ))}
+    <svg viewBox={`0 0 ${W} ${H}`} className={live ? 'keys is-live' : 'keys'}
+      preserveAspectRatio="xMidYMid meet" role="group"
+      aria-label={live ? 'Keyboard — press keys to build a chord' : 'Keyboard'}>
+      <rect x="0" y="0" width={W} height={FELT} className="key-felt" />
+      {whites.map((m, i) => key(m, false, i * KW))}
       {whites.map((m, i) => {
         const pc = ((m % 12) + 12) % 12
         if (!BLACK_AFTER.includes(pc) || i === whites.length - 1) return null
-        const b = m + 1
-        return (
-          <rect key={`b${b}`} x={(i + 1) * w - bw / 2} y={0} width={bw} height={bh}
-            className={notes.has(b) ? 'key-black is-on' : 'key-black'} vectorEffect="non-scaling-stroke" />
-        )
+        return key(m + 1, true, (i + 1) * KW - BW / 2)
       })}
     </svg>
   )
+}
+
+/** Three octaves of white keys around a chord, aligned to C. */
+export function keyboardRange(lowest: number) {
+  const from = Math.floor((lowest - 2) / 12) * 12
+  return { from, to: from + 36 }
 }

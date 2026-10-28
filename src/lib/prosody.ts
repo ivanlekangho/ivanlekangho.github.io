@@ -110,7 +110,7 @@ export const FITS: Fit[] = SYLLABLE_AT.map((i, k) => {
   return { i, s: k, at, tone, melody, pitch, metre, stress }
 })
 
-export const MARK: Record<Fit['pitch'], string> = { agree: '=', clash: '≠', flat: '·' }
+export const MARK: Record<Fit['pitch'], string> = { agree: '=', clash: '≠', flat: '–' }
 /** Which way the melody goes from here, as one character. */
 export const ARROW: Record<Dir, string> = { up: '↗', down: '↘', level: '→' }
 

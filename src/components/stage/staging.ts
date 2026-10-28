@@ -24,9 +24,3 @@ export function staging(p: number) {
     index: p < 0.25 ? 0 : p < 0.75 ? 1 : 2,
   }
 }
-
-export const STATE_LABELS = [
-  { voice: 'Notation', piano: 'Notation' },
-  { voice: 'Mandarin tone', piano: 'Harmony' },
-  { voice: 'Code', piano: 'Physics' },
-]

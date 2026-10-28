@@ -89,7 +89,7 @@ export default function Writing() {
                   <Link to={`/writing/${p.slug}`}>{p.title}</Link>
                 </span>
                 <span className="index-sub">{p.summary}</span>
-                <span className="index-meta">{p.date}{p.draft && ' · draft'}</span>
+                <span className="index-meta">{p.date}{p.draft && ' — draft'}</span>
               </li>
             ))}
           </ul>

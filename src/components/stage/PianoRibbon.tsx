@@ -377,7 +377,7 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
             const r = ratioTo(FINAL[0].pitch, n.pitch)
             return (
               <text key={n.key} x={RIGHT - 14} y={physicsY(n) + 3} textAnchor="end" fill="var(--ink-2)">
-                {label(n.pitch)} · {Math.round(hz(n.pitch))} Hz{i ? ` · ${r.num}:${r.den}` : ''}
+                {label(n.pitch)}, {Math.round(hz(n.pitch))} Hz{i ? `, ${r.num}:${r.den}` : ''}
               </text>
             )
           })}

@@ -110,7 +110,7 @@ export const HARMONY: HarmonyStep[] = [
  * so the page can say it once rather than three times in three registers.
  */
 export const PROGRESSION = {
-  short: 'i · V/iv · iv · vii°⁷ · I⁶₄ · V⁷ · I',
+  short: 'i – V/iv – iv – vii°⁷ – I⁶₄ – V⁷ – I',
   sentence:
     'B minor borrows its own dominant to lean on the subdominant, pivots on a diminished seventh, and cadences in D major — the relative major, not the key it started in.',
 }

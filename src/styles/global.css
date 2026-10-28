@@ -167,45 +167,75 @@ pre {
   grid-area: 1 / 1; display: grid; justify-items: center; align-items: start;
   min-width: 0; min-height: 0;
 }
-.score-layer-term { align-items: stretch; }
+/* The staves fill the room; the terminal is a box, and a box stretched to
+   a tall cell is mostly empty box. It takes the height it needs and sits
+   in the middle of what is left. */
+.score-layer-term { align-items: center; }
 /* The language stop is the tallest frame — tone, characters, pinyin, the
    metre strip and the German all stack — so the cap is set for that one;
    the others are limited by width long before they reach it. */
-.score-svg { width: 100%; max-width: 68rem; max-height: 54vh; }
+/* The row the stack sits in is what is left after the apparatus has taken
+   what it needs, so the system is capped by its own cell rather than by a
+   guess at the viewport — at the language stop the four rows below push it
+   smaller, and at the other two it takes the whole room. */
+.score-svg { width: 100%; max-width: 68rem; max-height: min(54vh, 100%); }
 
-/* The argument, at the language stop only: the claim, the three readings of
-   the line, and what the measurements found. */
+/* The argument, at the language stop: one line in four notations, laid out
+   as four rows of the same shape so the parallel does the arguing. */
+.apparatus-wrap { width: 100%; display: grid; justify-items: center; }
 .score-apparatus {
   width: 100%; max-width: 68rem;
-  display: grid; gap: var(--space-4) var(--space-6);
-  padding-top: var(--space-4); margin-top: var(--space-3);
+  padding: var(--space-3) 0 var(--space-5);
+  margin-top: var(--space-3);
   border-top: 1px solid var(--rule);
 }
 .apparatus-thesis {
-  grid-column: 1 / -1; margin: 0 0 var(--space-2); max-width: none;
+  margin: 0 0 var(--space-3); max-width: none;
   font-family: var(--font-display); font-weight: var(--display-weight);
   font-size: var(--step-2); line-height: 1.08;
   letter-spacing: var(--display-tracking); color: var(--ink);
 }
-.apparatus-col { margin: 0; display: grid; gap: 1px; align-content: start; }
-.apparatus-col dt {
+.apparatus-rows { margin: 0; display: grid; }
+.arow {
+  display: grid; grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: var(--space-4); align-items: center;
+  padding: 5px 0; border-top: 1px solid var(--rule);
+}
+.arow:first-child { border-top: 0; }
+.arow dt {
   font-family: var(--font-label); font-weight: var(--label-weight);
   font-size: 0.68rem; letter-spacing: var(--label-tracking);
   text-transform: uppercase; color: var(--ink-3);
 }
-.apparatus-col dd {
-  margin: 0 0 var(--space-3); color: var(--ink-2);
-  font-size: var(--step--1); line-height: 1.5; max-width: 52ch;
+.arow dd { margin: 0; min-width: 0; }
+.arow-plain { color: var(--ink); font-size: var(--step-0); }
+/* The three syllable rows are set to one width and spread across it, so
+   the characters, the German and the chord symbols line up in columns
+   down the four rows. That vertical rhyme is the argument. */
+.arow-syl {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: 2px var(--space-4); max-width: 36rem;
 }
-.apparatus-col dd .han { font-size: var(--step-0); color: var(--ink); }
-.apparatus-col dd b { color: var(--accent); font-weight: inherit; }
-.apparatus-col dd em { color: var(--ink); font-weight: 500; }
-@media (min-width: 64rem) {
-  .score-apparatus { grid-template-columns: 1fr 1fr; }
+@media (min-width: 52rem) {
+  .arow-syl { flex-wrap: nowrap; justify-content: space-between; }
 }
-@media (min-width: 82rem) {
-  .score-apparatus { grid-template-columns: 1fr 1.15fr 1fr; }
+.syl {
+  display: grid; justify-items: start; align-content: end; gap: 1px;
+  line-height: 1.15;
 }
+.syl b { font-weight: 500; color: var(--ink); font-size: var(--step-0); }
+.syl .han { font-size: var(--step-1); }
+.syl .tie { color: var(--ink-3); }
+.syl i {
+  font-style: normal; font-size: 0.7rem; letter-spacing: 0.02em; color: var(--ink-3);
+}
+.syl .ipa { font-family: var(--font-mono); letter-spacing: 0; }
+.tone-glyph { display: block; margin: 0 0 2px 1px; overflow: visible; }
+.apparatus-foot {
+  margin: var(--space-3) 0 0; max-width: 64ch;
+  font-size: var(--step--1); line-height: 1.5; color: var(--ink-3);
+}
+.apparatus-foot b { color: var(--accent); font-weight: inherit; }
 
 /* ============================================================
    The terminal — one chord at a time, and never a scrollbar
@@ -215,76 +245,113 @@ pre {
    chord replaces the last instead.
    ============================================================ */
 .term {
-  width: 100%; max-width: 68rem; max-height: 100%;
-  display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto;
+  width: 100%; max-width: 54rem; max-height: 100%;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid var(--rule);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(6px);
-  font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5;
+  font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.5;
   color: var(--ink-2);
   min-height: 0;
 }
 .term-bar {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4);
-  padding: 7px var(--space-4);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding: 5px var(--space-4);
   border-bottom: 1px solid var(--rule);
-  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
 }
 .term-name { color: var(--accent); }
-.term-hint { color: var(--ink-3); }
+
+/* Tuning systems. A segmented control rather than a select, because the
+   whole point is that you flip between them and listen. */
+.term-tune { display: flex; gap: 0; }
+.term-tune button {
+  font: inherit; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  background: none; border: 0; color: var(--ink-3);
+  padding: 2px 8px; cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+}
+.term-tune button:hover { color: var(--ink-2); }
+.term-tune button.is-on { color: var(--accent); border-bottom-color: var(--accent); }
 
 .term-view {
   min-height: 0; overflow: hidden;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-4);
   display: grid; gap: var(--space-3); align-content: start;
 }
-.term-wave svg { display: block; height: 96px; }
-.term-cap { margin: 3px 0 0; font-size: 0.68rem; color: var(--ink-3); }
 
-/* the keyboard */
-.keys { display: block; height: 64px; }
-.key { fill: color-mix(in srgb, var(--ink) 16%, transparent); stroke: var(--bg); stroke-width: 1; }
-.key.is-on { fill: var(--accent); }
-.key-black { fill: color-mix(in srgb, var(--bg) 35%, #000); stroke: var(--bg); stroke-width: 1; }
-.key-black.is-on { fill: var(--accent); stroke: var(--bg); }
-
-.term-read {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-5); align-items: start;
+/* the chord, named, in one line */
+.term-id {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline; gap: var(--space-3);
 }
 .term-sym {
   margin: 0; font-family: var(--font-display); font-weight: 500;
   font-size: var(--step-2); letter-spacing: -0.01em; color: var(--ink);
 }
-.term-name-full { margin: 1px 0 5px; font-size: 0.7rem; color: var(--ink-3); }
-.term-verdict { margin: 0; font-size: 0.72rem; color: var(--ink-2); }
+.term-name-full { margin: 0; font-size: 0.7rem; color: var(--ink-3); }
+.term-name-full em { font-style: normal; color: var(--accent-soft); }
+.term-verdict { margin: 0; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .term-verdict.is-locked { color: var(--t1-mid); }
 .term-verdict.is-settled { color: var(--t2-mid); }
 .term-verdict.is-restless { color: var(--t3-mid); }
 .term-verdict.is-rough { color: var(--t4-mid); }
+
+/* the waveform: the sum, with every note under it once you go looking */
+.term-wave { display: block; width: 100%; height: 104px; cursor: crosshair; }
+.term-parts { transition: opacity var(--dur-ui) var(--ease); }
+.term-tick {
+  font-family: var(--font-mono); font-size: 8px; fill: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+
+/* The keyboard lives outside the chord's own markup so it survives you
+   lifting every finger off it, which puts it last in the DOM; the reading
+   order inside the pane is set here instead. */
+.term-id { order: 1; }
+.term-wave { order: 2; }
+.term-keys { order: 3; }
+.term-read { order: 4; }
+.term-view > .term-cap, .term-bad { order: 5; }
+
+/* the keyboard — press a key and the chord changes under you */
+.term-keys { display: grid; justify-items: center; }
+.keys { display: block; height: 104px; max-width: 100%; }
+/* Unlit keys sit well below the held ones in brightness — at 70% they were
+   within twenty levels of the accent and the chord disappeared into the
+   keyboard. */
+.key { fill: color-mix(in srgb, var(--ink) 46%, transparent); stroke: var(--bg); stroke-width: 1.5; }
+.key-black { fill: color-mix(in srgb, var(--bg) 22%, #000); stroke: var(--bg); stroke-width: 1.5; }
+.key.is-on, .key-black.is-on { fill: var(--accent); }
+.key-felt { fill: color-mix(in srgb, var(--accent) 45%, var(--bg)); }
+.keys.is-live .key, .keys.is-live .key-black { cursor: pointer; }
+.keys.is-live .key:hover { fill: color-mix(in srgb, var(--ink) 66%, transparent); }
+.keys.is-live .key-black:hover { fill: color-mix(in srgb, var(--accent) 45%, #000); }
+.keys :focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.term-read {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-5); align-items: start;
+}
 .term-read table { border-collapse: collapse; font-size: 0.72rem; }
 .term-read td { padding: 1px 0 1px 14px; text-align: right; color: var(--ink-2); white-space: nowrap; }
 .term-read td:first-child { padding-left: 0; text-align: left; color: var(--ink); }
-.term-py {
-  margin: 0; white-space: pre-wrap; background: none; border: 0; padding: 0;
-  color: var(--accent-soft); font-size: 0.72rem; line-height: 1.5;
+.term-read tr { cursor: default; }
+.term-read tr.is-only td { color: var(--ink); }
+.term-swatch {
+  display: inline-block; width: 7px; height: 7px; margin-right: 7px;
+  vertical-align: 1px;
 }
+.term-side { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.term-py {
+  margin: 0; white-space: pre-wrap; word-break: break-word;
+  background: none; border: 0; padding: 0;
+  color: var(--accent-soft); font-size: 0.7rem; line-height: 1.55;
+}
+.term-cap { margin: 0; font-size: 0.68rem; color: var(--ink-3); }
 .term-bad { margin: 0; color: var(--t4-mid); }
 .term-bad b { color: var(--ink); font-weight: 400; }
-
-.term-chips {
-  display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px;
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--rule);
-}
-.term-chip-sep { width: 1px; background: var(--rule); margin: 1px 5px; }
-.term-chips button {
-  font: inherit; font-size: 0.72rem;
-  background: none; border: 1px solid var(--rule); color: var(--ink-3);
-  padding: 3px 9px; cursor: pointer;
-  transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
-}
-.term-chips button:hover { border-color: var(--accent); color: var(--accent); }
 
 .term-prompt {
   display: flex; align-items: center; gap: 0.6em;
@@ -296,10 +363,10 @@ pre {
   flex: 1; min-width: 0; font: inherit; color: var(--ink);
   background: none; border: 0; outline: none; padding: 0;
 }
-.term-prompt input::placeholder { color: var(--ink-3); opacity: 0.75; }
+.term-prompt input::placeholder { color: var(--ink-3); opacity: 0.8; }
 .term-sound {
   display: inline-flex; align-items: center; gap: 6px; flex: none;
-  font: inherit; font-size: 0.72rem; letter-spacing: 0.06em;
+  font: inherit; font-size: 0.7rem; letter-spacing: 0.06em;
   background: none; border: 1px solid var(--rule); color: var(--ink-3);
   padding: 4px 10px; cursor: pointer;
   transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
@@ -324,6 +391,13 @@ pre {
     transform: translateY(-50%); padding: 0; display: block; width: max-content;
   }
   .score-system { padding-left: clamp(9.5rem, 15vw, 13.5rem); }
+  /* The staves are wide enough to live with being pushed right by the rail.
+     The terminal is a box with edges, and an off-centre box reads as a
+     mistake — so it gives back on the right what the rail takes on the
+     left, and sits in the middle of the window. */
+  .score-layer-term {
+    margin-right: calc(clamp(9.5rem, 15vw, 13.5rem) - clamp(1rem, 5vw, 4rem));
+  }
 }
 
 /* ============================================================
@@ -692,36 +766,42 @@ pre {
   .score-tag { font-size: 0.66rem; letter-spacing: 0.08em; gap: var(--space-3); }
   .score-svg { max-height: 28vh; }
   .score-layer { align-items: center; }
-  /* At the language stop a phone keeps the claim and the three readings of
-     the line, and drops the two columns of measurement — the piece sheet
-     carries those at length, and a phone cannot hold both. */
-  .apparatus-col:not(:first-of-type) { display: none; }
-  .apparatus-thesis { font-size: var(--step-1); }
-  html[data-mode='linguist'] .score-svg { max-height: 27vh; }
+  /* At the language stop a phone keeps all four rows — they are the
+     argument, and three of four is not one. What it drops is the tally,
+     which the piece sheet carries at length. */
+  .apparatus-thesis { font-size: var(--step-1); margin-bottom: var(--space-2); }
+  .apparatus-foot { display: none; }
+  .score-apparatus { padding: var(--space-2) 0 var(--space-3); margin-top: var(--space-2); }
+  .arow { grid-template-columns: 4.25rem minmax(0, 1fr); gap: var(--space-3); padding: 4px 0; }
+  .arow dt { font-size: 0.6rem; letter-spacing: 0.1em; }
+  .arow-plain { font-size: var(--step--1); }
+  .arow-syl { gap: 1px var(--space-3); }
+  .syl b { font-size: var(--step--1); }
+  .syl .han { font-size: var(--step-0); }
+  .syl i { font-size: 0.58rem; }
+  .tone-glyph { width: 13px; height: 15px; }
+  html[data-mode='linguist'] .score-svg { max-height: 24vh; }
   html[data-mode='linguist'] .stage-svg { height: 15vh; }
   html[data-mode='linguist'] .hall-foot { padding-bottom: calc(15vh + var(--space-4)); }
   /* The terminal needs the same favour: the room gives up some depth so the
      ratio table is not cut off halfway down. */
   html[data-mode='engineer'] .stage-svg { height: 19vh; }
   html[data-mode='engineer'] .hall-foot { padding-bottom: calc(19vh + var(--space-4)); }
-  .score-apparatus { gap: var(--space-3); padding-top: var(--space-3); }
-  .apparatus-col dd { margin-bottom: var(--space-2); }
+
   /* A phone has room for the picture and the numbers, and nothing else:
-     the Python line and the caption go, the waveform and keyboard shrink,
-     and the chord chips become one scrolling row instead of three. */
+     the Python line and the caption go, and the table sits under the
+     keyboard rather than beside it. */
   .term { font-size: 0.7rem; }
   .term-py, .term-cap { display: none; }
-  .term-view { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
-  .term-wave svg { height: 58px; }
-  .keys { height: 46px; }
-  .term-read { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); }
+  .term-view { padding: var(--space-2) var(--space-3) var(--space-3); gap: var(--space-2); }
+  .term-bar { padding: 4px var(--space-3); }
+  .term-tune button { padding: 2px 5px; font-size: 0.6rem; letter-spacing: 0.04em; }
+  .term-wave { height: 62px; }
+  .keys { height: 74px; }
+  .term-read { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
   .term-sym { font-size: var(--step-1); }
-  .term-chips {
-    padding: var(--space-2) var(--space-3);
-    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
-  }
-  .term-chips::-webkit-scrollbar { display: none; }
-  .term-chips button { flex: none; }
+  .term-id { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; }
+  .term-verdict { grid-column: 2; justify-self: end; }
   .term-prompt { padding: var(--space-2) var(--space-3); }
   .term-sound { padding: 4px 8px; }
   .transport-play { padding: 4px 9px; }

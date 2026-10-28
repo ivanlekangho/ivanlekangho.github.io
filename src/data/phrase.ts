@@ -41,6 +41,12 @@ export type Note = {
   beats: number
   /** German syllable, or null where a note continues a melisma. */
   german: string | null
+  /** IPA for that syllable, in standard (Bühnendeutsch-ish) German.
+   *  Whole line: [ɪç bɪn aɪ̯n ˈfʁɛmtlɪŋ ˌyːbɐˈʔal]. The glottal stop belongs
+   *  to "all", not to "ü" — überall is not a compound of über + all in the
+   *  way the spelling suggests, but the onset of the stressed syllable gets
+   *  the stop all the same. */
+  ipa?: string
   /** Mandarin character, only on the note where the syllable begins. */
   han?: string
   pinyin?: string
@@ -60,19 +66,19 @@ export const UE_PITCH_UNVERIFIED = false
 
 export const PHRASE: Note[] = [
   // pickup
-  { id: 'n1', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ich',  han: '我', pinyin: 'wǒ',  tone: 3 },
+  { id: 'n1', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ich',  ipa: 'ɪç',  han: '我', pinyin: 'wǒ',  tone: 3 },
   // bar 1
-  { id: 'n2', step: 'F', octave: 3, accidental: 'sharp', beats: 1.5, german: 'bin',  han: '处', pinyin: 'chù', tone: 4 },
-  { id: 'n3', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ein',  han: '处', pinyin: 'chù', tone: 4 },
-  { id: 'n4', step: 'B', octave: 3, beats: 1.0, german: 'Fremd', hyphenAfter: true,
+  { id: 'n2', step: 'F', octave: 3, accidental: 'sharp', beats: 1.5, german: 'bin',  ipa: 'bɪn', han: '处', pinyin: 'chù', tone: 4 },
+  { id: 'n3', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ein',  ipa: 'aɪ̯n', han: '处', pinyin: 'chù', tone: 4 },
+  { id: 'n4', step: 'B', octave: 3, beats: 1.0, german: 'Fremd', ipa: 'fʁɛmt', hyphenAfter: true,
     han: '皆', pinyin: 'jiē', tone: 1, melisma: 'm1', hanGroup: 'h4' },
   { id: 'n5', step: 'G', octave: 3, beats: 0.5, german: null, melisma: 'm1', hanGroup: 'h4' },
-  { id: 'n6', step: 'E', octave: 3, beats: 0.5, german: 'ling', han: '为', pinyin: 'wéi', tone: 2 },
+  { id: 'n6', step: 'E', octave: 3, beats: 0.5, german: 'ling', ipa: 'lɪŋ', han: '为', pinyin: 'wéi', tone: 2 },
   // bar 2
-  { id: 'n7', step: 'A', octave: 3, beats: 1.5, german: 'ü',   hyphenAfter: true, han: '异', pinyin: 'yì', tone: 4 },
-  { id: 'n8', step: 'C', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ber', hyphenAfter: true,
+  { id: 'n7', step: 'A', octave: 3, beats: 1.5, german: 'ü',   ipa: 'yː', hyphenAfter: true, han: '异', pinyin: 'yì', tone: 4 },
+  { id: 'n8', step: 'C', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ber', ipa: 'bɐ', hyphenAfter: true,
     han: '客', pinyin: 'kè', tone: 4, hanGroup: 'h7' },
-  { id: 'n9', step: 'D', octave: 3, beats: 1.0, german: 'all', hanGroup: 'h7' },
+  { id: 'n9', step: 'D', octave: 3, beats: 1.0, german: 'all', ipa: 'ʔal', hanGroup: 'h7' },
 ]
 
 export const PIECE = {

@@ -20,7 +20,7 @@ import { MODES, STOP_AT } from './palette'
 /** Wheel travel, in pixels, for the whole rail end to end. */
 const SPAN = 560
 /** How long after the last event to call the gesture finished. */
-const SETTLE = 170
+const SETTLE = 130
 /**
  * Momentum from a flick that ended at the top of the page keeps arriving
  * for a while. Without this the rail rewinds itself the instant you scroll

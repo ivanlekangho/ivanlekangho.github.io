@@ -55,10 +55,10 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
         </button>
 
         <div className="sheet-body">
-          <p className="sheet-eyebrow">{PIECE.composer} · {PIECE.year}</p>
+          <p className="sheet-eyebrow">{PIECE.composer}, {PIECE.year}</p>
           <h2 className="sheet-title">{PIECE.title}</h2>
           <p className="sheet-sub">
-            {PIECE.catalogue} · text by {PIECE.poet} · {PIECE.key}, baritone · cut time
+            {PIECE.catalogue} — text by {PIECE.poet} — {PIECE.key}, baritone, cut time
           </p>
 
           <svg viewBox={`0 0 ${W} 190`} width="100%" className="sheet-score" role="img"
@@ -86,7 +86,7 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
             <dd>{PIECE.englishGloss}</dd>
             <dt>Mandarin</dt>
             <dd>
-              <span className="han">{PIECE.mandarin}</span> · {PIECE.mandarinPinyin} ·
+              <span className="han">{PIECE.mandarin}</span>, {PIECE.mandarinPinyin},
               “{PIECE.mandarinGloss}”. {PIECE.mandarinNote}
             </dd>
           </dl>
@@ -123,7 +123,7 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
                 return (
                   <tr key={f.i} className={`is-${f.stress}`}>
                     <td><span className="han">{syl.han}</span> {syl.pinyin}</td>
-                    <td>{syl.word} · {syl.pos}</td>
+                    <td>{syl.word}, {syl.pos}</td>
                     <td>{syl.wants}</td>
                     <td>{f.metre}</td>
                     <td>{f.stress === 'match' ? 'yes' : f.stress === 'carried' ? 'held over one' : 'no'}</td>

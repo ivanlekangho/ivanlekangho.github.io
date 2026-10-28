@@ -1,5 +1,5 @@
 import type { Accidental, Step } from '../data/phrase'
-import type { Pitch } from './tuning'
+import { label, type Pitch } from './tuning'
 
 /**
  * Reading a chord symbol.
@@ -28,6 +28,10 @@ export type Chord = {
   names: string[]
   /** Semitones above the root, root first. */
   intervals: number[]
+  /** The chord's shape, independent of which note it is built on: the
+   *  symbol's suffix and the semitones it stands for. This is the entry a
+   *  lookup table holds, and the terminal prints it as one. */
+  quality: { suffix: string; semis: number[] }
 }
 
 const LETTERS: Step[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -55,7 +59,7 @@ const TRIADS: [RegExp, Tone[], string][] = [
 const MAJOR: Tone[] = [T(0, 1), T(4, 3), T(7, 5)]
 
 /**
- * maj · ma · M · Δ. Read by hand rather than by lookahead: an alternation
+ * maj, ma, M, Δ. Read by hand rather than by lookahead: an alternation
  * with a lookahead backtracks into `ma` and quietly turns Cmaj7 into a
  * dominant seventh, which is a different chord.
  */
@@ -195,6 +199,7 @@ export function parseChord(input: string): Chord | null {
     pitches,
     names,
     intervals: chordTones.map((t) => t.semis),
+    quality: { suffix: main.slice(m[1].length + m[2].length), semis: chordTones.map((t) => t.semis) },
   }
 }
 
@@ -223,5 +228,147 @@ export function spell(midi: number, flats: boolean): Pitch {
   return { step, accidental, octave: Math.floor(midi / 12) - 1 }
 }
 
-/** The chords worth offering before anyone has typed anything. */
-export const SUGGESTIONS = ['Cmaj7', 'F#m7b5', 'Bb13', 'Dsus4/A', 'Caug', 'Eb7#9']
+/** Shown in the prompt, so the examples cost no screen furniture. */
+export const SUGGESTIONS = ['B+', 'C#dim7', 'Bb13', 'Dsus4/A']
+
+/**
+ * The other direction: a handful of keys, back to a name.
+ *
+ * Going symbol → pitches is a parse. Going pitches → symbol is a guess, and
+ * it is a guess with real ambiguity in it: C E♭ G♭ A is a diminished
+ * seventh four different ways depending on which note you call the root.
+ * So the rule here is the one a musician uses by default — the lowest note
+ * sounding is the root unless nothing fits that way — and anything with no
+ * name in the table is reported as having no name rather than being forced
+ * into the nearest one.
+ *
+ * Keyed by interval set rather than by symbol, which is the lookup this
+ * direction actually needs; `TRIADS` above is the same knowledge indexed
+ * the other way round for the parser.
+ */
+const SHAPES: [number[], string, string][] = [
+  [[0, 4, 7], '', 'major'],
+  [[0, 3, 7], 'm', 'minor'],
+  [[0, 3, 6], 'dim', 'diminished'],
+  [[0, 4, 8], '+', 'augmented'],
+  [[0, 5, 7], 'sus4', 'suspended fourth'],
+  [[0, 2, 7], 'sus2', 'suspended second'],
+  [[0, 4, 7, 11], 'maj7', 'major seventh'],
+  [[0, 4, 7, 10], '7', 'dominant seventh'],
+  [[0, 3, 7, 10], 'm7', 'minor seventh'],
+  [[0, 3, 6, 10], 'm7b5', 'half-diminished seventh'],
+  [[0, 3, 6, 9], 'dim7', 'diminished seventh'],
+  [[0, 3, 7, 11], 'mMaj7', 'minor-major seventh'],
+  [[0, 4, 8, 10], '7#5', 'dominant seventh, sharp fifth'],
+  [[0, 4, 6, 10], '7b5', 'dominant seventh, flat fifth'],
+  [[0, 4, 7, 9], '6', 'major sixth'],
+  [[0, 3, 7, 9], 'm6', 'minor sixth'],
+  [[0, 5, 7, 10], '7sus4', 'dominant seventh, suspended fourth'],
+  [[0, 2, 4, 7], 'add9', 'major, added ninth'],
+  [[0, 2, 4, 7, 10], '9', 'dominant ninth'],
+  [[0, 2, 4, 7, 11], 'maj9', 'major ninth'],
+  [[0, 2, 3, 7, 10], 'm9', 'minor ninth'],
+  [[0, 2, 4, 5, 7, 10], '11', 'dominant eleventh'],
+  [[0, 2, 4, 7, 9, 10], '13', 'dominant thirteenth'],
+  /* partial voicings, which is most of what two hands actually play */
+  [[0, 4, 10], '7', 'dominant seventh, no fifth'],
+  [[0, 7, 10], '7(no3)', 'dominant seventh, no third'],
+  [[0, 2, 7, 10], '9(no3)', 'dominant ninth, no third'],
+  [[0, 5, 10], '7sus4(no5)', 'dominant seventh, suspended, no fifth'],
+  [[0, 4, 11], 'maj7', 'major seventh, no fifth'],
+  [[0, 3, 10], 'm7', 'minor seventh, no fifth'],
+  [[0, 7], '5', 'open fifth'],
+  [[0, 4], '', 'major third, bare'],
+  [[0, 3], 'm', 'minor third, bare'],
+]
+const SHAPE_KEY = new Map(SHAPES.map(([iv, suffix, name]) => [iv.join(','), { suffix, name }]))
+
+/**
+ * What a key is called when nothing else decides it: the names a musician
+ * reaches for without being asked which key they are in. Shared with the
+ * keyboard so a key you press is written the same way in both places.
+ */
+export const KEY_NAME = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B']
+const ROOT_NAME = KEY_NAME
+const PREFER_FLATS = new Set([3, 8, 10, 1, 6])
+
+/** Pitches held down, as a chord — or null if the set has no name. */
+export function identify(midis: number[]): Chord | null {
+  const notes = [...new Set(midis)].sort((a, b) => a - b)
+  if (!notes.length) return null
+  const classes = [...new Set(notes.map((m) => ((m % 12) + 12) % 12))]
+
+  if (notes.length === 1 || classes.length === 1) {
+    const pc = classes[0]
+    const pitches = notes.map((m) => spell(m, PREFER_FLATS.has(pc)))
+    return {
+      symbol: ROOT_NAME[pc],
+      name: notes.length === 1 ? 'one note' : 'one note, doubled',
+      pitches, names: pitches.map(label), intervals: notes.map((m) => m - notes[0]),
+      quality: { suffix: '', semis: [0] },
+    }
+  }
+
+  /* Candidate roots, bass first: an inversion is still named after its root,
+     but when two readings both work the bass wins, because that is the one
+     the ear takes. */
+  const bassPc = ((notes[0] % 12) + 12) % 12
+  const candidates = [bassPc, ...classes.filter((c) => c !== bassPc)]
+  for (const root of candidates) {
+    const iv = classes.map((c) => (c - root + 12) % 12).sort((a, b) => a - b)
+    const hit = SHAPE_KEY.get(iv.join(','))
+    if (!hit) continue
+    const flats = PREFER_FLATS.has(root)
+    const pitches = notes.map((m) => spell(m, flats))
+    const slash = root === bassPc ? '' : `/${ROOT_NAME[bassPc]}`
+    const symbol = `${ROOT_NAME[root]}${hit.suffix}${slash}`
+    return {
+      symbol,
+      name: `${ROOT_NAME[root]} ${hit.name}${slash ? `, over its ${ROOT_NAME[bassPc]}` : ''}`,
+      pitches,
+      /* Spelling comes back through the parser, so a chord you click is
+         written the same way as the chord you type: C minor is C E♭ G, and
+         an augmented triad keeps its double sharp. */
+      names: spellAs(notes, symbol, flats),
+      intervals: notes.map((m) => m - notes[0]),
+      quality: { suffix: hit.suffix, semis: iv },
+    }
+  }
+
+  /* No name is a real answer. The arithmetic still works on it. */
+  const pitches = notes.map((m) => spell(m, PREFER_FLATS.has(bassPc)))
+  const plain = notes.map((m) => `${KEY_NAME[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`)
+  return {
+    symbol: plain.join(' '),
+    name: `${notes.length} notes, no name in the table`,
+    pitches, names: plain, intervals: notes.map((m) => m - notes[0]),
+    quality: { suffix: '?', semis: classes.map((c) => (c - bassPc + 12) % 12).sort((a, b) => a - b) },
+  }
+}
+
+const WRITTEN = /^([A-G])(𝄫|♭|♯|𝄪)?/u
+const WRITTEN_SHIFT: Record<string, number> = { '𝄫': -2, '♭': -1, '♯': 1, '𝄪': 2 }
+
+/**
+ * Name each played note the way the parser spells that chord.
+ *
+ * The octave belongs to the LETTER, not to the sound: B𝄫 above middle C
+ * sounds A4 but is written in the fifth octave, because it is a kind of B.
+ */
+function spellAs(midis: number[], symbol: string, flats: boolean): string[] {
+  const parsed = parseChord(symbol)
+  const byPc = new Map<number, string>()
+  for (const n of parsed?.names ?? []) {
+    const m = WRITTEN.exec(n)
+    if (!m) continue
+    const shift = m[2] ? WRITTEN_SHIFT[m[2]] : 0
+    byPc.set((LETTER_PC[m[1] as Step] + shift + 24) % 12, m[1] + (m[2] ?? ''))
+  }
+  return midis.map((midi) => {
+    const written = byPc.get(((midi % 12) + 12) % 12)
+    if (!written) return label(spell(midi, flats))
+    const m = WRITTEN.exec(written)!
+    const shift = m[2] ? WRITTEN_SHIFT[m[2]] : 0
+    return `${written}${Math.floor((midi - shift) / 12) - 1}`
+  })
+}

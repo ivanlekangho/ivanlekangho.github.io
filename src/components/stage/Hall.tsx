@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { PIECE } from '../../data/phrase'
 import { useMode } from '../../lib/mode'
 import { usePlayback } from '../../lib/playback'
-import { TALLY } from '../../lib/prosody'
 import ModeRail from '../ModeRail'
+import Apparatus from './Apparatus'
 import Score from './Score'
 import PieceSheet from './PieceSheet'
 import StageScene from './StageScene'
 import Terminal from './Terminal'
 import Transport from './Transport'
-import { STATE_LABELS, staging } from './staging'
+import { staging } from './staging'
 
 /**
  * The recital room: the first screen, and nothing below it until you have
@@ -33,7 +33,6 @@ export default function Hall() {
   const pb = usePlayback()
   const [sheet, setSheet] = useState(false)
   const s = staging(pos)
-  const labels = STATE_LABELS[s.index]
   const engineer = s.oC > 0.5
 
   return (
@@ -49,13 +48,9 @@ export default function Hall() {
         <figcaption className="score-head">
           <button type="button" className="score-title" onClick={() => setSheet(true)}
             aria-haspopup="dialog" title="Open the piece">
-            {PIECE.composer} · <span>{PIECE.title}</span>, {PIECE.catalogue}
+            {PIECE.composer} — <span>{PIECE.title}</span>, {PIECE.catalogue}
           </button>
-          <div className="score-tag">
-            <span>Voice <b>{labels.voice}</b></span>
-            <Transport pb={pb} />
-            <span>Piano <b>{labels.piano}</b></span>
-          </div>
+          {pb.available && <div className="score-tag"><Transport pb={pb} /></div>}
         </figcaption>
 
         {/* The score and the terminal occupy the same cell and cross-fade:
@@ -73,49 +68,8 @@ export default function Hall() {
         </div>
 
         {s.oB > 0.02 && (
-          <div className="score-apparatus" style={{ opacity: s.oB }} aria-hidden={s.oB < 0.5}>
-            <p className="apparatus-thesis">
-              The same nine notes are a melody, a sentence,<br />and a chord chart.
-            </p>
-
-            <dl className="apparatus-col">
-              <dt>Sung</dt>
-              <dd>{PIECE.german}</dd>
-              <dt>Means</dt>
-              <dd>{PIECE.englishGloss}</dd>
-              <dt>Mandarin</dt>
-              <dd>
-                <span className="han">{PIECE.mandarin}</span> · {PIECE.mandarinPinyin} ·
-                “{PIECE.mandarinGloss}”
-              </dd>
-            </dl>
-
-            <dl className="apparatus-col">
-              <dt>Tone against tune</dt>
-              <dd>
-                Each character sits where its notehead was, with its Mandarin tone
-                drawn out of it and an arrow for where the tune goes next.{' '}
-                <b>{TALLY.agree} of {TALLY.total}</b> syllables move the way their tone
-                does; <b>{TALLY.clash}</b> move against it.
-              </dd>
-              <dt>Stress against the bar</dt>
-              <dd>
-                <b>{TALLY.match} of {TALLY.total}</b> land on the weight their own
-                prosody wants. The one that doesn’t: the downbeat of bar two falls on
-                <span className="han"> 异</span>, <em>strange</em>, and not on
-                <span className="han"> 客</span>, the head of the word.
-              </dd>
-            </dl>
-
-            <dl className="apparatus-col">
-              <dt>Harmony is a vocabulary too</dt>
-              <dd>
-                Above the staff, what a pianist reads off a chart — Bm, B+, Em, C♯°7 —
-                which names the object. Below it, the roman numeral and the word for
-                the move, which name what the chord is <em>doing</em> to the key. Two
-                grammars describing one sound.
-              </dd>
-            </dl>
+          <div className="apparatus-wrap" style={{ opacity: s.oB }} aria-hidden={s.oB < 0.5}>
+            <Apparatus />
           </div>
         )}
       </figure>
