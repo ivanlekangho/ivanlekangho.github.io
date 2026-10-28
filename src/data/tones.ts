@@ -15,16 +15,20 @@ export type Tone = {
   /** Pitch contour as normalised points, 0 = bottom of the tone box, 1 = top.
    *  Chao tone letters: Mandarin 1=55, 2=35, 3=214, 4=51. */
   contour: number[]
+  /** The Chao tone letter itself, written on the 1-5 scale the contour is
+   *  plotted against. Printed under the syllable so the chart has a reading
+   *  as well as a shape. */
+  chao: string
   /** CSS custom property stem, e.g. 't4' → var(--t4-mid) */
   family: string
 }
 
 export const MANDARIN: Record<ToneId, Tone> = {
-  1: { id: 1, name: 'level',   mark: 'ˉ', contour: [1.0, 1.0],            family: 't1' },
-  2: { id: 2, name: 'rising',  mark: 'ˊ', contour: [0.5, 1.0],            family: 't2' },
-  3: { id: 3, name: 'dipping', mark: 'ˇ', contour: [0.35, 0.0, 0.75],     family: 't3' },
-  4: { id: 4, name: 'falling', mark: 'ˋ', contour: [1.0, 0.0],            family: 't4' },
-  0: { id: 0, name: 'neutral', mark: '˙', contour: [0.45, 0.35],          family: 't0' },
+  1: { id: 1, name: 'level',   mark: 'ˉ', contour: [1.0, 1.0],        chao: '55',  family: 't1' },
+  2: { id: 2, name: 'rising',  mark: 'ˊ', contour: [0.5, 1.0],        chao: '35',  family: 't2' },
+  3: { id: 3, name: 'dipping', mark: 'ˇ', contour: [0.35, 0.0, 0.75], chao: '214', family: 't3' },
+  4: { id: 4, name: 'falling', mark: 'ˋ', contour: [1.0, 0.0],        chao: '51',  family: 't4' },
+  0: { id: 0, name: 'neutral', mark: '˙', contour: [0.45, 0.35],      chao: '',    family: 't0' },
 }
 
 /**

@@ -49,8 +49,15 @@ export default function Hall() {
       <figure className="score-system">
         <figcaption className="score-head">
           <button type="button" className="score-title" onClick={() => setSheet(true)}
-            aria-haspopup="dialog" title="Open the piece">
-            {PIECE.composer} — <span>{PIECE.title}</span>, {PIECE.catalogue}
+            aria-haspopup="dialog">
+            {/* One flex item, or the three runs of the credit wrap
+                independently and a phone gets "Franz / Der / , Schubert". */}
+            <span className="score-title-text">
+              {PIECE.composer} — <span>{PIECE.title}</span>, {PIECE.catalogue}
+            </span>
+            {/* Said out loud, not left to a hover state: a credit line
+                looks like a credit line, and nobody clicks one. */}
+            <em className="score-title-cue">open the piece</em>
           </button>
           {pb.available && <div className="score-tag"><Transport pb={pb} /></div>}
         </figcaption>
