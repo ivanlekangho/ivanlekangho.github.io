@@ -245,11 +245,25 @@ special makes this happen — it is the same lighting board.
 
 One number drives it: the rail position, 0 to 1.
 
-| Rail | Voice | Piano | The room |
-|---|---|---|---|
-| **musician** | bass-clef notation | grand staff | house lights down, one warm pool |
-| **linguist** | Mandarin tone against the melody | chord symbols over roman numerals | half light, plum dusk |
-| **engineer** | the terminal | the terminal | full cold wash, measured grid |
+| Rail | What is on screen | The room |
+|---|---|---|
+| **musician** | the system: voice staff over grand staff | house lights down, one warm pool |
+| **linguist** | the line in four notations | half light, plum dusk |
+| **engineer** | the terminal | full cold wash, measured grid |
+
+**One screen at a time.** The three share a cell and hand over in sequence —
+`screens()` in `staging.ts` — rather than crossfading through each other. An
+overlapping fade put the staves on top of the language table halfway through
+every scroll, and the earlier layout was worse than that: the staff drew the
+tone contours and the chord chart while a table underneath repeated both, so
+the Mandarin, the German and the harmony were each on screen twice and neither
+copy had room to be read.
+
+A consequence worth knowing: `VoiceRibbon.tsx` and `PianoRibbon.tsx` still
+contain their own language and physics states, and nothing reaches them now —
+`Hall.tsx` holds the score at notation (`p` clamped below the first morph) so
+it does not half-change into something the next screen is about to say
+properly. Stripping those branches is a tidy-up that has not been done.
 
 The room makes one argument: that music, language and code are three
 descriptions of the same object. So the three stops are not three subjects —
@@ -306,64 +320,43 @@ would leave air wherever only the pianist plays.
 
 ### The linguist stop
 
-This is the stop that makes the argument, and it makes it by laying four
-notations of one line in parallel rather than by arguing in prose. The claim
-is printed above them: **one line, four notations.**
+One line, written out four ways, and nothing else on the screen.
 
 | Row | What is in it |
 |---|---|
-| Mandarin | 我处处皆为异客, each syllable under its Chao tone letter, with pinyin |
+| Mandarin | 我处处皆为异客, each character under its Chao tone letter, with pinyin |
 | German | the sung text by syllable, each with its IPA |
 | English | *I am a stranger everywhere* |
-| Music | `Bm B+ Em C♯°7 D/A A7 D`, each over its roman numeral |
+| Harmony | `Bm B+ Em C♯°7 D/A A7 D`, each over its roman numeral and the name of the move |
 
-The three syllable rows are set to one width and spread across it, so the
-characters, the German and the chord symbols line up in columns. That vertical
-rhyme is the argument: the last row has a lexicon, an inflection (`⁶₄`, `⁷`)
-and a syntax, and it is sitting in the same table as three things nobody
-disputes are languages. `Apparatus.tsx` draws it; the IPA lives on the notes
-in `phrase.ts`, so the text and its transcription cannot drift apart.
+The three list rows are set to one width and spread across it, so the
+characters, the German and the chord symbols line up in columns down the
+table. That vertical rhyme is the argument: the last row has a lexicon, an
+inflection (`⁶₄`, `⁷`) and a syntax — where a dominant is allowed to go — and
+it is sitting in the same table as three things nobody disputes are languages.
+Nothing on the page asserts that. The table shows it.
 
-Above the four rows, the system itself does three further things.
+Tone letters follow the IPA convention, contour to the left of a reference
+bar, rather than a tone box with a rule across the top — that rule hides the
+level tone, which runs along exactly it. The IPA lives on the notes in
+`phrase.ts`, so the sung text and its transcription cannot drift apart.
+`Apparatus.tsx` draws the whole thing.
 
-**The noteheads become the words.** Each one travels to the start of its
-syllable's tone contour and turns into the Han character there — same place,
-one fading as the other arrives — with the tone drawn out of it and the German
-still sitting underneath. One object, two languages, one pitch.
+What used to be here and is not any more: direction arrows over each syllable,
+a metre strip under them, and a tally of how often tone agreed with the tune.
+They were measurements about the line rather than the line itself, and they
+crowded out the thing they were measuring. The measurements still exist —
+`prosody.ts` computes them and the piece sheet reports them at length, with
+the stress table and the 异客 problem written out.
 
-**Tone against tune.** Mandarin carries part of a word in the contour of the
-syllable, so a melody that falls where the tone rises can make a sung line
-ambiguous — a real problem for anyone setting Mandarin or Cantonese, and
-plainly not one Schubert had in 1816. An arrow over each syllable says where
-the tune goes next, coloured by whether the tone agrees. Two of the seven
-agree, two fight.
-
-**Stress against the bar.** Mandarin has no English-style lexical stress, but
-it has prosodic heads — the syllable a word leans on — and function words that
-want to stay out of the way. `src/data/mandarin.ts` records which is which;
-`prosody.ts` works out where cut time puts its weight and compares.
-
-Five of seven land where they want to. The function words behave — 我 takes
-the pickup and 为 sits off the beat, exactly where a pronoun and a copula
-belong. The one that does not is 异客: the downbeat of bar two lands on 异,
-*strange*, and 客, *guest*, the head of the compound, arrives off the beat and
-only reaches the next strong one by being held through it.
-
-Which is wrong, and is also the better reading. The song is called *Der
-Wanderer*. He had no way of knowing that — the Mandarin line is an overlay we
-chose, which is exactly why these are measurements rather than claims.
-
-**On a phone** all four rows stay: three of four is not the argument. What
-goes is the tally line, which the piece sheet carries at length. The system
-above crops to the singer's half (`FRAME_NARROW` in `Score.tsx`), because
-there is no legible way to fit the tone diagram and a seven-chord chart across
-375 pixels at once.
+**On a phone** all four rows stay; three of four is not the argument. The row
+labels move above their rows, and the harmony sets itself in four even columns
+instead of wrapping ragged.
 
 ### The engineer stop: the terminal
 
-At the engineer stop the staves have said what they can, and a REPL takes
-their place, centred in the window rather than in the column the rail leaves
-behind. It opens on the phrase's own final chord and answers the only question
+At the engineer stop a REPL has the screen, centred in the window rather than
+in the column the rail leaves behind. It opens on the phrase's own final chord and answers the only question
 worth asking: why does that sound like that.
 
 You get the chord named, the summed waveform, a keyboard with it held down,

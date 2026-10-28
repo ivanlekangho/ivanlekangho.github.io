@@ -9,7 +9,7 @@ import PieceSheet from './PieceSheet'
 import StageScene from './StageScene'
 import Terminal from './Terminal'
 import Transport from './Transport'
-import { staging } from './staging'
+import { screens } from './staging'
 
 /**
  * The recital room: the first screen, and nothing below it until you have
@@ -32,8 +32,10 @@ export default function Hall() {
   const { pos } = useMode()
   const pb = usePlayback()
   const [sheet, setSheet] = useState(false)
-  const s = staging(pos)
-  const engineer = s.oC > 0.5
+  const show = screens(pos)
+  const notation = show.score > 0.5
+  const language = show.language > 0.5
+  const engineer = show.terminal > 0.5
 
   return (
     <section className="hall" aria-label="Recital room">
@@ -53,25 +55,32 @@ export default function Hall() {
           {pb.available && <div className="score-tag"><Transport pb={pb} /></div>}
         </figcaption>
 
-        {/* The score and the terminal occupy the same cell and cross-fade:
-            at the engineer stop the staves have said what they can, and the
-            arithmetic takes the space rather than crowding in beside it. */}
+        {/* Three readings, one cell, cross-faded. Each stop gets the whole
+            space rather than a share of it: the staves, then the line in
+            four notations, then the arithmetic. They used to overlap —
+            staff above, table below — and the Mandarin, the German and the
+            harmony were each drawn twice, neither copy large enough to
+            read.
+
+            The staff is held at notation while it dissolves (`p` clamped
+            below the first morph) so you do not watch it half-change into
+            something the next screen is about to say properly. That does
+            leave the ribbons' own language and physics states unreachable;
+            they are still in VoiceRibbon.tsx and PianoRibbon.tsx. */}
         <div className="score-stack">
-          <div className="score-layer" aria-hidden={engineer}
-            style={{ opacity: 1 - s.oC, pointerEvents: engineer ? 'none' : 'auto' }}>
-            <Score p={pos} beat={pb.beat} />
+          <div className="score-layer" aria-hidden={!notation}
+            style={{ opacity: show.score, pointerEvents: notation ? 'auto' : 'none' }}>
+            <Score p={Math.min(pos, 0.04)} beat={pb.beat} />
+          </div>
+          <div className="score-layer score-layer-lang" aria-hidden={!language}
+            style={{ opacity: show.language, pointerEvents: language ? 'auto' : 'none' }}>
+            <Apparatus />
           </div>
           <div className="score-layer score-layer-term" aria-hidden={!engineer}
-            style={{ opacity: s.oC, pointerEvents: engineer ? 'auto' : 'none' }}>
+            style={{ opacity: show.terminal, pointerEvents: engineer ? 'auto' : 'none' }}>
             <Terminal live={engineer} />
           </div>
         </div>
-
-        {s.oB > 0.02 && (
-          <div className="apparatus-wrap" style={{ opacity: s.oB }} aria-hidden={s.oB < 0.5}>
-            <Apparatus />
-          </div>
-        )}
       </figure>
 
       <div className="hall-foot">

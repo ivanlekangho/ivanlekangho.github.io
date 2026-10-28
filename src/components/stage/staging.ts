@@ -24,3 +24,21 @@ export function staging(p: number) {
     index: p < 0.25 ? 0 : p < 0.75 ? 1 : 2,
   }
 }
+
+/**
+ * The three screens of the room, and when each one is up.
+ *
+ * Separate from `staging` above, which drives the morph *inside* a screen.
+ * These three share one cell, so a plain crossfade stacked the staves on
+ * top of the language table halfway through every scroll. They hand over
+ * in sequence instead, with only a sliver of overlap — the way a board
+ * operator takes one state out before bringing the next one up.
+ */
+export function screens(p: number) {
+  const f = (a: number, b: number) => ease(range(p, a, b))
+  return {
+    score: 1 - f(0.1, 0.3),
+    language: f(0.22, 0.42) * (1 - f(0.58, 0.74)),
+    terminal: f(0.68, 0.88),
+  }
+}

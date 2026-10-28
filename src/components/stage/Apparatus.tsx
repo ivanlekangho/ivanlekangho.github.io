@@ -1,44 +1,45 @@
 import { PHRASE, PIECE } from '../../data/phrase'
 import { HARMONY } from '../../data/piano'
 import { MANDARIN } from '../../data/tones'
-import { TALLY } from '../../lib/prosody'
 
 /**
- * The language stop, as four rows.
+ * The language stop: one line, written out four ways.
  *
- * The claim the room is making is that music and language are the same kind
- * of object, and the cheapest way to make that claim is to stop arguing it
- * and lay the notations out in parallel: the line in Mandarin with its tone
- * contours, in German with its IPA, in English, and in the notation
- * musicians use for harmony. Four rows of the same shape. The last one is
- * the argument — it has a lexicon (Bm, C♯°7), an inflection (⁶₄, ⁷) and a
- * syntax (where a dominant may go), and it is sitting in the same table as
- * the three everybody already agrees are languages.
+ * This is the whole screen at this stop, not a caption under a diagram.
+ * Earlier it was both — the staff above drew the tone contours and the
+ * chord chart, and these rows repeated them underneath, so the Mandarin,
+ * the German and the harmony were each on screen twice and neither copy
+ * had room to be read. One copy of each, large enough to read, is worth
+ * more than two of everything.
  *
- * Nothing here is prose. Prose would be me asserting the thing; the table
- * shows it.
+ * Four rows of the same shape, in the order a reader meets them: the
+ * language Ivan speaks, the language he sings, what it means, and the one
+ * that is the argument. The last row has a lexicon (Bm, C♯°7), an
+ * inflection (⁶₄, ⁷) and a syntax — where a dominant is allowed to go —
+ * and it is sitting in the same table as three things nobody disputes are
+ * languages. Nothing here asserts that. The table shows it.
  */
 
 /**
  * One Mandarin tone, drawn the way the IPA draws one: the contour to the
- * left of a vertical reference bar, top of the bar being the top of the
- * speaker's range. A tone box with a line across the top instead would
- * hide the level tone, which runs along exactly that line.
+ * left of a vertical reference bar, the top of the bar being the top of the
+ * speaker's range. A tone box with a line across the top would hide the
+ * level tone, which runs along exactly that line.
  */
 function Contour({ tone }: { tone: number }) {
   const t = MANDARIN[tone as 1 | 2 | 3 | 4]
   if (!t) return null
-  const w = 13
-  const h = 17
+  const w = 15
+  const h = 20
   const pts = t.contour
     .map((v, i) => `${(i / (t.contour.length - 1)) * w},${h - v * h}`)
     .join(' ')
   return (
-    <svg className="tone-glyph" viewBox={`-1 -1 ${w + 4} ${h + 2}`} width={w + 4} height={h + 2}
+    <svg className="tone-glyph" viewBox={`-1.5 -1.5 ${w + 6} ${h + 3}`} width={w + 6} height={h + 3}
       aria-hidden="true">
-      <line x1={w + 2} y1="0" x2={w + 2} y2={h} stroke="var(--ink-3)" strokeWidth="0.9" />
+      <line x1={w + 3} y1="0" x2={w + 3} y2={h} stroke="var(--ink-3)" strokeWidth="1" />
       <polyline points={pts} fill="none" stroke={`var(--${t.family}-mid)`}
-        strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -48,13 +49,13 @@ const GERMAN = PHRASE.filter((n) => n.german)
 
 export default function Apparatus() {
   return (
-    <div className="score-apparatus">
+    <div className="apparatus">
       <p className="apparatus-thesis">One line, four notations.</p>
 
       <dl className="apparatus-rows">
         <div className="arow">
           <dt>Mandarin</dt>
-          <dd className="arow-syl">
+          <dd className="arow-syl arow-han">
             {HAN.map((n, i) => (
               <span key={n.id + i} className="syl">
                 <Contour tone={n.tone!} />
@@ -83,23 +84,18 @@ export default function Apparatus() {
         </div>
 
         <div className="arow">
-          <dt>Music</dt>
-          <dd className="arow-syl">
+          <dt>Harmony</dt>
+          <dd className="arow-syl arow-chords">
             {HARMONY.map((h) => (
               <span key={h.atBeat} className="syl">
                 <b>{h.symbol}</b>
                 <i>{h.numeral}</i>
+                <i className="move">{h.move}</i>
               </span>
             ))}
           </dd>
         </div>
       </dl>
-
-      <p className="apparatus-foot">
-        Tone moves with the tune on <b>{TALLY.agree}</b> of {TALLY.total} syllables,
-        against it on <b>{TALLY.clash}</b>. Word stress lands on the beat it wants
-        on <b>{TALLY.match}</b> of {TALLY.total}.
-      </p>
     </div>
   )
 }
