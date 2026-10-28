@@ -116,13 +116,22 @@ pre {
   justify-items: center; align-items: start;
 }
 .score-head { width: 100%; max-width: 68rem; }
+.score-head { display: grid; justify-items: center; }
+/* The credit is the way into the piece, so it has to look like a way in. */
 .score-title {
-  margin: 0 0 var(--space-2); max-width: none; text-align: center;
+  display: block; margin: 0 auto var(--space-2); padding: 2px 10px 4px;
+  font: inherit; background: none; cursor: pointer; text-align: center;
+  border: 0; border-bottom: 1px solid transparent;
   font-family: var(--font-display); font-weight: var(--display-weight);
   font-size: var(--step-1); letter-spacing: var(--display-tracking);
   color: var(--ink-2);
+  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
 }
 .score-title span { color: var(--ink); font-weight: 500; }
+.score-title:hover, .score-title:focus-visible {
+  color: var(--accent); border-bottom-color: var(--accent-soft);
+}
+.score-title:hover span { color: var(--accent); }
 .score-tag {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-4);
@@ -481,6 +490,118 @@ pre {
   color: var(--ink-2); letter-spacing: 0.04em;
 }
 
+/* --- skills, as objects rather than as a sentence ---------------- */
+.chips { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.chips li {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: 0.72rem; letter-spacing: 0.06em; white-space: nowrap;
+  border: 1px solid var(--rule); color: var(--ink-3);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  padding: 3px 9px; line-height: 1.45;
+  transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease),
+              transform var(--dur-ui) var(--ease);
+}
+.chips li:hover { border-color: var(--accent-soft); color: var(--ink); transform: translateY(-1px); }
+.index-sub .chips { margin-bottom: 0; }
+
+/* ============================================================
+   The piece, on parchment — lifted out of the room by its credit
+   ============================================================ */
+.sheet-layer {
+  position: fixed; inset: 0; z-index: 70;
+  display: grid; place-items: center; padding: clamp(0.75rem, 3vw, 2.5rem);
+}
+.sheet-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.68); }
+.sheet {
+  position: relative;
+  width: min(54rem, 100%);
+  max-height: min(88vh, 54rem);
+  display: flex; flex-direction: column;
+  /* Aged paper, built from light rather than from an image: a warm base with
+     a sunlit corner and two patches of foxing. */
+  background-color: #EADDBE;
+  background-image:
+    radial-gradient(ellipse 70% 60% at 16% 10%, rgba(255, 251, 236, 0.92), transparent 62%),
+    radial-gradient(ellipse 55% 45% at 88% 88%, rgba(156, 124, 70, 0.34), transparent 62%),
+    radial-gradient(ellipse 40% 35% at 78% 16%, rgba(158, 126, 72, 0.16), transparent 55%);
+  box-shadow: 0 44px 110px rgb(0 0 0 / 0.7), 0 1px 0 rgb(255 255 255 / 0.5) inset;
+  transform: rotate(-0.35deg);
+  animation: sheet-in 340ms var(--ease) both;
+
+  /* Inside the sheet, paper is paper: these are fixed rather than taken from
+     the lighting board, because parchment does not change colour when the
+     house lights come up. */
+  --ink: #241C12;
+  --ink-2: #5A4A35;
+  --ink-3: #8A7558;
+  --rule: #CFBD99;
+  --staff: #6D5C42;
+  --accent: #7A5A1E;
+  --accent-deep: #7A5A1E;
+  --accent-soft: #A98C52;
+  --t0-mid: #6E6259; --t1-mid: #4C6B54; --t2-mid: #8E6A20;
+  --t3-mid: #5F4E8C; --t4-mid: #9C4F47;
+  color: var(--ink);
+}
+@keyframes sheet-in {
+  from { opacity: 0; transform: rotate(-1.2deg) translateY(16px) scale(0.985); }
+  to   { opacity: 1; transform: rotate(-0.35deg); }
+}
+.sheet-close {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  display: grid; place-items: center; width: 30px; height: 30px;
+  background: none; border: 1px solid var(--rule); color: var(--ink-2); cursor: pointer;
+  transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
+}
+.sheet-close:hover { border-color: var(--accent); color: var(--accent); }
+.sheet-body {
+  overflow-y: auto; padding: clamp(1.75rem, 4vw, 3rem);
+  scrollbar-width: thin;
+}
+.sheet-body p { color: var(--ink-2); max-width: 46rem; }
+.sheet-body em { color: var(--ink); font-weight: 500; }
+.sheet-eyebrow {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--space-2);
+}
+.sheet-title {
+  font-size: var(--step-4); color: var(--ink); margin: 0 0 var(--space-2);
+}
+.sheet-sub {
+  font-family: var(--font-label); font-size: var(--step--1); letter-spacing: 0.05em;
+  color: var(--ink-3); margin-bottom: var(--space-5);
+}
+.sheet-score {
+  display: block; width: 100%; margin: 0 0 var(--space-5);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.sheet-field { display: grid; gap: var(--space-2); margin: 0 0 var(--space-6); }
+.sheet-field dt {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--ink-3);
+}
+.sheet-field dd { margin: 0 0 var(--space-3); color: var(--ink-2); max-width: 44rem; }
+.sheet-field dd.sheet-line {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-size: var(--step-2); line-height: 1.15; color: var(--ink);
+}
+.sheet-field dd .han { font-size: var(--step-1); color: var(--ink); }
+@media (min-width: 48rem) {
+  .sheet-field { grid-template-columns: 7rem minmax(0, 1fr); column-gap: var(--space-5); }
+  .sheet-field dt { grid-column: 1; }
+  .sheet-field dd { grid-column: 2; }
+}
+.sheet-h {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--accent);
+  margin: var(--space-6) 0 var(--space-3);
+  padding-top: var(--space-3); border-top: 1px solid var(--rule);
+}
+
 /* Deliberately loud. Nothing ships to a real reader wearing this. */
 .todo {
   border-left: 2px solid var(--t2-deep); background: var(--t2-wash); color: var(--t2-deep);
@@ -533,4 +654,7 @@ pre {
   .menu-inner a { font-size: 0.68rem; letter-spacing: 0.08em; }
 
   .h-hero { font-size: var(--step-4); }
+  .sheet { transform: none; max-height: 92vh; }
+  .sheet-title { font-size: var(--step-3); }
+  .chips li { font-size: 0.68rem; padding: 2px 7px; }
 }

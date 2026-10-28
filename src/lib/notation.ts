@@ -73,41 +73,10 @@ export function ledgerLines(n: Note, g: StaffGeom): number[] {
 /** Where the two sharps of a B-minor key signature sit in bass clef. */
 export const bassKeySharps = (g: StaffGeom) => [
   { x: 0, y: stepY(diatonic('F', 3), g) },
-  { x: g.gap * 0.62, y: stepY(diatonic('C', 3), g) },
+  /* One staff space apart: a Bravura sharp is 0.98 spaces wide, so anything
+     tighter sets the two of them overlapping. */
+  { x: g.gap, y: stepY(diatonic('C', 3), g) },
 ]
-
-/**
- * A line-drawn F clef: head dot on the F line, a curl that closes just above
- * the bottom staff line, and the two dots that straddle the F line.
- *
- * Deliberately stroked rather than a filled engraved glyph — the whole site is
- * thin-line pastel, and a Bravura clef would sit on the page like a stamp.
- * Returns the parts rather than one path so the caller can't put the dots in
- * the wrong place relative to the curl, which is exactly what happened when
- * their x was hardcoded separately.
- */
-export function bassClef(x: number, fLineY: number, g: StaffGeom) {
-  const u = g.gap
-  return {
-    curl:
-      `M ${x + 0.5 * u},${fLineY} ` +
-      `C ${x + 0.5 * u},${fLineY - 1.05 * u} ${x + 2.7 * u},${fLineY - 0.95 * u} ${x + 2.7 * u},${fLineY + 0.35 * u} ` +
-      `C ${x + 2.7 * u},${fLineY + 1.85 * u} ${x + 1.5 * u},${fLineY + 2.6 * u} ${x + 0.25 * u},${fLineY + 3.0 * u}`,
-    head: { cx: x + 0.5 * u, cy: fLineY, r: 0.3 * u },
-    dots: [
-      { cx: x + 3.4 * u, cy: fLineY - 0.5 * u, r: 0.15 * u },
-      { cx: x + 3.4 * u, cy: fLineY + 0.5 * u, r: 0.15 * u },
-    ],
-    width: 3.8 * u,
-  }
-}
-
-/** An eighth flag: a comma bulging away from the notehead. */
-export function flagPath(stemX: number, stemTipY: number, dir: 'up' | 'down', g: StaffGeom) {
-  const u = g.gap
-  const s = dir === 'up' ? 1 : -1
-  return `M ${stemX},${stemTipY} q ${0.95 * u},${0.25 * u * s} ${0.6 * u},${1.35 * u * s}`
-}
 
 /* ------------------------------------------------------------------
    Engraving details: dots, flags, barlines, slurs.
@@ -155,66 +124,6 @@ export function needsAccidental(n: Note, keySharps: readonly string[]) {
   if (!n.accidental) return false
   if (n.accidental === 'sharp') return !keySharps.includes(n.step)
   return true // naturals and flats always contradict something
-}
-
-/**
- * Cut time (alla breve): a C open to the right, spanning the middle two staff
- * spaces, with a vertical stroke through it. Built from two explicit beziers
- * rather than an SVG arc so the shape can't flip on an arc-flag.
- */
-export function cutTime(cx: number, g: StaffGeom) {
-  const cy = g.bottomY - 2 * g.gap
-  const r = g.gap
-  const k = 0.5523 * r
-  const sx = cx + r * 0.78
-  const sy = cy - r * 0.62
-  const ex = cx + r * 0.78
-  const ey = cy + r * 0.62
-  return {
-    // start upper-right → over the top → round the left → down to lower-right
-    c:
-      `M ${sx},${sy} C ${cx + r * 0.42},${cy - r} ${cx - k},${cy - r} ${cx - r},${cy - k * 0.35} ` +
-      `C ${cx - r * 1.08},${cy + k * 0.7} ${cx - r * 0.5},${cy + r} ${ex},${ey}`,
-    stem: { x1: cx, y1: cy - r * 1.75, x2: cx, y2: cy + r * 1.75 },
-  }
-}
-
-/**
- * A quarter rest, drawn as a hand-written zigzag rather than the engraved
- * glyph. Without it the closing bar looks truncated instead of complete.
- */
-export function quarterRestPath(x: number, g: StaffGeom) {
-  const u = g.gap
-  const y = g.bottomY - 2 * u // centred on the middle line
-  return (
-    `M ${x + u * 0.22},${y - u * 1.15} ` +
-    `L ${x - u * 0.3},${y - u * 0.3} ` +
-    `L ${x + u * 0.3},${y + u * 0.15} ` +
-    `L ${x - u * 0.28},${y + u * 0.95} ` +
-    `C ${x + u * 0.05},${y + u * 0.62} ${x + u * 0.42},${y + u * 0.72} ${x + u * 0.38},${y + u * 1.2}`
-  )
-}
-
-/**
- * A line-drawn treble clef, in the same stroked idiom as the bass clef.
- * `yG` is the G4 line — the second line up — which is the line the spiral
- * wraps, and the only thing a treble clef actually asserts.
- */
-export function trebleClef(x: number, yG: number, g: StaffGeom) {
-  const u = g.gap
-  return {
-    /** The body: down the left, round the right, into the spiral at the G line. */
-    body:
-      `M ${x + 0.05 * u},${yG - 3.40 * u} ` +
-      `C ${x - 0.95 * u},${yG - 2.40 * u} ${x - 1.10 * u},${yG - 1.05 * u} ${x - 0.10 * u},${yG - 0.25 * u} ` +
-      `C ${x + 0.90 * u},${yG + 0.55 * u} ${x + 1.12 * u},${yG + 1.55 * u} ${x + 0.30 * u},${yG + 1.98 * u} ` +
-      `C ${x - 0.42 * u},${yG + 2.34 * u} ${x - 1.00 * u},${yG + 1.70 * u} ${x - 0.82 * u},${yG + 0.95 * u} ` +
-      `C ${x - 0.68 * u},${yG + 0.32 * u} ${x + 0.08 * u},${yG + 0.06 * u} ${x + 0.42 * u},${yG + 0.62 * u}`,
-    /** The stem, straight down from the top tip past the staff. */
-    stem: `M ${x + 0.05 * u},${yG - 3.40 * u} C ${x + 0.38 * u},${yG - 1.6 * u} ${x + 0.38 * u},${yG + 0.9 * u} ${x + 0.30 * u},${yG + 2.75 * u}`,
-    /** The tail hook below the staff. */
-    tail: `M ${x + 0.30 * u},${yG + 2.75 * u} C ${x + 0.26 * u},${yG + 3.45 * u} ${x - 0.45 * u},${yG + 3.55 * u} ${x - 0.62 * u},${yG + 2.95 * u}`,
-  }
 }
 
 /**
@@ -270,47 +179,7 @@ export function clusterShifts(idxs: number[], dir: 'up' | 'down'): number[] {
   return out
 }
 
-/** An eighth rest: the hook and the slanted stroke falling away from it. */
-export function eighthRestPath(x: number, g: StaffGeom) {
-  const u = g.gap
-  const y = g.bottomY - 2 * u
-  return (
-    `M ${x + 0.42 * u},${y - 0.85 * u} L ${x - 0.1 * u},${y + 0.95 * u} ` +
-    `M ${x + 0.42 * u},${y - 0.85 * u} C ${x + 0.1 * u},${y - 0.5 * u} ` +
-    `${x - 0.3 * u},${y - 0.42 * u} ${x - 0.46 * u},${y - 0.66 * u}`
-  )
-}
-
 export type AccidentalKind = 'sharp' | 'flat' | 'natural'
-
-/**
- * Accidentals as stroked line-art, in the same idiom as the clefs. Returned
- * as a list of subpaths so a caller can set one stroke width for the lot.
- */
-export function accidentalPaths(kind: AccidentalKind, x: number, y: number, g: StaffGeom): string[] {
-  const u = g.gap
-  if (kind === 'flat') {
-    return [
-      `M ${x - 0.2 * u},${y - 1.3 * u} L ${x - 0.2 * u},${y + 0.45 * u}`,
-      `M ${x - 0.2 * u},${y + 0.45 * u} C ${x + 0.5 * u},${y + 0.02 * u} ` +
-        `${x + 0.46 * u},${y - 0.45 * u} ${x - 0.2 * u},${y - 0.08 * u}`,
-    ]
-  }
-  if (kind === 'natural') {
-    return [
-      `M ${x - 0.22 * u},${y - 0.58 * u} L ${x - 0.22 * u},${y + 0.98 * u}`,
-      `M ${x + 0.22 * u},${y - 0.98 * u} L ${x + 0.22 * u},${y + 0.58 * u}`,
-      `M ${x - 0.22 * u},${y - 0.26 * u} L ${x + 0.22 * u},${y - 0.42 * u}`,
-      `M ${x - 0.22 * u},${y + 0.3 * u} L ${x + 0.22 * u},${y + 0.14 * u}`,
-    ]
-  }
-  return [
-    `M ${x - 0.18 * u},${y - 0.78 * u} L ${x - 0.18 * u},${y + 0.92 * u}`,
-    `M ${x + 0.18 * u},${y - 0.92 * u} L ${x + 0.18 * u},${y + 0.78 * u}`,
-    `M ${x - 0.44 * u},${y - 0.2 * u} L ${x + 0.44 * u},${y - 0.38 * u}`,
-    `M ${x - 0.44 * u},${y + 0.36 * u} L ${x + 0.44 * u},${y + 0.18 * u}`,
-  ]
-}
 
 /** How far the clef, key signature and time signature reach before the
  *  first notehead. Shared so every staff on the site starts in the same

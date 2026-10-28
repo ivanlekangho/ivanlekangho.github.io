@@ -65,6 +65,8 @@ export function useHallScroll(enabled: boolean) {
 
     /** True when this gesture belongs to the rail rather than to the page. */
     const mine = (dy: number) => {
+      /* While the piece sheet is up it owns the wheel, not the room. */
+      if (document.documentElement.hasAttribute('data-sheet')) return false
       const atTop = window.scrollY <= 1
       if (wasAway && atTop) { arrivedAt = performance.now(); wasAway = false }
       if (!atTop) { wasAway = true; return false }

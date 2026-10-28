@@ -83,3 +83,31 @@ export function beatAtX(x: number): number {
 
 /** Barlines sit a little left of the note they precede, never on top of it. */
 export const barX = (beat: number, gap: number) => xAt(beat) - gap * 1.25
+
+/**
+ * A standalone axis, for the vocal line printed on its own.
+ *
+ * On the stage the voice borrows the system's grid so it lines up with the
+ * piano, which leaves air wherever only the pianist plays. On a page of its
+ * own that air has nothing to explain it, so the sheet spaces the singer's
+ * own onsets instead — same engraving, different measure.
+ */
+export function soloAxis(x0: number, x1: number) {
+  const grid = [...VOICE_ONSET, END_BEAT]
+  const w = grid.slice(1).map((b, i) => Math.pow(b - grid[i], 0.6))
+  const total = w.reduce((a, b) => a + b, 0)
+  const xs: number[] = []
+  let acc = 0
+  grid.forEach((_, i) => {
+    xs.push(x0 + ((x1 - x0) * acc) / total)
+    if (i < w.length) acc += w[i]
+  })
+  const at = (beat: number) => {
+    if (beat <= grid[0]) return xs[0]
+    if (beat >= grid[grid.length - 1]) return xs[xs.length - 1]
+    let i = 0
+    while (i < grid.length - 1 && grid[i + 1] <= beat) i++
+    return xs[i] + ((xs[i + 1] - xs[i]) * (beat - grid[i])) / (grid[i + 1] - grid[i])
+  }
+  return { xAt: at, barX: (beat: number, gap: number) => at(beat) - gap * 1.25 }
+}

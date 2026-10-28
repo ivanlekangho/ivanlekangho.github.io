@@ -65,14 +65,17 @@ has a URL you can link to directly.
 | Every colour, as three lighting keyframes | `src/lib/palette.ts` |
 | The hall, the Steinway, the baritone | `src/components/stage/StageScene.tsx` |
 | The one system both performers read | `src/components/stage/Score.tsx` |
+| The piece, on parchment | `src/components/stage/PieceSheet.tsx` |
+| Bravura's outlines, inlined | `src/lib/bravura.ts` · `tools/extract-bravura.py` |
+| Engraving thicknesses and the glyph renderer | `src/lib/smufl.tsx` |
 | The horizontal axis they share | `src/lib/beatmap.ts` |
 | The terminal at the engineer stop | `src/components/stage/Terminal.tsx` |
 | Why a chord sounds the way it does | `src/lib/acoustics.ts` |
 | Does the melody move the way the tone does | `src/lib/toneMelody.ts` |
 | Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
 | Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
-| The room, explained — the piece, the three readings | `src/sections/Room.tsx` |
-| Bio, languages, study, stack, the palette legend | `src/sections/About.tsx` |
+| Bio, languages, study, honours, stack, the palette legend | `src/sections/About.tsx` |
+| Voice, instruments, composition, the saxophone research | `src/sections/Music.tsx` |
 | Roles, Cancer Society, projects, service | `src/sections/Work.tsx` |
 | The essay, what he's reading toward, the log index | `src/sections/Writing.tsx` |
 | Contact | `src/sections/Contact.tsx` |
@@ -80,7 +83,7 @@ has a URL you can link to directly.
 | The menu bar and its section list | `src/components/Menu.tsx` |
 | Log posts | `src/content/log/*.md` |
 
-**One page, five anchors.** `#room`, `#about`, `#work`, `#writing`, `#contact`
+**One page, five anchors.** `#about`, `#music`, `#work`, `#writing`, `#contact`
 all live on `/`, and the menu bar — which arrives the moment the hall is behind
 you — is how you get back to any of them, the hall included. Every URL this site
 has ever had still works: the old panel routes redirect to the matching anchor
@@ -253,6 +256,18 @@ piano's two, bracketed at the left the way a vocal score is, and neither staff
 lays itself out: both read their horizontal positions out of
 `src/lib/beatmap.ts`. A note sounded on beat three is at the same x on both.
 
+**The engraving is Bravura's.** Clefs, accidentals, rests, flags, the brace and
+the time signature are the reference SMuFL font's own outlines, inlined as SVG
+paths by `tools/extract-bravura.py`. They are paths rather than a web font
+because the glyphs live in the Private Use Area, and a subset woff2 rendered
+cut common as a blank with the wrong advance in Chromium while every font tool
+read it back intact — eleven shapes are not worth a font request and a FOUT.
+Noteheads stay geometry, because on the stage they morph; their proportions
+come from the font instead (1.18 staff spaces by one). Rule weights are
+Bravura's too, in `ENG` in `src/lib/smufl.tsx`: a 0.13-space staff line, a
+0.12-space stem, a half-space beam. A staff ruled at one device pixel beside a
+half-space beam is most of why amateur notation looks amateur.
+
 The important part: **the same `<ellipse>` elements are the noteheads, the tone
 contour onsets, and the data points.** Nothing crossfades between three separate
 graphics; the objects themselves move.
@@ -261,6 +276,22 @@ The frame closes in and opens out as the rail moves (`FRAME` in `Score.tsx`).
 Notation is two compact staves; the language reading needs nearly a third more
 height. A viewBox big enough for the tallest reading left the staves shrunk and
 letterboxed at the stop most people land on.
+
+### The piece, on parchment
+
+The credit over the stage — *Franz Schubert · Der Wanderer, D.489* — is a
+button. It lifts the piece out of the room as a sheet of aged paper: the vocal
+line engraved on its own, the three readings of the text, the Wang Wei echo,
+what the harmony is doing and how often the melody agrees with the Mandarin
+tone. An overlay rather than a section, because it is about the thing you are
+already looking at; sending a reader down the page to find it would be sending
+them away.
+
+The sheet takes the wheel from the room while it is open, and re-scopes the
+colour variables to fixed paper values — parchment does not change colour when
+the house lights come up. On its own page the voice line spaces its own onsets
+(`soloAxis` in `beatmap.ts`) rather than borrowing the system's grid, which
+would leave air wherever only the pianist plays.
 
 ### The linguist stop
 
@@ -280,7 +311,8 @@ exactly why it is measured rather than asserted.
 `Em`, `C♯°7`, `D/A`, `A7`, `D` — which names the object. Below it, the roman
 numeral, which names what the chord is *doing* to the key. The progression and
 the word for each move (`secondary dominant`, `pivot`, `cadential six-four`)
-live in `PROGRESSION` and `HARMONY` in `src/data/piano.ts`.
+live in `PROGRESSION` and `HARMONY` in `src/data/piano.ts`, and read out in the
+piece sheet.
 
 ### The engineer stop: the terminal
 
@@ -337,6 +369,19 @@ touching a control; the rail changes how the site is *lit*, not what is in it.
 
 `prefers-reduced-motion` turns the lighting cue into a cut: `mode.tsx` skips the
 tween and the CSS collapses every transition.
+
+## What was left out, and why
+
+Ivan's activity list ran to five years of school. The site carries the part
+that would still mean something to a reader in ten years — a world placing, two
+national firsts, three olympiad medals, the leadership roles that came with
+something to run — and deliberately not the rest. Form prizes, competition
+distinctions, Duke of Edinburgh Bronze, two aerospace "virtual work
+experiences" and the sports teams are all real and are all absent. A portfolio
+that lists everything tells a reader you could not tell which parts counted.
+
+If any of those matter more to him than they look from here, they are one line
+each to put back.
 
 ## Known gaps
 

@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { PIECE } from '../../data/phrase'
 import { useMode } from '../../lib/mode'
 import { usePlayback } from '../../lib/playback'
 import { TALLY } from '../../lib/toneMelody'
 import ModeRail from '../ModeRail'
 import Score from './Score'
+import PieceSheet from './PieceSheet'
 import StageScene from './StageScene'
 import Terminal from './Terminal'
 import Transport from './Transport'
@@ -29,6 +31,7 @@ import { STATE_LABELS, staging } from './staging'
 export default function Hall() {
   const { pos } = useMode()
   const pb = usePlayback()
+  const [sheet, setSheet] = useState(false)
   const s = staging(pos)
   const labels = STATE_LABELS[s.index]
   const engineer = s.oC > 0.5
@@ -44,9 +47,10 @@ export default function Hall() {
 
       <figure className="score-system">
         <figcaption className="score-head">
-          <p className="score-title">
+          <button type="button" className="score-title" onClick={() => setSheet(true)}
+            aria-haspopup="dialog" title="Open the piece">
             {PIECE.composer} · <span>{PIECE.title}</span>, {PIECE.catalogue}
-          </p>
+          </button>
           <div className="score-tag">
             <span>Voice <b>{labels.voice}</b></span>
             <Transport pb={pb} />
@@ -96,6 +100,8 @@ export default function Hall() {
       <div className="hall-foot">
         <ModeRail />
       </div>
+
+      {sheet && <PieceSheet onClose={() => setSheet(false)} />}
     </section>
   )
 }

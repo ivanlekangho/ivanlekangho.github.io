@@ -1,0 +1,132 @@
+import { useEffect, useRef } from 'react'
+import Todo from '../Todo'
+import { PHRASE, PIECE } from '../../data/phrase'
+import { PIANO_PIECE, PROGRESSION } from '../../data/piano'
+import { soloAxis } from '../../lib/beatmap'
+import { noteY, type StaffGeom } from '../../lib/notation'
+import { ENG } from '../../lib/smufl'
+import { TALLY } from '../../lib/toneMelody'
+import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
+
+/**
+ * The piece, on paper.
+ *
+ * Clicking the credit over the stage lifts this out of the room: the vocal
+ * line engraved on its own, the three readings of the text, and what the
+ * harmony is doing. It is an overlay rather than a section of the page
+ * because it is about the thing you are already looking at — sending a
+ * reader down the page to find it would be sending them away.
+ */
+
+const W = 760
+const GEO: StaffGeom = { gap: 15, bottomY: 110 }
+
+export default function PieceSheet({ onClose }: { onClose: () => void }) {
+  const box = useRef<HTMLDivElement>(null)
+  const restore = useRef<Element | null>(null)
+  const axis = soloAxis(170, W - 36)
+  const L = voiceLayout(GEO, PHRASE, axis)
+
+  useEffect(() => {
+    restore.current = document.activeElement
+    box.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    /* The room normally owns the wheel; while the sheet is up it does not. */
+    document.documentElement.setAttribute('data-sheet', '')
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.documentElement.removeAttribute('data-sheet')
+      ;(restore.current as HTMLElement | null)?.focus?.()
+    }
+  }, [onClose])
+
+  return (
+    <div className="sheet-layer">
+      <div className="sheet-scrim" onClick={onClose} aria-hidden="true" />
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={PIECE.title}
+        ref={box} tabIndex={-1} data-keeps-scroll>
+        <button type="button" className="sheet-close" onClick={onClose} aria-label="Close">
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+            <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor"
+              strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        <div className="sheet-body">
+          <p className="sheet-eyebrow">{PIECE.composer} · {PIECE.year}</p>
+          <h2 className="sheet-title">{PIECE.title}</h2>
+          <p className="sheet-sub">
+            {PIECE.catalogue} · text by {PIECE.poet} · {PIECE.key}, baritone · cut time
+          </p>
+
+          <svg viewBox={`0 0 ${W} 190`} width="100%" className="sheet-score" role="img"
+            aria-label={`The vocal line of ${PIECE.title}, engraved in bass clef.`}>
+            <VoiceStaffFurniture g={GEO} width={W - 20} layout={L} lineX0={30}
+              head={{ clef: 38, keySig: 100, time: 136 }} />
+            {PHRASE.map((n, i) => {
+              const y = noteY(n, GEO)
+              return (
+                <g key={n.id}>
+                  <NoteMarks n={n} x={L.xs[i]} y={y} dir={L.dirs[i]} g={GEO} />
+                  <ellipse cx={L.xs[i]} cy={y} rx={ENG.headRx * GEO.gap} ry={ENG.headRy * GEO.gap}
+                    transform={`rotate(${ENG.headTilt} ${L.xs[i]} ${y})`}
+                    fill={`var(--t${n.tone ?? 0}-mid)`} />
+                </g>
+              )
+            })}
+            <VoiceLyrics g={GEO} layout={L} fontSize={13} />
+          </svg>
+
+          <dl className="sheet-field">
+            <dt>Sung</dt>
+            <dd className="sheet-line">{PIECE.german}</dd>
+            <dt>Means</dt>
+            <dd>{PIECE.englishGloss}</dd>
+            <dt>Mandarin</dt>
+            <dd>
+              <span className="han">{PIECE.mandarin}</span> · {PIECE.mandarinPinyin} ·
+              “{PIECE.mandarinGloss}”. {PIECE.mandarinNote}
+            </dd>
+          </dl>
+
+          <h3 className="sheet-h">Tone against melody</h3>
+          <p>
+            Mandarin carries part of a word in the pitch of the syllable: the same
+            sounds on a falling contour are a different word. A melody that falls
+            where the tone rises can make a sung line ambiguous, which is a real
+            problem for anyone setting Mandarin or Cantonese and plainly not one
+            Schubert had in 1816. The Mandarin line over his melody is a mapping I
+            chose, so what the room measures is a coincidence rather than a claim:
+            <em> {TALLY.agree} of the {TALLY.total} syllables</em> move the way their
+            tone does, <em>{TALLY.clash}</em> move the opposite way — 处 and 客, both
+            falling tones set to a rising line.
+          </p>
+
+          <h3 className="sheet-h">What the harmony is doing</h3>
+          <p>
+            <em>{PROGRESSION.short}</em> — the functional reading, each numeral naming
+            what the chord does to the key rather than what it is. Over the staff the
+            room shows the other register, the one a pianist reads off a chart: Bm,
+            B+, Em, C♯°7, D/A, A7, D.
+          </p>
+          <p>{PROGRESSION.sentence} {PIANO_PIECE.summary}</p>
+
+          <Todo>
+            A recording. Drop it at public/audio/der-wanderer.m4a (m4a or mp3, not
+            WAV — see the README) and a play button appears over the score: the
+            playhead sweeps the system and the notes light up as they sound, on both
+            staves at once. Nine space-bar taps with ?tap on the URL and it follows
+            your rubato instead of a metronome. Then: why you chose this piece, and
+            what was actually hard about it.
+          </Todo>
+          <Todo>
+            The piano chord voicings are still measured off a screenshot rather than
+            transcribed. A MusicXML or MIDI export from your notation software is one
+            click and makes them exact.
+          </Todo>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,11 +1,10 @@
 import { HARMONY, LH, RH, SLURS, type PianoEvent } from '../../data/piano'
 import { hz, label, midi, ratioTo, type Pitch } from '../../lib/tuning'
 import {
-  accidentalPaths, bassClef, bassKeySharps, clusterShifts, cutTime, diatonic,
-  dotY, eighthRestPath, flagPath, hasFlag, isDotted, ledgersFor,
-  quarterRestPath, stepYFrom, staffLineYs, TREBLE_BOTTOM, trebleClef,
-  type AccidentalKind, type StaffGeom,
+  bassKeySharps, clusterShifts, diatonic, dotY, hasFlag, isDotted, ledgersFor,
+  stepYFrom, staffLineYs, TREBLE_BOTTOM, type AccidentalKind, type StaffGeom,
 } from '../../lib/notation'
+import { ENG, Glyph } from '../../lib/smufl'
 import { lerp } from '../../lib/easing'
 import { BAR_BEATS, SYS, barX, xAt } from '../../lib/beatmap'
 import { staging } from './staging'
@@ -34,8 +33,9 @@ const TREBLE: StaffGeom = { gap: 11, bottomY: 86 }
 const BASS: StaffGeom = { gap: 11, bottomY: 196 }
 export const PIANO_H = 300
 const BASS_BOTTOM_IDX = diatonic('G', 2)
-const HEAD_W = 12.6          /* one notehead across — the displacement unit */
-const STEM = 3.5             /* stem length in staff spaces, standard */
+const U = TREBLE.gap                      /* both piano staves share a size */
+const HEAD_W = ENG.headRx * 2 * U         /* one notehead across — the displacement unit */
+const STEM = ENG.stemLength               /* in staff spaces, as Bravura has it */
 
 const geoFor = (hand: 'rh' | 'lh') => (hand === 'rh' ? TREBLE : BASS)
 const bottomFor = (hand: 'rh' | 'lh') => (hand === 'rh' ? TREBLE_BOTTOM : BASS_BOTTOM_IDX)
@@ -207,71 +207,46 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
 
       {/* ---------- A: grand staff ---------- */}
       <g opacity={s.oA}>
-        <g stroke="var(--staff)" strokeWidth="1">
+        <g stroke="var(--staff)" strokeWidth={ENG.staffLine * U}>
           {staffLineYs(TREBLE).map((y) => <line key={`t${y}`} x1={SYS.staffLeft} y1={y} x2={RIGHT} y2={y} />)}
           {staffLineYs(BASS).map((y) => <line key={`b${y}`} x1={SYS.staffLeft} y1={y} x2={RIGHT} y2={y} />)}
         </g>
         {/* the brace that marks these two staves as one instrument */}
-        <path d={`M ${SYS.staffLeft - 8},${TREBLE.bottomY - 4 * TREBLE.gap} C ${SYS.staffLeft - 24},${TREBLE.bottomY - 2 * TREBLE.gap} ${SYS.staffLeft - 24},${BASS.bottomY - 2 * BASS.gap} ${SYS.staffLeft - 8},${BASS.bottomY}`}
-          fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-        <line x1={SYS.staffLeft} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={SYS.staffLeft} y2={BASS.bottomY} stroke="var(--staff)" strokeWidth="1.2" />
+        <Glyph name="brace" gap={U} x={SYS.staffLeft - 16} y={BASS.bottomY}
+          stretchY={BASS.bottomY - (TREBLE.bottomY - 4 * TREBLE.gap)} opacity={0.85} />
+        <line x1={SYS.staffLeft} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={SYS.staffLeft} y2={BASS.bottomY}
+          stroke="var(--staff)" strokeWidth={ENG.barlineThin * U} />
 
-        {(() => {
-          const t = trebleClef(SYS.clef + 14, TREBLE.bottomY - TREBLE.gap, TREBLE)
-          return (
-            <g fill="none" stroke="var(--ink)" strokeWidth={TREBLE.gap * 0.19}
-              strokeLinecap="round" opacity="0.85">
-              <path d={t.stem} /><path d={t.body} /><path d={t.tail} />
-            </g>
-          )
-        })()}
-        {(() => {
-          const c = bassClef(SYS.clef, BASS.bottomY - 3 * BASS.gap, BASS)
-          return (
-            <g opacity="0.85">
-              <path d={c.curl} fill="none" stroke="var(--ink)" strokeWidth={BASS.gap * 0.22} strokeLinecap="round" />
-              <circle {...c.head} fill="var(--ink)" />
-              {c.dots.map((d, i) => <circle key={i} {...d} fill="var(--ink)" />)}
-            </g>
-          )
-        })()}
-
-        {/* key signatures — two sharps on each staff */}
-        <g stroke="var(--ink-2)" strokeWidth="1" fill="none" strokeLinecap="round">
+        {/* clefs, key signatures and the time signature, all Bravura */}
+        <g>
+          <Glyph name="gClef" gap={U} x={SYS.clef + 4} y={TREBLE.bottomY - TREBLE.gap} />
+          <Glyph name="fClef" gap={U} x={SYS.clef} y={BASS.bottomY - 3 * BASS.gap} />
           {[
-            { y: stepYFrom(diatonic('F', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: SYS.keySig },
-            { y: stepYFrom(diatonic('C', 5), TREBLE_BOTTOM, TREBLE), g: TREBLE, x: SYS.keySig + 8 },
-            { y: bassKeySharps(BASS)[0].y, g: BASS, x: SYS.keySig },
-            { y: bassKeySharps(BASS)[1].y, g: BASS, x: SYS.keySig + 8 },
-          ].map((k, i) =>
-            accidentalPaths('sharp', k.x, k.y, k.g).map((d) => <path key={`${i}${d}`} d={d} />),
-          )}
-        </g>
-
-        {/* cut time, on both staves */}
-        <g stroke="var(--ink)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.85">
-          {[TREBLE, BASS].map((g, i) => {
-            const t = cutTime(SYS.time, g)
-            return (
-              <g key={i}>
-                <path d={t.c} />
-                <line x1={t.stem.x1} y1={t.stem.y1} x2={t.stem.x2} y2={t.stem.y2} />
-              </g>
-            )
-          })}
+            { x: SYS.keySig, y: stepYFrom(diatonic('F', 5), TREBLE_BOTTOM, TREBLE) },
+            { x: SYS.keySig + U, y: stepYFrom(diatonic('C', 5), TREBLE_BOTTOM, TREBLE) },
+            { x: SYS.keySig, y: bassKeySharps(BASS)[0].y },
+            { x: SYS.keySig + U, y: bassKeySharps(BASS)[1].y },
+          ].map((k, i) => <Glyph key={i} name="sharp" gap={U} x={k.x} y={k.y} fill="var(--ink-2)" />)}
+          <Glyph name="cutCommon" gap={U} x={SYS.time} y={TREBLE.bottomY - 2 * TREBLE.gap} />
+          <Glyph name="cutCommon" gap={U} x={SYS.time} y={BASS.bottomY - 2 * BASS.gap} />
         </g>
 
         {/* barlines: after the pickup and after bar 1, then the final double */}
-        <g stroke="var(--staff)" strokeWidth="1.2">
+        <g stroke="var(--staff)">
           {BARLINES.map((b) => (
-            <line key={b} x1={barX(b, TREBLE.gap)} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={barX(b, TREBLE.gap)} y2={BASS.bottomY} />
+            <line key={b} x1={barX(b, TREBLE.gap)} y1={TREBLE.bottomY - 4 * TREBLE.gap}
+              x2={barX(b, TREBLE.gap)} y2={BASS.bottomY} strokeWidth={ENG.barlineThin * U} />
           ))}
-          <line x1={RIGHT - 5} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={RIGHT - 5} y2={BASS.bottomY} strokeWidth="1.1" />
-          <line x1={RIGHT} y1={TREBLE.bottomY - 4 * TREBLE.gap} x2={RIGHT} y2={BASS.bottomY} strokeWidth="3" />
+          <line x1={RIGHT - (ENG.barlineSep + ENG.barlineThick) * U} y1={TREBLE.bottomY - 4 * TREBLE.gap}
+            x2={RIGHT - (ENG.barlineSep + ENG.barlineThick) * U} y2={BASS.bottomY}
+            strokeWidth={ENG.barlineThin * U} />
+          <line x1={RIGHT - (ENG.barlineThick / 2) * U} y1={TREBLE.bottomY - 4 * TREBLE.gap}
+            x2={RIGHT - (ENG.barlineThick / 2) * U} y2={BASS.bottomY}
+            strokeWidth={ENG.barlineThick * U} />
         </g>
 
         {/* stems and flags, then the one beam */}
-        <g stroke="var(--ink)" fill="none" strokeWidth="1.2" opacity="0.75" strokeLinecap="round">
+        <g stroke="var(--ink)" fill="none" strokeWidth={ENG.stem * U} strokeLinecap="butt">
           {voiced.filter((e) => !e.beam).map((e) => {
             const tip = tipOf([e])
             const foot = e.up ? Math.max(...e.ys) : Math.min(...e.ys)
@@ -279,7 +254,9 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
               <g key={e.id}>
                 <line x1={e.stemX} y1={foot} x2={e.stemX} y2={tip} />
                 {hasFlag(e.beats) && (
-                  <path d={flagPath(e.stemX, tip, e.up ? 'up' : 'down', geoFor(e.hand))} />
+                  <g stroke="none">
+                    <Glyph name={e.up ? 'flagUp' : 'flagDown'} gap={U} x={e.stemX} y={tip} />
+                  </g>
                 )}
               </g>
             )
@@ -287,40 +264,47 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
           {[...beamed].map((b) => {
             const grp = voiced.filter((e) => e.beam === b)
             const tip = tipOf(grp)
+            const half = (ENG.beam * U) / 2
             return (
               <g key={b}>
                 {grp.map((e) => (
                   <line key={e.id} x1={e.stemX} y1={e.up ? Math.max(...e.ys) : Math.min(...e.ys)}
                     x2={e.stemX} y2={tip} />
                 ))}
-                <line x1={grp[0].stemX} y1={tip} x2={grp[grp.length - 1].stemX} y2={tip} strokeWidth="3.5" />
+                <line x1={grp[0].stemX - ENG.stem * U / 2} y1={tip + (grp[0].up ? half : -half)}
+                  x2={grp[grp.length - 1].stemX + ENG.stem * U / 2} y2={tip + (grp[0].up ? half : -half)}
+                  strokeWidth={ENG.beam * U} />
               </g>
             )
           })}
         </g>
 
         {/* augmentation dots — one per notehead, clear of any displaced one */}
-        <g fill="var(--ink)" opacity="0.8">
+        <g fill="var(--ink)">
           {EVENTS.filter((e) => isDotted(e.beats) && !e.rest).map((e) => {
             const g = geoFor(e.hand)
             const right = Math.max(...e.notes.map(headX))
             return e.notes.map((n) => (
-              <circle key={n.key} cx={right + HEAD_W * 0.85} cy={dotY(staffY(n), g)} r="1.7" />
+              <circle key={n.key} cx={right + (ENG.headRx + ENG.dotGap) * U} cy={dotY(staffY(n), g)}
+                r={ENG.dotR * U} />
             ))
           })}
         </g>
 
         {/* rests */}
-        <g fill="none" stroke="var(--ink)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6">
+        <g>
           {EVENTS.filter((e) => e.rest).map((e) => {
             const g = geoFor(e.hand)
-            const d = e.beats < 1 ? eighthRestPath(xAt(e.atBeat), g) : quarterRestPath(xAt(e.atBeat), g)
-            return <path key={e.id} d={d} />
+            return (
+              <Glyph key={e.id} gap={U} centre fill="var(--ink-2)"
+                name={e.beats < 1 ? 'restEighth' : 'restQuarter'}
+                x={xAt(e.atBeat)} y={g.bottomY - 2 * g.gap} />
+            )
           })}
         </g>
 
         {/* the phrasing slur in bar 2 */}
-        <g fill="none" stroke="var(--ink-2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
+        <g fill="none" stroke="var(--ink-2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.8">
           {SLURS.map((sl) => {
             const g = geoFor(sl.hand)
             const low = (b: number) =>
@@ -415,20 +399,20 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
         const on = live(n)
         return (
           <g key={n.key}>
-            <g opacity={s.oA} stroke="var(--staff)" strokeWidth="1">
+            <g opacity={s.oA} stroke="var(--staff)" strokeWidth={ENG.ledger * U}>
               {ledgersFor(idx, bottomFor(n.hand), g).map((ly) => (
-                <line key={ly} x1={xA - 9} y1={ly} x2={xA + 9} y2={ly} />
+                <line key={ly} x1={xA - (ENG.headRx + ENG.ledgerExtension) * U} y1={ly}
+                  x2={xA + (ENG.headRx + ENG.ledgerExtension) * U} y2={ly} />
               ))}
             </g>
             {on && <circle cx={x} cy={y} r={13} fill={`var(--${fam}-mid)`} opacity="0.18" />}
-            <ellipse cx={0} cy={0} rx={6.3} ry={4.5}
+            <ellipse cx={0} cy={0} rx={ENG.headRx * U} ry={ENG.headRy * U}
               fill={hollow ? 'var(--hall)' : `var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
               stroke={hollow ? `var(--${fam}-${on ? 'deep' : 'mid'})` : 'none'} strokeWidth={hollow ? 1.8 : 0}
-              transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale * (on ? 1.4 : 1)})`} />
+              transform={`translate(${x} ${y}) rotate(${lerp(ENG.headTilt, 0, s.tAB)}) scale(${scale * (on ? 1.4 : 1)})`} />
             {acc && (
-              <g opacity={s.oA} stroke="var(--ink-2)" strokeWidth="1" fill="none" strokeLinecap="round">
-                {accidentalPaths(acc, xA - g.gap * 1.45, yA, g).map((d) => <path key={d} d={d} />)}
-              </g>
+              <Glyph gap={U} x={xA - g.gap * 1.95} y={yA} opacity={s.oA} fill="var(--ink-2)"
+                name={acc === 'flat' ? 'flat' : acc === 'natural' ? 'natural' : 'sharp'} />
             )}
           </g>
         )

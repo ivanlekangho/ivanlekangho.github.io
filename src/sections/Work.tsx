@@ -1,3 +1,4 @@
+import Chips from '../components/Chips'
 import Todo from '../components/Todo'
 
 /**
@@ -29,6 +30,11 @@ const ROLES = [
     when: 'Jan 2026 – present',
   },
   {
+    org: 'Kensway Engineering',
+    role: 'Project management intern · Auckland — coordinated engineers and suppliers on a solar installation, and spent the site visits shadowing the people doing the alignment',
+    when: '2024',
+  },
+  {
     org: 'JPMorgan Chase',
     role: 'Software engineering virtual experience · Auckland — real-time trading dashboards in Python, JavaScript and Perspective',
     when: 'Apr – Jun 2024',
@@ -38,7 +44,7 @@ const ROLES = [
 const CHARITY = [
   {
     title: 'Rebuilding a patient database nobody had documented',
-    stack: 'Python · MySQL',
+    stack: ['Python', 'MySQL'],
     built: [
       'Reverse-engineered the table relationships of a legacy case-management system from scratch — no documentation, no declared foreign keys — and redesigned the architecture around what the data actually was.',
       'Migrated unstructured records into relational tables, which is what made patient data requests answerable in an afternoon rather than a week.',
@@ -48,7 +54,7 @@ const CHARITY = [
   },
   {
     title: 'Deciding what a charity is allowed to keep',
-    stack: 'Python · data governance',
+    stack: ['Python', 'Data governance'],
     built: [
       'Led governance on a 60,000+ record donor database: read the government privacy policy and worked out which records had to go and which lapsed donors were worth re-engaging.',
       'Applied RFM segmentation to separate the two, weighing revenue potential against retention cost and legal obligation. Deleting donor records is not a cleanup task — it is a decision with a rule behind it.',
@@ -56,7 +62,7 @@ const CHARITY = [
   },
   {
     title: 'Two APIs replacing two pieces of paperwork',
-    stack: 'Python · Google Maps API · Microsoft Outlook API',
+    stack: ['Python', 'Google Maps API', 'Microsoft Outlook API'],
     built: [
       'Replaced self-reported driver hours with a distance calculation from the Google Maps API, cutting an estimated 80% of reimbursement overpayment across 500+ volunteer drivers.',
       'Automated shift scheduling for 40 staff through the Outlook API, replacing a fragile desktop-automation dependency.',
@@ -68,7 +74,7 @@ const PROJECTS = [
   {
     title: 'Authorship Inequality in International Scientific Collaboration',
     when: 'Feb – Mar 2026',
-    stack: 'Python · pandas · OpenAlex and World Bank APIs',
+    stack: ['Python', 'pandas', 'OpenAlex API', 'World Bank API', 'matplotlib', 'seaborn'],
     built: [
       'An 8.9% last-authorship deficit for Global South researchers on internationally co-authored papers — and it held across all 19 fields, every citation quartile, and eighteen years, with no measurable improvement over time. A pattern that stable is structural, not incidental.',
       'Built the dataset to test it: 111,602 author rows across 180 countries, from 14,250 papers, merging bibliometric and economic development data.',
@@ -78,7 +84,7 @@ const PROJECTS = [
   {
     title: 'Mandarin, Monitors, and Marginalization: The Digital Machinery of Uyghur Oppression',
     when: '',
-    stack: 'Research paper',
+    stack: ['Research paper', 'Discourse analysis', 'Language policy'],
     built: [
       'How Chinese state media, platform design and language policy combine to push Uyghur linguistic expression out of digital space — three mechanisms usually studied separately, read as one machine.',
     ],
@@ -86,7 +92,7 @@ const PROJECTS = [
   {
     title: 'Flutterer',
     when: 'Sep – Dec 2025',
-    stack: 'Python · JavaScript · Django · AWS EC2, S3, RDS',
+    stack: ['Python', 'JavaScript', 'Django', 'REST', 'AWS EC2', 'S3', 'RDS'],
     built: [
       'A full-stack social platform built from scratch: authentication, posting, timelines, likes, comments.',
       '10+ REST endpoints with stateful server-side routing, relational models on RDS and media storage on S3.',
@@ -94,11 +100,43 @@ const PROJECTS = [
   },
 ]
 
-const SERVICE = [
+/**
+ * Positions, not participation. Ivan held seven titles in his last year of
+ * school; these are the four that came with something to run.
+ */
+const LEADERSHIP = [
   {
     org: 'Phi Kappa Psi, Stanford chapter',
     role: 'Deputy Chair, Risk Management and Violence Intervention & Prevention',
     when: 'Sep 2026 – present',
+  },
+  {
+    org: 'Senior Prefect, King’s College',
+    role: 'Head of the prefect body in his final year',
+    when: '2024',
+  },
+  {
+    org: 'Cultural Leader, King’s College',
+    role: 'Prefect responsible for every music and cultural group in the school',
+    when: '2024',
+  },
+  {
+    org: 'Student President, Scholars’ Common Room',
+    role: 'Academic prefect running tutoring and academic events, including the peer-tutoring club started inside it',
+    when: '2024',
+  },
+]
+
+const SERVICE = [
+  {
+    org: 'Grafton Pharmacy',
+    role: '300+ hours — packing blister packs for cancer and dialysis patients, delivering medicine, serving the public. Where HIV treatment and the stigma around it stopped being abstract: the pharmacists explained the first, and a patient willing to talk explained the second.',
+    when: '2020 – 2024',
+  },
+  {
+    org: 'STEM tutoring',
+    role: 'Revision sessions for 96 students, weekly one-to-one with 15 of them over three years, and a peer-tutoring club built so it would keep running without him',
+    when: '2022 – 2024',
   },
   {
     org: 'Code4Myanmar',
@@ -106,14 +144,19 @@ const SERVICE = [
     when: 'TODO — dates',
   },
   {
-    org: 'Community pharmacy',
-    role: 'Volunteer — learned how HIV treatment and the stigma around it actually work from the pharmacists and from a patient willing to talk about it',
-    when: 'TODO — where and when',
+    org: 'Reading in Schools',
+    role: 'Reading with primary students and teaching English in Samoan and Tongan schools in South Auckland',
+    when: '2021',
   },
   {
-    org: 'Secondary school, New Zealand',
-    role: 'STI awareness — free condoms and safe-sex posters, against a certain amount of institutional reluctance',
-    when: 'TODO — years',
+    org: 'Debate coaching',
+    role: 'Coached Auckland Premier Junior teams',
+    when: '2023 – 2024',
+  },
+  {
+    org: 'Student Volunteer Army',
+    role: '365 hours of community service · Silver Award',
+    when: 'to 2024',
   },
 ]
 
@@ -146,9 +189,9 @@ export default function Work() {
           <article key={p.title} className="entry">
             <div className="entry-head">
               <h4>{p.title}</h4>
-              <p className="entry-meta">{p.stack}</p>
             </div>
             <div className="entry-body">
+              <Chips items={p.stack} label="Stack" />
               <ul className="bullets">
                 {p.built.map((b) => <li key={b}>{b}</li>)}
               </ul>
@@ -172,9 +215,10 @@ export default function Work() {
           <article key={p.title} className="entry">
             <div className="entry-head">
               <h4>{p.title}</h4>
-              <p className="entry-meta">{p.stack}{p.when && ` · ${p.when}`}</p>
+              {p.when && <p className="entry-meta">{p.when}</p>}
             </div>
             <div className="entry-body">
+              <Chips items={p.stack} label="Stack" />
               <ul className="bullets">
                 {p.built.map((b) => <li key={b}>{b}</li>)}
               </ul>
@@ -187,6 +231,17 @@ export default function Work() {
           a repo link and a live link if it ships. Right now a reader has to take
           all three on trust.
         </Todo>
+
+        <h3 className="h-rule">Leadership</h3>
+        <ul className="index">
+          {LEADERSHIP.map((r) => (
+            <li key={r.org} className="index-row">
+              <span className="index-main">{r.org}</span>
+              <span className="index-sub">{r.role}</span>
+              <span className="index-meta">{r.when}</span>
+            </li>
+          ))}
+        </ul>
 
         <h3 className="h-rule">Service</h3>
         <ul className="index">

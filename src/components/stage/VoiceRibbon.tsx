@@ -2,6 +2,7 @@ import { PHRASE } from '../../data/phrase'
 import { MANDARIN } from '../../data/tones'
 import { SYS, VOICE_ONSET, barX, xAt } from '../../lib/beatmap'
 import { diatonic, noteY, type StaffGeom } from '../../lib/notation'
+import { ENG } from '../../lib/smufl'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
 import { FITS, MARK } from '../../lib/toneMelody'
 import { lerp } from '../../lib/easing'
@@ -120,10 +121,10 @@ export default function VoiceStaves({ p, beat }: { p: number; beat: number | nul
             {on && (
               <circle cx={x} cy={y} r={15} fill={`var(--${fam}-mid)`} opacity="0.2" />
             )}
-            <ellipse cx={0} cy={0} rx={7.4} ry={5.3}
+            <ellipse cx={0} cy={0} rx={ENG.headRx * GEO.gap} ry={ENG.headRy * GEO.gap}
               fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
               style={{ transition: 'none' }}
-              transform={`translate(${x} ${y}) rotate(${lerp(-20, 0, s.tAB)}) scale(${scale})`} />
+              transform={`translate(${x} ${y}) rotate(${lerp(ENG.headTilt, 0, s.tAB)}) scale(${scale})`} />
             {n.han && (
               <g opacity={s.oB}>
                 <text x={xs[i]} y={TONE_BOT + 25} textAnchor="middle" fontFamily="var(--font-han)"

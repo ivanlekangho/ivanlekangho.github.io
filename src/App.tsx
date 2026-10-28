@@ -3,8 +3,8 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
 import { useHallScroll } from './lib/hallScroll'
-import Room from './sections/Room'
 import About from './sections/About'
+import Music from './sections/Music'
 import Work from './sections/Work'
 import Writing from './sections/Writing'
 import Contact from './sections/Contact'
@@ -26,7 +26,7 @@ import Post from './pages/Post'
 
 /** Where the old panel URLs went. */
 const MOVED: [string, string][] = [
-  ['/recital', '/#room'],
+  ['/recital', '/#music'],
   ['/about', '/#about'],
   ['/work', '/#work'],
   ['/impact', '/#work'],
@@ -49,8 +49,8 @@ function Home() {
   return (
     <>
       <Hall />
-      <Room />
       <About />
+      <Music />
       <Work />
       <Writing />
       <Contact />
@@ -90,7 +90,7 @@ export default function App() {
 
   return (
     <>
-      <a href="#room" className="sr-only">Skip to content</a>
+      <a href="#about" className="sr-only">Skip to content</a>
       <Menu />
       <HashScroll />
       <main id="main">
