@@ -197,7 +197,11 @@ pre {
 }
 
 /* ============================================================
-   The terminal — the engineer's reading, where the score was
+   The terminal — one chord at a time, and never a scrollbar
+
+   It does not scroll: the room owns the wheel at every stop, and a pane
+   that swallowed it would strand you at the bottom of the rail. Each
+   chord replaces the last instead.
    ============================================================ */
 .term {
   width: 100%; max-width: 68rem; max-height: 100%;
@@ -205,7 +209,7 @@ pre {
   border: 1px solid var(--rule);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(6px);
-  font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55;
+  font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5;
   color: var(--ink-2);
   min-height: 0;
 }
@@ -217,27 +221,52 @@ pre {
 }
 .term-name { color: var(--accent); }
 .term-hint { color: var(--ink-3); }
-.term-scroll {
-  overflow-y: auto; padding: var(--space-3) var(--space-4);
-  scrollbar-width: thin; min-height: 0;
+
+.term-view {
+  min-height: 0; overflow: hidden;
+  padding: var(--space-3) var(--space-4);
+  display: grid; gap: var(--space-3); align-content: start;
 }
-.term-scroll > * { margin: 0; }
-.term-in { color: var(--ink); white-space: pre-wrap; }
-.term-in span { color: var(--accent); margin-right: 0.6em; }
-.term-out { white-space: pre-wrap; }
-.term-out.is-dim { color: var(--ink-3); }
+.term-wave svg { display: block; height: 96px; }
+.term-cap { margin: 3px 0 0; font-size: 0.68rem; color: var(--ink-3); }
+
+/* the keyboard */
+.keys { display: block; height: 64px; }
+.key { fill: color-mix(in srgb, var(--ink) 16%, transparent); stroke: var(--bg); stroke-width: 1; }
+.key.is-on { fill: var(--accent); }
+.key-black { fill: color-mix(in srgb, var(--bg) 35%, #000); stroke: var(--bg); stroke-width: 1; }
+.key-black.is-on { fill: var(--accent); stroke: var(--bg); }
+
+.term-read {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-5); align-items: start;
+}
+.term-sym {
+  margin: 0; font-family: var(--font-display); font-weight: 500;
+  font-size: var(--step-2); letter-spacing: -0.01em; color: var(--ink);
+}
+.term-name-full { margin: 1px 0 5px; font-size: 0.7rem; color: var(--ink-3); }
+.term-verdict { margin: 0; font-size: 0.72rem; color: var(--ink-2); }
+.term-verdict.is-locked { color: var(--t1-mid); }
+.term-verdict.is-settled { color: var(--t2-mid); }
+.term-verdict.is-restless { color: var(--t3-mid); }
+.term-verdict.is-rough { color: var(--t4-mid); }
+.term-read table { border-collapse: collapse; font-size: 0.72rem; }
+.term-read td { padding: 1px 0 1px 14px; text-align: right; color: var(--ink-2); white-space: nowrap; }
+.term-read td:first-child { padding-left: 0; text-align: left; color: var(--ink); }
 .term-py {
-  white-space: pre-wrap; background: none; border: 0; padding: 0;
-  margin: 4px 0 6px; color: var(--accent-soft); font-size: 0.74rem;
+  margin: 0; white-space: pre-wrap; background: none; border: 0; padding: 0;
+  color: var(--accent-soft); font-size: 0.72rem; line-height: 1.5;
 }
-.term-rule { border: 0; border-top: 1px solid var(--rule); margin: 7px 0; }
-.term-wave { margin: 4px 0 8px; }
-.term-wave figcaption { color: var(--ink-3); font-size: 0.7rem; margin-top: 2px; }
+.term-bad { margin: 0; color: var(--t4-mid); }
+.term-bad b { color: var(--ink); font-weight: 400; }
+
 .term-chips {
-  display: flex; flex-wrap: wrap; gap: 6px;
+  display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px;
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--rule);
 }
+.term-chip-sep { width: 1px; background: var(--rule); margin: 1px 5px; }
 .term-chips button {
   font: inherit; font-size: 0.72rem;
   background: none; border: 1px solid var(--rule); color: var(--ink-3);
@@ -245,69 +274,83 @@ pre {
   transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
 }
 .term-chips button:hover { border-color: var(--accent); color: var(--accent); }
+
 .term-prompt {
-  display: flex; align-items: baseline; gap: 0.6em;
+  display: flex; align-items: center; gap: 0.6em;
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--rule);
 }
-.term-prompt span { color: var(--accent); }
+.term-prompt > span { color: var(--accent); }
 .term-prompt input {
   flex: 1; min-width: 0; font: inherit; color: var(--ink);
   background: none; border: 0; outline: none; padding: 0;
 }
-.term-prompt input::placeholder { color: var(--ink-3); opacity: 0.6; }
-
-/* --- the recording ----------------------------------------------- */
-.transport { display: flex; }
-.transport-play {
-  display: inline-flex; align-items: center; gap: 8px;
-  font: inherit; font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-  background: none; border: 1px solid var(--rule); color: var(--ink-2);
-  padding: 5px 13px; cursor: pointer;
+.term-prompt input::placeholder { color: var(--ink-3); opacity: 0.75; }
+.term-sound {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  font: inherit; font-size: 0.72rem; letter-spacing: 0.06em;
+  background: none; border: 1px solid var(--rule); color: var(--ink-3);
+  padding: 4px 10px; cursor: pointer;
   transition: border-color var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
 }
-.transport-play:hover { border-color: var(--accent); color: var(--accent); }
+.term-sound:hover, .term-sound.is-on { border-color: var(--accent); color: var(--accent); }
+.term-sound:disabled { opacity: 0.4; cursor: default; }
 
+/* On a short window the Python line is the first thing that can go. */
+@media (max-height: 820px) { .term-py { display: none; } }
+
+/* The rail's housing: a row at the foot of the room on a phone, and a
+   column down the left margin on anything wider — where a scrollbar would
+   be, because that is what it does. */
 .hall-foot {
   position: relative; z-index: 2;
   display: flex; justify-content: center;
   padding-bottom: clamp(1.5rem, 4vh, 2.75rem);
 }
+@media (min-width: 62.01rem) {
+  .hall-foot {
+    position: absolute; left: clamp(1rem, 2.5vw, 2.25rem); top: 50%;
+    transform: translateY(-50%); padding: 0; display: block; width: max-content;
+  }
+  .score-system { padding-left: clamp(9.5rem, 15vw, 13.5rem); }
+}
 
 /* ============================================================
-   The dimmer
+   The dimmer — down the left edge, where a scrollbar would be
    ============================================================ */
-.rail { width: min(32rem, 80vw); }
-.rail-track { position: relative; height: 26px; cursor: grab; touch-action: none; }
+.rail { display: grid; grid-template-columns: auto 24px; align-items: center; }
+.rail-track {
+  position: relative; width: 24px; height: min(44vh, 24rem);
+  cursor: grab; touch-action: none;
+}
 .rail-track:active { cursor: grabbing; }
-.rail-line, .rail-fill { position: absolute; top: 12px; left: 0; height: 1px; }
-.rail-line { right: 0; background: var(--rule); }
-.rail-fill { background: var(--accent); }
+.rail-line, .rail-fill { position: absolute; left: 11px; width: 1px; }
+ /* --rule is tuned for hairlines on a lit panel; against the dark hall the
+    rail needs to be findable. */
+.rail-line { top: 0; bottom: 0; background: color-mix(in srgb, var(--ink-3) 60%, transparent); }
+.rail-fill { top: 0; height: var(--at); background: var(--accent); }
+.rail-tick, .rail-knob { position: absolute; left: 12px; top: var(--at); transform: rotate(45deg); }
 .rail-tick {
-  position: absolute; top: 9px; width: 7px; height: 7px; margin-left: -3.5px;
-  background: var(--rule); transform: rotate(45deg);
+  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+  background: color-mix(in srgb, var(--ink-3) 70%, transparent);
 }
 .rail-knob {
-  position: absolute; top: 5px; width: 15px; height: 15px; margin-left: -7.5px;
-  background: var(--accent); transform: rotate(45deg);
+  width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; background: var(--accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-.rail-stops { position: relative; height: 1.5rem; margin-top: var(--space-3); }
+.rail-stops { position: relative; width: 8rem; height: 100%; }
 .rail-stop {
-  position: absolute; top: 0; transform: translateX(-50%);
-  display: flex; align-items: baseline; gap: 6px;
+  position: absolute; right: 10px; top: var(--at); transform: translateY(-50%);
+  display: flex; align-items: baseline; justify-content: flex-end; gap: 7px;
+  white-space: nowrap;
   font: inherit; font-family: var(--font-label); font-weight: var(--label-weight);
   font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
-  background: none; border: 0; padding: 2px 4px; cursor: pointer;
+  background: none; border: 0; padding: 3px 0; cursor: pointer;
   color: var(--ink-3);
   transition: color var(--dur-ui) var(--ease);
 }
 .rail-stop-num { color: var(--ink-3); opacity: 0.6; }
-.rail-stop:first-child { transform: translateX(-10%); }
-.rail-stop:last-child  { transform: translateX(-90%); }
 .rail-stop:hover { color: var(--ink-2); }
 .rail-stop.is-on { color: var(--accent); }
 .rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
@@ -630,13 +673,30 @@ pre {
   html[data-mode='linguist'] .score-svg { max-height: 23vh; }
   html[data-mode='linguist'] .stage-svg { height: 17vh; }
   html[data-mode='linguist'] .hall-foot { padding-bottom: calc(17vh + var(--space-4)); }
+  /* The terminal needs the same favour: the room gives up some depth so the
+     ratio table is not cut off halfway down. */
+  html[data-mode='engineer'] .stage-svg { height: 19vh; }
+  html[data-mode='engineer'] .hall-foot { padding-bottom: calc(19vh + var(--space-4)); }
   .score-apparatus { gap: var(--space-3); padding-top: var(--space-3); }
   .apparatus-col dd { margin-bottom: var(--space-2); }
+  /* A phone has room for the picture and the numbers, and nothing else:
+     the Python line and the caption go, the waveform and keyboard shrink,
+     and the chord chips become one scrolling row instead of three. */
   .term { font-size: 0.7rem; }
-  .term-py { font-size: 0.66rem; }
-  .term-scroll { padding: var(--space-2) var(--space-3); }
-  .term-chips { padding: var(--space-2) var(--space-3); }
+  .term-py, .term-cap { display: none; }
+  .term-view { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+  .term-wave svg { height: 58px; }
+  .keys { height: 46px; }
+  .term-read { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); }
+  .term-sym { font-size: var(--step-1); }
+  .term-chips {
+    padding: var(--space-2) var(--space-3);
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  }
+  .term-chips::-webkit-scrollbar { display: none; }
+  .term-chips button { flex: none; }
   .term-prompt { padding: var(--space-2) var(--space-3); }
+  .term-sound { padding: 4px 8px; }
   .transport-play { padding: 4px 9px; }
   .transport-play span { display: none; }
 
@@ -645,8 +705,21 @@ pre {
   .stage-svg { top: auto; bottom: 0; height: 26vh; }
   .hall-foot { padding-bottom: calc(26vh + var(--space-5)); }
 
-  .rail { width: 92vw; }
-  .rail-stop { font-size: 0.68rem; letter-spacing: 0.08em; padding: 2px; }
+  /* A phone lays the rail back down along the bottom. */
+  .rail { display: block; width: 92vw; }
+  .rail-track { width: 100%; height: 26px; }
+  .rail-line { left: 0; right: 0; top: 12px; bottom: auto; width: auto; height: 1px; }
+  .rail-fill { left: 0; top: 12px; width: var(--at); height: 1px; }
+  .rail-tick, .rail-knob { left: var(--at); top: 12px; }
+  .rail-tick { margin: -3.5px 0 0 -3.5px; }
+  .rail-knob { margin: -7.5px 0 0 -7.5px; }
+  .rail-stops { width: auto; height: 1.4rem; margin-top: var(--space-3); }
+  .rail-stop {
+    top: 0; right: auto; left: var(--at); transform: translateX(-50%);
+    font-size: 0.68rem; letter-spacing: 0.08em; padding: 2px;
+  }
+  .rail-stop:first-child { transform: translateX(-10%); }
+  .rail-stop:last-child  { transform: translateX(-90%); }
   .rail-stop-num { display: none; }
 
   .menu-inner { height: 3.1rem; gap: var(--space-4); padding-inline: var(--space-4); }

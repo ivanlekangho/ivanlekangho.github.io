@@ -78,8 +78,13 @@ export function periodicity(pitches: Pitch[]) {
   const D = dens.reduce(lcm, 1)
   const N = nums.map((n, i) => (n * D) / dens[i])
   const period = D / N.reduce(gcd)
+  /* Thresholds set against chords whose character is not in dispute: a
+     major triad comes back round in 4 and a minor in 10, so both are at
+     home; an augmented triad takes 20 and a dominant seventh 36, which is
+     exactly the restlessness that makes them want to move; a half-
+     diminished seventh takes 1440. */
   const verdict =
-    period <= 4 ? 'locked' : period <= 8 ? 'settled' : period <= 12 ? 'tense' : 'rough'
+    period <= 4 ? 'locked' : period <= 12 ? 'settled' : period <= 48 ? 'restless' : 'rough'
   return { ratios, period, verdict }
 }
 

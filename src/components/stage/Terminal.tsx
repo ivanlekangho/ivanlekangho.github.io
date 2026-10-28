@@ -1,260 +1,214 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PHRASE } from '../../data/phrase'
-import { HARMONY, PROGRESSION, soundingAt } from '../../data/piano'
-import { beats, mix, periodicity, plot, sine, temperamentError } from '../../lib/acoustics'
-import { hz, label, midi, ratioTo, type Pitch } from '../../lib/tuning'
-import type { Step } from '../../data/phrase'
+import { HARMONY, soundingAt } from '../../data/piano'
+import { mix, periodicity, plot, sine, temperamentError } from '../../lib/acoustics'
+import { parseChord, SUGGESTIONS, type Chord } from '../../lib/chords'
+import { useChordSound } from '../../lib/chordSound'
+import { hz, label, midi, ratioTo } from '../../lib/tuning'
+import Keyboard from './Keyboard'
 
 /**
- * The engineer's reading: a REPL, in the place the score was.
+ * The engineer's reading: type a chord, see why it sounds like that.
  *
- * It answers one question — why does this sound the way it does — with
- * arithmetic rather than adjectives. Every number it prints is computed from
- * the same pitches the score is engraved from (lib/acoustics.ts), so editing
- * a note in piano.ts changes the answers here too.
+ * It does one thing, and it does it in one screenful. There is no
+ * scrollback — each chord replaces the last — because the room owns the
+ * wheel at every stop including this one, and a pane that swallowed the
+ * wheel would trap you at the bottom of the rail.
  *
- * It is not CPython. It is a small interpreter over a fixed command set, and
- * `help` says so, because a terminal that implies it is running a language it
- * isn't is the kind of thing an engineer looks at twice. The Python it prints
- * alongside each answer is the code that expresses the same calculation.
+ * Every number is computed from the pitches, not looked up: ratios against
+ * the lowest note, how far equal temperament sits from them, and the period
+ * over which the summed sines come back round, which is the actual answer to
+ * why some chords settle and others grind. The waveform is the sum of one
+ * pure sine per note, and so is the audio, so the picture and the sound are
+ * the same object.
  */
 
-const W = 620
-const H = 52
+const W = 680
+const H = 96
 
-type Block =
-  | { k: 'in'; text: string }
-  | { k: 'out'; text: string; dim?: boolean }
-  | { k: 'py'; text: string }
-  | { k: 'wave'; points: string; caption: string }
-  | { k: 'rule' }
-
-/* ------------------------------------------------------------------
-   Parsing a note name the way a person would type it: F#3, Bb3, D4.
-   ------------------------------------------------------------------ */
-function parsePitch(s: string): Pitch | null {
-  const m = /^([A-Ga-g])([#♯b♭]?)(-?\d)$/.exec(s.trim())
-  if (!m) return null
-  const step = m[1].toUpperCase() as Step
-  const acc = m[2] === '#' || m[2] === '♯' ? 'sharp' : m[2] === 'b' || m[2] === '♭' ? 'flat' : undefined
-  return { step, octave: Number(m[3]), accidental: acc }
+/**
+ * Where an AI would plug in.
+ *
+ * The ask was to send what you type through a model. On a static site served
+ * from GitHub Pages there is no server to hold a key, and a key in the
+ * browser is a key anyone can read out of the bundle — so the default path
+ * is the parser in lib/chords.ts, which is deterministic and offline and
+ * gets Bb13 right every time. Set VITE_CHORD_API to a URL that accepts
+ * `{ text }` and answers `{ midi: number[], name?: string }` and freeform
+ * input ("something like the end of Mahler 9") starts working, with the
+ * parser as the fallback. That endpoint is the only part that has to live
+ * somewhere with a secret.
+ */
+async function resolveChord(text: string): Promise<Chord | null> {
+  const api = import.meta.env.VITE_CHORD_API
+  if (api) {
+    try {
+      const r = await fetch(api, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (r.ok) {
+        const j = (await r.json()) as { midi?: number[]; name?: string }
+        if (j.midi?.length) {
+          const { spell } = await import('../../lib/chords')
+          const lo = Math.min(...j.midi)
+          const pitches = j.midi.sort((a, b) => a - b).map((n) => spell(n, false))
+          return {
+            symbol: text.trim(),
+            name: j.name ?? 'as read by the model',
+            pitches,
+            names: pitches.map(label),
+            intervals: j.midi.map((n) => n - lo),
+          }
+        }
+      }
+    } catch { /* fall through to the parser */ }
+  }
+  return parseChord(text)
 }
 
 const f2 = (n: number) => n.toFixed(2)
-const pad = (s: string, n: number) => s + ' '.repeat(Math.max(0, n - s.length))
-
-/** Three cycles of one note — enough to see the shape, few enough to count. */
-function oneNote(p: Pitch): Block[] {
-  const f = hz(p)
-  const s = sine(f, 3 / f, 900)
-  return [
-    { k: 'py', text: `t = np.linspace(0, 3/${f2(f)}, 900)\ny = np.sin(2*np.pi*${f2(f)}*t)` },
-    { k: 'wave', points: plot(s, W, H), caption: `${label(p)} — ${f2(f)} Hz, three cycles` },
-  ]
-}
-
-const COMMANDS = ['help', 'melody', 'chords', 'why', 'wave F#3', 'chord 7', 'beats F#3 G3', 'clear']
 
 export default function Terminal({ live }: { live: boolean }) {
-  const [log, setLog] = useState<Block[]>([])
   const [line, setLine] = useState('')
-  const scroll = useRef<HTMLDivElement>(null)
+  const [chord, setChord] = useState<Chord | null>(() => parseChord('Cmaj7'))
+  const [bad, setBad] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
 
-  const banner = useMemo<Block[]>(() => [
-    { k: 'out', text: 'der_wanderer — two bars of Schubert, as numbers.', dim: true },
-    { k: 'out', text: 'Type a command or pick one below. `help` lists them.', dim: true },
-  ], [])
+  const freqs = useMemo(() => (chord ? chord.pitches.map(hz) : []), [chord])
+  const sound = useChordSound(freqs)
 
-  useEffect(() => { setLog(banner) }, [banner])
-  useEffect(() => {
-    const el = scroll.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [log])
+  /* Nothing should keep ringing once the rail leaves this stop. */
+  useEffect(() => { if (!live) sound.stop() }, [live, sound])
 
-  function run(raw: string) {
-    const cmd = raw.trim()
-    if (!cmd) return
-    const [verb, ...args] = cmd.split(/\s+/)
-    const out: Block[] = [{ k: 'in', text: cmd }]
-
-    switch (verb.toLowerCase()) {
-      case 'help':
-        out.push(
-          { k: 'out', text: 'melody            the nine sung notes, as frequencies' },
-          { k: 'out', text: 'chords            the seven chords, as symbols and numerals' },
-          { k: 'out', text: 'wave <note>       one sine. e.g. wave F#3, wave Bb3' },
-          { k: 'out', text: 'chord <1-7>       the sum of a chord’s sines, and its repeat period' },
-          { k: 'out', text: 'beats <a> <b>     how fast two notes beat against each other' },
-          { k: 'out', text: 'why               why the last chord sounds settled' },
-          { k: 'out', text: 'clear             empty the scrollback' },
-          { k: 'rule' },
-          { k: 'out', dim: true, text: 'Not CPython: a small interpreter over these commands. The' },
-          { k: 'out', dim: true, text: 'arithmetic is real — same pitch data the score is engraved from.' },
-        )
-        break
-
-      case 'melody': {
-        out.push({ k: 'py', text: 'for n in phrase:\n    print(n.name, hz(n), n.syllable)' })
-        for (const n of PHRASE) {
-          const p: Pitch = { step: n.step, octave: n.octave, accidental: n.accidental }
-          out.push({
-            k: 'out',
-            text: `${pad(label(p), 6)}${pad(f2(hz(p)) + ' Hz', 12)}${pad(String(midi(p)), 5)}${n.german ?? '—'}${n.han ? `  ${n.han} ${n.pinyin}` : ''}`,
-          })
-        }
-        break
-      }
-
-      case 'chords': {
-        out.push({ k: 'py', text: 'for c in harmony:\n    print(c.symbol, c.numeral, c.move, pitches(c))' })
-        HARMONY.forEach((h, i) => {
-          const notes = soundingAt(h.atBeat).map(label).join(' ')
-          out.push({
-            k: 'out',
-            text: `${pad(String(i + 1), 3)}${pad(h.symbol, 8)}${pad(h.numeral, 11)}${pad(h.move, 22)}${notes}`,
-          })
-        })
-        out.push({ k: 'rule' }, { k: 'out', dim: true, text: PROGRESSION.short })
-        break
-      }
-
-      case 'wave': {
-        const p = parsePitch(args[0] ?? '')
-        if (!p) { out.push({ k: 'out', text: `wave: can’t read ${args[0] ?? '(nothing)'}. Try F#3, Bb3, D4.` }); break }
-        out.push(...oneNote(p))
-        break
-      }
-
-      case 'chord': {
-        const i = Number(args[0])
-        if (!(i >= 1 && i <= HARMONY.length)) {
-          out.push({ k: 'out', text: `chord: pick 1–${HARMONY.length}. \`chords\` lists them.` })
-          break
-        }
-        const h = HARMONY[i - 1]
-        const pitches = soundingAt(h.atBeat)
-        const sorted = [...pitches].sort((a, b) => midi(a) - midi(b))
-        const f0 = hz(sorted[0])
-        const freqs = sorted.map(hz)
-        const { ratios, period, verdict } = periodicity(sorted)
-        out.push(
-          { k: 'py', text: `freqs = [${freqs.map(f2).join(', ')}]\ny = sum(np.sin(2*np.pi*f*t) for f in freqs)` },
-          { k: 'wave', points: plot(mix(freqs, (period + 0.5) / f0, 1400), W, H),
-            caption: `${h.symbol} (${h.numeral}) — ${sorted.map(label).join(' ')}` },
-          { k: 'rule' },
-        )
-        sorted.forEach((p, j) => {
-          const r = ratioTo(sorted[0], p)
-          const err = temperamentError(sorted[0], p)
-          out.push({
-            k: 'out',
-            text: `${pad(label(p), 6)}${pad(f2(hz(p)) + ' Hz', 12)}${pad(`${r.num}/${r.den}`, 8)}` +
-              (j === 0 ? 'root' : `${err >= 0 ? '+' : ''}${err}¢ from just`),
-          })
-        })
-        out.push(
-          { k: 'out', text: `repeats every ${period} periods of ${label(sorted[0])} — ${verdict}` },
-          { k: 'out', dim: true, text: `ratios are the nearest simple ones (${ratios.join(' ')});` },
-          { k: 'out', dim: true, text: 'the cents column is how far the piano actually sits from them.' },
-        )
-        if (h.note) out.push({ k: 'rule' }, { k: 'out', dim: true, text: h.note })
-        break
-      }
-
-      case 'beats': {
-        const a = parsePitch(args[0] ?? '')
-        const b = parsePitch(args[1] ?? '')
-        if (!a || !b) { out.push({ k: 'out', text: 'beats: needs two notes. e.g. beats F#3 G3' }); break }
-        const r = beats(a, b)
-        out.push(
-          { k: 'py', text: `abs(hz("${args[0]}") - hz("${args[1]}"))` },
-          { k: 'out', text: `${f2(r.hz)} Hz — ${r.heard}` },
-          { k: 'wave', points: plot(mix([hz(a), hz(b)], Math.min(0.08, 2.5 / Math.max(1, r.hz)), 1600), W, H),
-            caption: `${label(a)} + ${label(b)}, summed` },
-        )
-        break
-      }
-
-      case 'why': {
-        const last = HARMONY[HARMONY.length - 1]
-        const sorted = soundingAt(last.atBeat).sort((a, b) => midi(a) - midi(b))
-        const { ratios, period } = periodicity(sorted)
-        out.push(
-          { k: 'out', text: `The phrase ends on ${last.symbol}: ${sorted.map(label).join(' ')}.` },
-          { k: 'out', text: `Against ${label(sorted[0])} those are ${ratios.join(', ')} — small whole numbers.` },
-          { k: 'out', text: `Sum sines at small whole-number ratios and the sum is periodic:` },
-          { k: 'out', text: `this one comes back round every ${period} periods of ${label(sorted[0])}.` },
-          { k: 'rule' },
-          { k: 'out', text: 'One repeating shape is one thing with a pitch. That is the whole of it.' },
-          { k: 'out', text: 'Stretch the ratios and the repeat period runs away; the same notes' },
-          { k: 'out', text: 'become roughness. Try `chord 4` — the diminished seventh — against this.' },
-          { k: 'rule' },
-          { k: 'out', dim: true, text: PROGRESSION.sentence },
-        )
-        break
-      }
-
-      case 'clear':
-        setLog(banner)
-        return
-
-      default:
-        out.push({ k: 'out', text: `${verb}: no such command. Try \`help\`.` })
-    }
-
-    setLog((l) => [...l, ...out])
+  async function run(text: string) {
+    if (!text.trim()) return
+    const c = await resolveChord(text)
+    if (c) { setChord(c); setBad(null) } else { setBad(text.trim()) }
   }
 
+  const sorted = chord ? [...chord.pitches].sort((a, b) => midi(a) - midi(b)) : []
+  const { ratios, period, verdict } = periodicity(sorted)
+  const f0 = sorted.length ? hz(sorted[0]) : 1
+  /* A window a little over one repeat, so you can see it come back round. */
+  const span = Math.min(0.09, (period + 0.35) / f0)
+
   return (
-    <div className="term" aria-label="An interactive terminal explaining the acoustics">
+    <div className="term" aria-label="Type a chord and see why it sounds the way it does">
       <div className="term-bar">
-        <span className="term-name">python3 · der_wanderer.py</span>
+        <span className="term-name">python3 · chords.py</span>
         <span className="term-hint">why it sounds the way it does</span>
       </div>
 
-      <div className="term-scroll" ref={scroll} data-keeps-scroll>
-        {log.map((b, i) => {
-          if (b.k === 'rule') return <hr key={i} className="term-rule" />
-          if (b.k === 'in') return <p key={i} className="term-in"><span>&gt;&gt;&gt;</span>{b.text}</p>
-          if (b.k === 'py') return <pre key={i} className="term-py">{b.text}</pre>
-          if (b.k === 'wave') {
-            return (
-              <figure key={i} className="term-wave">
-                <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} aria-hidden="true">
-                  <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="var(--rule)" strokeWidth="1" />
-                  <polyline points={b.points} fill="none" stroke="var(--accent)"
-                    strokeWidth="1.4" strokeLinejoin="round" />
-                </svg>
-                <figcaption>{b.caption}</figcaption>
-              </figure>
-            )
-          }
-          return <p key={i} className={b.dim ? 'term-out is-dim' : 'term-out'}>{b.text}</p>
-        })}
+      <div className="term-view">
+        {chord && (
+          <>
+            <div className="term-wave">
+              <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none"
+                aria-hidden="true">
+                <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="var(--rule)" strokeWidth="1" />
+                {/* every note on its own, faintly, and then their sum */}
+                {freqs.map((f, i) => (
+                  <polyline key={i} points={plot(sine(f, span, 1200), W, H * 0.8)}
+                    transform={`translate(0 ${H * 0.1})`}
+                    fill="none" stroke="var(--accent-soft)" strokeWidth="0.8" opacity="0.38" />
+                ))}
+                <polyline points={plot(mix(freqs, span, 2000), W, H)}
+                  fill="none" stroke="var(--accent)" strokeWidth="1.6" strokeLinejoin="round" />
+                {/* where the whole shape starts over */}
+                {period / f0 < span && (
+                  <line x1={(W * (period / f0)) / span} y1="2" x2={(W * (period / f0)) / span} y2={H - 2}
+                    stroke="var(--t2-mid)" strokeWidth="1" strokeDasharray="3 3" />
+                )}
+              </svg>
+              <p className="term-cap">
+                {freqs.length} sines, summed · one repeat marked · {f2(span * 1000)} ms
+              </p>
+            </div>
+
+            <Keyboard pitches={sorted} />
+
+            <div className="term-read">
+              <div>
+                <p className="term-sym">{chord.symbol}</p>
+                <p className="term-name-full">{chord.name}</p>
+                <p className={`term-verdict is-${verdict}`}>
+                  repeats every {period} periods of {chord.names[0] ?? label(sorted[0])} — {verdict}
+                </p>
+              </div>
+              <table>
+                <tbody>
+                  {sorted.map((p, i) => {
+                    const r = ratioTo(sorted[0], p)
+                    const err = temperamentError(sorted[0], p)
+                    return (
+                      <tr key={label(p) + i}>
+                        <td>{chord.names[i] ?? label(p)}</td>
+                        <td>{f2(hz(p))} Hz</td>
+                        <td>{r.num}/{r.den}</td>
+                        <td>{i === 0 ? 'root' : `${err >= 0 ? '+' : ''}${err}¢`}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <pre className="term-py">{`freqs = [${freqs.map(f2).join(', ')}]
+y = sum(np.sin(2*np.pi*f*t) for f in freqs)   # ${ratios.join(' ')}`}</pre>
+          </>
+        )}
+
+        {bad && (
+          <p className="term-bad">
+            Can’t read <b>{bad}</b>. Try a chord symbol — Cmaj7, F♯m7b5, Bb13, Dsus4/A.
+          </p>
+        )}
       </div>
 
       <div className="term-chips">
-        {COMMANDS.map((c) => (
-          <button key={c} type="button" disabled={!live}
-            /* preventScroll: focusing the prompt otherwise scrolls the whole
-               page to bring it into view, which drags you out of the hall. */
-            onClick={() => { run(c); input.current?.focus({ preventScroll: true }) }}>{c}</button>
+        {HARMONY.map((h, i) => (
+          <button key={h.atBeat} type="button" disabled={!live}
+            title={`Chord ${i + 1} of the phrase — ${h.numeral}`}
+            onClick={() => {
+              const p = soundingAt(h.atBeat).sort((a, b) => midi(a) - midi(b))
+              setChord({
+                symbol: h.symbol, name: `${h.name} · ${h.numeral} in the phrase`, pitches: p,
+                names: p.map(label), intervals: p.map((x) => midi(x) - midi(p[0])),
+              })
+              setBad(null)
+            }}>{h.symbol}</button>
+        ))}
+        <span className="term-chip-sep" aria-hidden="true" />
+        {SUGGESTIONS.map((c) => (
+          <button key={c} type="button" disabled={!live} onClick={() => { setLine(c); void run(c) }}>{c}</button>
         ))}
       </div>
 
-      <form className="term-prompt" onSubmit={(e) => { e.preventDefault(); run(line); setLine('') }}>
+      <form className="term-prompt"
+        onSubmit={(e) => { e.preventDefault(); void run(line); input.current?.focus({ preventScroll: true }) }}>
         <span aria-hidden="true">&gt;&gt;&gt;</span>
         <input
           ref={input}
           value={line}
           onChange={(e) => setLine(e.target.value)}
-          placeholder="chord 7"
-          aria-label="Terminal input"
+          placeholder="enter a chord here"
+          aria-label="Enter a chord"
           spellCheck={false}
           autoComplete="off"
           disabled={!live}
         />
+        <button type="button" className={sound.playing ? 'term-sound is-on' : 'term-sound'}
+          onClick={sound.toggle} disabled={!live || !freqs.length}
+          aria-pressed={sound.playing}
+          aria-label={sound.playing ? 'Stop the chord' : 'Play the chord'}>
+          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+            {sound.playing
+              ? <path d="M9 5v14M15 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              : <path d="M8 5.5 19 12 8 18.5Z" fill="currentColor" />}
+          </svg>
+          {sound.playing ? 'sound on' : 'sound'}
+        </button>
       </form>
     </div>
   )

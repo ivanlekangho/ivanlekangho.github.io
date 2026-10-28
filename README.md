@@ -70,7 +70,10 @@ has a URL you can link to directly.
 | Engraving thicknesses and the glyph renderer | `src/lib/smufl.tsx` |
 | The horizontal axis they share | `src/lib/beatmap.ts` |
 | The terminal at the engineer stop | `src/components/stage/Terminal.tsx` |
+| Reading a chord symbol | `src/lib/chords.ts` |
 | Why a chord sounds the way it does | `src/lib/acoustics.ts` |
+| Hearing the picture | `src/lib/chordSound.ts` |
+| The keyboard | `src/components/stage/Keyboard.tsx` |
 | Does the melody move the way the tone does | `src/lib/toneMelody.ts` |
 | Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
 | Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
@@ -212,9 +215,16 @@ home page — the same thing by any of those names) — a Steinway, a baritone, 
 hanging over them the one system they are both reading. Below it, five bands:
 the room explained, about, work, writing, contact.
 
+**The rail is down the left edge**, where a scrollbar would be, because that
+is what it does. The same markup serves the vertical rail on a desktop and the
+horizontal one a phone gets; the pointer maths reads whichever axis the track
+is longer in rather than being told twice.
+
 **The hall takes the wheel, once.** While you are at the top of the page the
 wheel drives the rail instead of the document, so scrolling walks the three
-readings (`src/lib/hallScroll.ts`). At the last stop it lets go. There is a
+readings (`src/lib/hallScroll.ts`). At the last stop it lets go. Nothing inside
+the room keeps the wheel for itself — including the terminal, which is why it
+has no scrollback. There is a
 grace period when you arrive back at the top from below, because momentum from
 a flick keeps arriving for a few hundred milliseconds and without it the rail
 rewinds itself the instant you scroll back up.
@@ -316,45 +326,82 @@ piece sheet.
 
 ### The engineer stop: the terminal
 
-At the engineer stop the staves have said what they can, and a REPL takes their
-place rather than crowding in beside them. It answers one question — why does
-this sound the way it does — with arithmetic instead of adjectives.
+At the engineer stop the staves have said what they can, and a REPL takes
+their place. Type a chord — `Cmaj7`, `F#m7b5`, `Bb13`, `Dsus4/A`, `Eb7#9` — or
+click one of the phrase's own, and it answers the only question worth asking:
+why does that sound like that.
 
-```
->>> chord 7
-freqs = [73.42, 185.00, 220.00, 293.66]
-y = sum(np.sin(2*np.pi*f*t) for f in freqs)
-  [the summed waveform]
-D2     73.42 Hz   1/1     root
-F♯3   185.00 Hz   5/2     +14¢ from just
-A3    220.00 Hz   3/1      −2¢ from just
-D4    293.66 Hz   4/1      +0¢ from just
-repeats every 2 periods of D2 — locked
-```
+You get the summed waveform with every component sine faint behind it and the
+repeat period marked, a keyboard with the chord held down, the frequencies and
+their ratios, how far equal temperament sits from each one, and a sound toggle.
+**The audio is the picture:** one pure sine per note, no harmonics, no samples,
+so what is on screen is literally what comes out of the speakers. It sounds
+like an organ rather than a Steinway, and that is the honest trade.
 
-Commands: `melody`, `chords`, `wave <note>`, `chord <1-7>`, `beats <a> <b>`,
-`why`, `help`, `clear`. They are clickable as well as typeable, because typing
-in a fake terminal on a phone is nobody's idea of a good time.
+**It does not scroll.** Each chord replaces the last. A pane with its own
+scrollbar would swallow the wheel and strand you at the bottom of the rail.
 
-**It is not CPython, and `help` says so.** It is a small interpreter over that
-command set. What *is* real is every number it prints: `src/lib/acoustics.ts`
-computes them from the same pitches the score is engraved from, so changing a
-note in `piano.ts` changes the answers here too. The Python it prints beside
-each answer is the code that expresses the same calculation.
+**`lib/chords.ts` tracks scale degrees, not semitones.** Three semitones above
+C is E♭ when it is the third of C minor and D♯ when it is the ♯9 of a dominant,
+and spelling from pitch class alone gets that wrong every time — a musician
+notices immediately. `Cdim7` therefore prints `C E♭ G♭ B𝄫`, double flat and
+all, which is the correct notation. It also means the parser has to read `maj`
+by hand rather than by lookahead: a regex alternation backtracks into `ma` and
+quietly turns `Cmaj7` into a dominant seventh, which is a different chord.
 
-The interesting one is `periodicity`. Write every frequency in a chord as a
-whole number over a common denominator; the sum of those sines repeats at the
-greatest common divisor of those numbers. Small ratios mean the repeat comes
-round in two or three periods and the ear hears one thing with a pitch; stretch
-them and the repeat period runs away and the same notes turn into roughness.
-`beats F#3 G3` draws the other half of that: two notes 11 Hz apart, and you can
-see the amplitude envelope going in and out eleven times a second.
+**`periodicity` is the answer to the question.** Write every frequency as a
+whole number over a common denominator; the sum repeats at the greatest common
+divisor of those numbers. Small ratios mean the shape comes back round in two
+or three periods and the ear hears one thing with a pitch; stretch them and the
+repeat period runs away and the same notes turn into roughness. The thresholds
+are set against chords whose character is not in dispute:
+
+| Chord | Repeats after | Reads as |
+|---|---|---|
+| C major triad | 4 periods | locked |
+| C minor · Cmaj7 · Dsus4 | 8–10 | settled |
+| C augmented · G7 · CmMaj7 | 20–40 | restless |
+| Bb13 · Cdim7 · F♯m7♭5 | 180–1440 | rough |
 
 The caveat the terminal states itself: `ratioTo` snaps to the *nearest* simple
 ratio, so the ratio column is the interval the ear is listening for, not the
 tempered one the piano actually plays. The cents column is the gap — and it is
-why the major third in that chord reads +14¢, which is the familiar error of
+why the major third in a C major seventh reads +14¢, the familiar error of
 equal temperament.
+
+**Where an AI would plug in.** The original ask was to send what you type
+through a model. This site is static files on GitHub Pages: there is no server
+to hold a key, and a key in the browser is a key anyone can read out of the
+bundle. So the default path is the parser, which is deterministic, offline and
+right. `resolveChord` in `Terminal.tsx` tries `VITE_CHORD_API` first when it is
+set — a URL that takes `{ text }` and answers `{ midi: number[], name?: string }`
+— and falls back to the parser. Point that at a small serverless function and
+freeform input ("something like the end of Mahler 9") starts working. The
+function is the only part that has to live somewhere with a secret.
+
+### The rest of the room
+
+**The lighting board** is `src/lib/palette.ts`. Three keyframes, and every lit
+value is interpolated between them and written onto `<html>` as a custom
+property as the rail moves — so the lights come up continuously instead of
+snapping at the stops. `src/styles/tokens.css` holds only what is allowed to
+snap: type, motion, spacing, and the four Mandarin tone families.
+
+**The instrument** is projected, not sketched. A grand's plan is a long
+straight spine, a straight keyboard end, and one bent rim tapering to the tail;
+round all of that off and you get an oval table. `StageScene.tsx` projects
+those plan coordinates through one transform and builds every other part on the
+result. The baritone is drawn in a 200×420 box so the classical proportions —
+head a seventh and a half of the height, shoulders a quarter, legs just under
+half — are numbers rather than guesses.
+
+**On a phone** the room would crop to the middle of the piano, so the stage
+becomes a band at the foot of the screen framed on the performers, and the
+system sits above it. The room is a definite `100dvh`, not a minimum, because
+the terminal would otherwise push it taller than the screen — and while the
+room has the wheel, a page taller than the screen is a page you cannot reach
+the bottom of. At the language and engineer stops the stage band gives back
+some of its height so the translations, and the ratio table, still fit.
 
 ## The three readings
 
