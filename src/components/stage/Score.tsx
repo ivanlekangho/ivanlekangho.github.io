@@ -1,5 +1,6 @@
 import { SYS, xAt } from '../../lib/beatmap'
 import { lerp } from '../../lib/easing'
+import { useNarrow } from '../../lib/useNarrow'
 import { staging } from './staging'
 import PianoStaves from './PianoRibbon'
 import VoiceStaves, { VOICE_H } from './VoiceRibbon'
@@ -30,9 +31,17 @@ const PIANO_DY = 200
  */
 const FRAME = [
   { y: 78, h: 342 },   // musician: top line of the voice staff to the bass staff
-  { y: 14, h: 414 },   // linguist: the agreement marks down to the roman numerals
+  { y: 14, h: 450 },   // linguist: the tone arrows down to the progression
   { y: 52, h: 446 },   // engineer: data series down to the ratios
 ]
+
+/**
+ * A phone cannot hold the language stop at a readable size and still show
+ * the harmony under it, so it shows the singer's half — tone, characters,
+ * metre, German — and the chord chart is a tap away in the piece sheet.
+ * Shrinking it to fit would be a diagram nobody can read.
+ */
+const FRAME_NARROW = [FRAME[0], { y: 12, h: 206 }, FRAME[2]]
 
 /* The bracket spans from the top line of the voice staff to the bottom
    line of the piano's bass staff. Both numbers come from the staves. */
@@ -43,13 +52,16 @@ const BX = 16
 export default function Score({ p, beat }: { p: number; beat: number | null }) {
   const s = staging(p)
   const head = beat === null ? null : xAt(beat)
-  const vy = lerp(lerp(FRAME[0].y, FRAME[1].y, s.tAB), FRAME[2].y, s.tBC)
-  const vh = lerp(lerp(FRAME[0].h, FRAME[1].h, s.tAB), FRAME[2].h, s.tBC)
+  const F = useNarrow() ? FRAME_NARROW : FRAME
+  const vy = lerp(lerp(F[0].y, F[1].y, s.tAB), F[2].y, s.tBC)
+  const vh = lerp(lerp(F[0].h, F[1].h, s.tAB), F[2].h, s.tBC)
 
   return (
     <svg viewBox={`0 ${vy.toFixed(1)} ${SYS.w} ${vh.toFixed(1)}`} width="100%" className="score-svg" role="img"
       aria-label="Schubert, Der Wanderer: the vocal line over the piano accompaniment, shown as notation, then as Mandarin tone and harmony, then as data and acoustics."
-      style={{ display: 'block', overflow: 'visible' }}>
+      /* hidden, not visible: the frame is the crop, and on a phone the
+         language stop deliberately leaves the harmony outside it */
+      style={{ display: 'block', overflow: 'hidden' }}>
 
       {/* system bracket — one instrument group, two performers */}
       <g opacity={s.oA} stroke="var(--accent-soft)" strokeWidth="1.4" fill="none" strokeLinecap="round">

@@ -344,6 +344,11 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
               <text x={mid} y={B_BOT + 34} textAnchor="middle"
                 fontFamily="var(--font-label)" fontSize="14" letterSpacing="0.04em"
                 fill={`var(--${fam}-mid)`}>{h.numeral}</text>
+              {/* and the word for the move, which is the part worth learning */}
+              {h.move.split(' ').map((word, j) => (
+                <text key={word} x={mid} y={B_BOT + 50 + j * 11} textAnchor="middle"
+                  fontFamily="var(--font-body)" fontSize="9.5" fill="var(--ink-3)">{word}</text>
+              ))}
             </g>
           )
         })}

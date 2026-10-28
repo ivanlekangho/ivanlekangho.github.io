@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PIECE } from '../../data/phrase'
 import { useMode } from '../../lib/mode'
 import { usePlayback } from '../../lib/playback'
-import { TALLY } from '../../lib/toneMelody'
+import { TALLY } from '../../lib/prosody'
 import ModeRail from '../ModeRail'
 import Score from './Score'
 import PieceSheet from './PieceSheet'
@@ -74,6 +74,10 @@ export default function Hall() {
 
         {s.oB > 0.02 && (
           <div className="score-apparatus" style={{ opacity: s.oB }} aria-hidden={s.oB < 0.5}>
+            <p className="apparatus-thesis">
+              The same nine notes are a melody, a sentence,<br />and a chord chart.
+            </p>
+
             <dl className="apparatus-col">
               <dt>Sung</dt>
               <dd>{PIECE.german}</dd>
@@ -85,14 +89,33 @@ export default function Hall() {
                 “{PIECE.mandarinGloss}”
               </dd>
             </dl>
-            {/* A legend, not an argument — the argument is one screen down in
-                #room, where it has room to be a paragraph. */}
-            <p className="apparatus-note">
-              Above: solid line, the Mandarin tone; dashed, where Schubert’s melody
-              goes next. {TALLY.agree} of {TALLY.total} syllables move the way their
-              tone does. Below: the chord as a pianist reads it, over what it is
-              doing in the key.
-            </p>
+
+            <dl className="apparatus-col">
+              <dt>Tone against tune</dt>
+              <dd>
+                Each character sits where its notehead was, with its Mandarin tone
+                drawn out of it and an arrow for where the tune goes next.{' '}
+                <b>{TALLY.agree} of {TALLY.total}</b> syllables move the way their tone
+                does; <b>{TALLY.clash}</b> move against it.
+              </dd>
+              <dt>Stress against the bar</dt>
+              <dd>
+                <b>{TALLY.match} of {TALLY.total}</b> land on the weight their own
+                prosody wants. The one that doesn’t: the downbeat of bar two falls on
+                <span className="han"> 异</span>, <em>strange</em>, and not on
+                <span className="han"> 客</span>, the head of the word.
+              </dd>
+            </dl>
+
+            <dl className="apparatus-col">
+              <dt>Harmony is a vocabulary too</dt>
+              <dd>
+                Above the staff, what a pianist reads off a chart — Bm, B+, Em, C♯°7 —
+                which names the object. Below it, the roman numeral and the word for
+                the move, which name what the chord is <em>doing</em> to the key. Two
+                grammars describing one sound.
+              </dd>
+            </dl>
           </div>
         )}
       </figure>

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { ease, range } from '../../lib/easing'
+import { useNarrow } from '../../lib/useNarrow'
 
 /**
  * The hall.
@@ -89,20 +89,6 @@ const SCENE = { x: 241.2, y: 191.2, k: 0.70 }
  *  the performers rather than on the whole hall. .room carries the hall
  *  colour up the rest of the page, so there is no seam. */
 const CLOSE_UP = '265 248 622 372'   /* piano and singer, nothing else */
-
-function useNarrow() {
-  const q = '(max-width: 62rem)'
-  const [narrow, setNarrow] = useState(
-    () => typeof matchMedia === 'function' && matchMedia(q).matches,
-  )
-  useEffect(() => {
-    const m = matchMedia(q)
-    const on = () => setNarrow(m.matches)
-    m.addEventListener('change', on)
-    return () => m.removeEventListener('change', on)
-  }, [])
-  return narrow
-}
 
 export default function StageScene({ p = 0 }: { p?: number }) {
   const narrow = useNarrow()

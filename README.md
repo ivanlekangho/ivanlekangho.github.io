@@ -74,7 +74,8 @@ has a URL you can link to directly.
 | Why a chord sounds the way it does | `src/lib/acoustics.ts` |
 | Hearing the picture | `src/lib/chordSound.ts` |
 | The keyboard | `src/components/stage/Keyboard.tsx` |
-| Does the melody move the way the tone does | `src/lib/toneMelody.ts` |
+| The Mandarin line, word by word | `src/data/mandarin.ts` |
+| Tone against tune, stress against the bar | `src/lib/prosody.ts` |
 | Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
 | Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
 | Bio, languages, study, honours, stack, the palette legend | `src/sections/About.tsx` |
@@ -305,24 +306,52 @@ would leave air wherever only the pianist plays.
 
 ### The linguist stop
 
-Two things happen here that are worth stating plainly.
+This is the stop that makes the argument, so it is the one with the most on
+it. The claim is printed under the system: **the same nine notes are a
+melody, a sentence and a chord chart.** Three things demonstrate it.
 
-**Tone against melody.** Mandarin carries part of a word in the pitch contour
-of the syllable, so a melody that falls where the tone rises can make a sung
-line ambiguous — a real problem for anyone setting a tone language to music,
-and one Schubert, writing in German in 1816, obviously did not have. Over each
-syllable the room draws the Mandarin tone as a solid line and where the melody
-actually goes next as a dashed one. `src/lib/toneMelody.ts` compares the two
-and counts: **two of the seven syllables move the way their tone does, two move
-the opposite way.** That is a measured coincidence, not a claim, which is
-exactly why it is measured rather than asserted.
+**The noteheads become the words.** Each one travels to the start of its
+syllable's tone contour and turns into the Han character there — same place,
+one fading as the other arrives — with the tone drawn out of it and the German
+still sitting underneath. One object, two languages, one pitch.
+
+**Tone against tune.** Mandarin carries part of a word in the contour of the
+syllable, so a melody that falls where the tone rises can make a sung line
+ambiguous — a real problem for anyone setting Mandarin or Cantonese, and
+plainly not one Schubert had in 1816. An arrow over each syllable says where
+the tune goes next, coloured by whether the tone agrees. Two of the seven
+agree, two fight.
+
+**Stress against the bar.** Mandarin has no English-style lexical stress, but
+it has prosodic heads — the syllable a word leans on — and function words that
+want to stay out of the way. `src/data/mandarin.ts` records which is which;
+`prosody.ts` works out where cut time puts its weight and compares. The strip
+under the syllables is the bar: a long tick on each downbeat, a short one
+halfway through, and a mark under each word saying whether it got the weight
+it wanted.
+
+Five of seven do. The function words behave — 我 takes the pickup and 为 sits
+off the beat, exactly where a pronoun and a copula belong. The one that does
+not is 异客: the downbeat of bar two lands on 异, *strange*, and 客, *guest*,
+the head of the compound, arrives off the beat and only reaches the next
+strong one by being held through it.
+
+Which is wrong, and is also the better reading. The song is called *Der
+Wanderer*. He had no way of knowing that — the Mandarin line is an overlay we
+chose, which is exactly why these are measurements rather than claims.
 
 **Two registers of harmony.** Above the staff, the chord symbol — `Bm`, `B+`,
 `Em`, `C♯°7`, `D/A`, `A7`, `D` — which names the object. Below it, the roman
-numeral, which names what the chord is *doing* to the key. The progression and
-the word for each move (`secondary dominant`, `pivot`, `cadential six-four`)
-live in `PROGRESSION` and `HARMONY` in `src/data/piano.ts`, and read out in the
-piece sheet.
+numeral and the word for the move: *secondary dominant*, *pivot*, *cadential
+six-four*. Two grammars describing one sound, which is as close to a definition
+of language as a chord chart gets.
+
+**On a phone** the language stop shows the singer's half only (`FRAME_NARROW`
+in `Score.tsx`): tone, characters, metre, German. There is no legible way to
+fit seven Han characters, their contours, the pinyin, the German and a
+seven-chord chart across 375 pixels, and shrinking it to fit would be a
+diagram nobody can read. The harmony is one tap away in the piece sheet, which
+is also where the stress table lives.
 
 ### The engineer stop: the terminal
 

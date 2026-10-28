@@ -5,7 +5,8 @@ import { PIANO_PIECE, PROGRESSION } from '../../data/piano'
 import { soloAxis } from '../../lib/beatmap'
 import { noteY, type StaffGeom } from '../../lib/notation'
 import { ENG } from '../../lib/smufl'
-import { TALLY } from '../../lib/toneMelody'
+import { FITS, TALLY } from '../../lib/prosody'
+import { SYLLABLES } from '../../data/mandarin'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
 
 /**
@@ -90,7 +91,7 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
             </dd>
           </dl>
 
-          <h3 className="sheet-h">Tone against melody</h3>
+          <h3 className="sheet-h">Tone against the tune</h3>
           <p>
             Mandarin carries part of a word in the pitch of the syllable: the same
             sounds on a falling contour are a different word. A melody that falls
@@ -103,6 +104,48 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
             falling tones set to a rising line.
           </p>
 
+          <h3 className="sheet-h">Stress against the bar</h3>
+          <p>
+            Mandarin has no English-style lexical stress, but it has prosodic heads:
+            the syllable a word leans on. 异客 is a noun compound and its head is 客,
+            the noun itself; 处处 is a reduplicated adverb and leans on the first;
+            为 is a copula and wants to stay out of the way. Cut time puts a strong
+            beat at the top of each bar and another halfway through, so the question
+            is whether those weights land where the words want them.
+          </p>
+          <table className="sheet-table">
+            <thead>
+              <tr><th>Syllable</th><th>Word</th><th>Wants</th><th>Gets</th><th /></tr>
+            </thead>
+            <tbody>
+              {FITS.map((f) => {
+                const syl = SYLLABLES[f.s]
+                return (
+                  <tr key={f.i} className={`is-${f.stress}`}>
+                    <td><span className="han">{syl.han}</span> {syl.pinyin}</td>
+                    <td>{syl.word} · {syl.pos}</td>
+                    <td>{syl.wants}</td>
+                    <td>{f.metre}</td>
+                    <td>{f.stress === 'match' ? 'yes' : f.stress === 'carried' ? 'held over one' : 'no'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          <p>
+            <em>{TALLY.match} of {TALLY.total}</em> land where they want to. The
+            function words behave: 我 takes the pickup and 为 sits off the beat,
+            exactly where a pronoun and a copula belong. The one that does not is
+            异客 — Schubert's downbeat falls on 异, <em>strange</em>, and 客,
+            <em> guest</em>, arrives off the beat and only reaches the next strong
+            one by being held through it.
+          </p>
+          <p>
+            Which is wrong, and is also the better reading. The song is called
+            <em> Der Wanderer</em>; leaning on <em>strange</em> rather than on
+            <em> guest</em> is what the poem is about. He had no way of knowing that.
+          </p>
+
           <h3 className="sheet-h">What the harmony is doing</h3>
           <p>
             <em>{PROGRESSION.short}</em> — the functional reading, each numeral naming
@@ -112,6 +155,12 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
           </p>
           <p>{PROGRESSION.sentence} {PIANO_PIECE.summary}</p>
 
+          <Todo>
+            The stress reading above rests on which syllable each word leans on —
+            处处 on the first, 异客 on the second. That is the standard analysis and
+            I am not a Mandarin speaker; you are. If either is wrong, the table is
+            wrong, and it is one line each in src/data/mandarin.ts.
+          </Todo>
           <Todo>
             A recording. Drop it at public/audio/der-wanderer.m4a (m4a or mp3, not
             WAV — see the README) and a play button appears over the score: the
