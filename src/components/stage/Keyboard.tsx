@@ -82,8 +82,18 @@ export default function Keyboard({ pitches, from, to, onToggle }: Props) {
   )
 }
 
-/** Three octaves of white keys around a chord, aligned to C. */
-export function keyboardRange(lowest: number) {
-  const from = Math.floor((lowest - 2) / 12) * 12
-  return { from, to: from + 36 }
+/**
+ * Three octaves around a chord, aligned to C.
+ *
+ * A full octave of air below the lowest note rather than a couple of
+ * semitones, so the chord sits in the middle of the keyboard instead of
+ * hard against its left edge — and extended upward where it has to be,
+ * because a thirteenth chord spans more than the three octaves a default
+ * keyboard gives it.
+ */
+export function keyboardRange(lowest: number, highest = lowest) {
+  const from = Math.floor((lowest - 12) / 12) * 12
+  let to = from + 36
+  while (to < highest + 2) to += 12
+  return { from, to }
 }

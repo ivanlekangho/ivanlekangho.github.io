@@ -401,6 +401,15 @@ settles.
 **It does not scroll.** Each chord replaces the last. A pane with its own
 scrollbar would swallow the wheel and strand you at the bottom of the rail.
 
+**Chords are voiced around middle C.** The root takes whichever instance of
+itself is nearest middle C — C through F♯ above it, G through B below — so
+every chord lands within a sixth of it. A fixed octave would put B a seventh
+higher than C and send the top of a thirteenth into the sixth octave, which
+as a bare sine is a whistle. A slash bass goes in the octave immediately
+below the root rather than at a fixed pitch. The keyboard gives the chord a
+full octave of air below it so it sits in the middle of the keys, and grows
+to four octaves where a chord needs the room.
+
 **`lib/chords.ts` tracks scale degrees, not semitones.** Three semitones above
 C is E♭ when it is the third of C minor and D♯ when it is the ♯9 of a dominant,
 and spelling from pitch class alone gets that wrong every time — a musician

@@ -34,6 +34,19 @@ export type Chord = {
   quality: { suffix: string; semis: number[] }
 }
 
+/**
+ * Where a chord is voiced when nobody says.
+ *
+ * Around middle C, which is where a pianist's right hand sits and where a
+ * sine tone is pleasant rather than a rumble or a whistle. The root takes
+ * whichever instance of itself is nearest middle C, so every chord lands
+ * inside a sixth of it — C through F♯ above, G through B below — instead
+ * of a fixed octave, which would put B a seventh higher than C and send
+ * the top of a thirteenth chord into the sixth octave.
+ */
+const MIDDLE_C = 60
+const rootNear = (pc: number) => MIDDLE_C + pc - (pc >= 7 ? 12 : 0)
+
 const LETTERS: Step[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const LETTER_PC: Record<Step, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
 const SIGN = ['𝄫', '♭', '', '♯', '𝄪']
@@ -154,7 +167,7 @@ export function parseChord(input: string): Chord | null {
     return { letter, shift }
   }
 
-  const rootMidi = 48 + rootPc
+  const rootMidi = rootNear(rootPc)
   const pitches: Pitch[] = []
   const names: string[] = []
   for (const t of chordTones) {
@@ -171,8 +184,17 @@ export function parseChord(input: string): Chord | null {
     if (!b) return null
     const bl = b[1].toUpperCase() as Step
     const bAcc = b[2] === '#' || b[2] === '♯' ? 1 : b[2] === 'b' || b[2] === '♭' ? -1 : 0
-    pitches.unshift({ step: bl, octave: 2, accidental: bAcc > 0 ? 'sharp' : bAcc < 0 ? 'flat' : undefined })
-    names.unshift(`${bl}${SIGN[bAcc + 2]}2`)
+    const bassPc = (LETTER_PC[bl] + bAcc + 12) % 12
+    /* Inside the octave below the root, not pinned to a fixed octave: a
+       slash bass is the note under the chord, and three octaves under it
+       is a different sound. */
+    const bassMidi = rootMidi - 12 + ((bassPc - rootPc + 12) % 12)
+    pitches.unshift({
+      step: bl,
+      octave: Math.floor((bassMidi - bAcc) / 12) - 1,
+      accidental: bAcc > 0 ? 'sharp' : bAcc < 0 ? 'flat' : undefined,
+    })
+    names.unshift(`${bl}${SIGN[bAcc + 2]}${Math.floor((bassMidi - bAcc) / 12) - 1}`)
   }
 
   /* Naming it the way a musician would say it out loud. "C major seventh"

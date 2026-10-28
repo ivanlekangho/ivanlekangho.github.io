@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { HARMONY, soundingAt } from '../../data/piano'
+import { HARMONY } from '../../data/piano'
 import { periodicity } from '../../lib/acoustics'
 import { identify, parseChord, SUGGESTIONS, type Chord } from '../../lib/chords'
 import { useChordSound } from '../../lib/chordSound'
@@ -63,12 +63,25 @@ async function resolveChord(text: string): Promise<Chord | null> {
 }
 
 const f2 = (n: number) => n.toFixed(2)
+
+/** Enough keyboard to hold a chord, with the chord near the middle of it. */
+function rangeFor(c: Chord) {
+  const ms = c.pitches.map(midi)
+  return keyboardRange(Math.min(...ms), Math.max(...ms))
+}
 const lane = (i: number) => `var(${LANE[i % LANE.length]})`
 
-/** The phrase's own resolution, so the terminal opens on the piece. */
+/**
+ * The phrase's own resolution, so the terminal opens on the piece — but
+ * voiced where the parser voices everything else rather than where the
+ * pianist's left hand actually puts it. Schubert's D2 is a rumble as a
+ * bare sine, and opening on a chord three octaves below the one you get
+ * when you type its name is a confusing first impression. It is still the
+ * phrase's last chord, and still labelled as such.
+ */
 function openingChord(): Chord {
   const last = HARMONY[HARMONY.length - 1]
-  return identify(soundingAt(last.atBeat).map(midi)) ?? parseChord('D')!
+  return parseChord(last.symbol) ?? parseChord('C')!
 }
 
 export default function Terminal({ live }: { live: boolean }) {
@@ -78,7 +91,7 @@ export default function Terminal({ live }: { live: boolean }) {
   const [bad, setBad] = useState<string | null>(null)
   /* Fixed while you build a chord by hand, so the keys do not move under
      your finger; it follows along only when a new chord is typed. */
-  const [keys, setKeys] = useState(() => keyboardRange(midi(openingChord().pitches[0])))
+  const [keys, setKeys] = useState(() => rangeFor(openingChord()))
   const [at, setAt] = useState<number | null>(null)      /* hover, 0–1 along the window */
   const [only, setOnly] = useState<number | null>(null)  /* one note, isolated */
   const input = useRef<HTMLInputElement>(null)
@@ -97,7 +110,7 @@ export default function Terminal({ live }: { live: boolean }) {
   function land(c: Chord) {
     setChord(c)
     setBad(null)
-    setKeys(keyboardRange(midi([...c.pitches].sort((a, b) => midi(a) - midi(b))[0])))
+    setKeys(rangeFor(c))
   }
 
   async function run(text: string) {
