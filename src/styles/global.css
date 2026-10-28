@@ -383,17 +383,33 @@ pre {
 .term-name { color: var(--accent); }
 
 /* Tuning systems. A segmented control rather than a select, because the
-   whole point is that you flip between them and listen. */
-.term-tune { display: flex; gap: 0; }
+   whole point is that you flip between them and listen.
+
+   Boxed, and captioned. Four lowercase words in the corner of a bar look
+   like a status readout — which is how the most consequential control in
+   the room came to be the one nobody pressed. */
+.term-tuner { display: flex; align-items: center; gap: 0.7em; min-width: 0; }
+.term-tune-label {
+  color: var(--ink-3); letter-spacing: 0.1em; flex: none;
+}
+.term-tune { display: flex; gap: 0; border: 1px solid var(--rule); }
 .term-tune button {
   font: inherit; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
-  background: none; border: 0; color: var(--ink-3);
-  padding: 2px 8px; cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+  background: none; border: 0; border-right: 1px solid var(--rule); color: var(--ink-3);
+  padding: 3px 9px; cursor: pointer;
+  transition: color var(--dur-ui) var(--ease), background-color var(--dur-ui) var(--ease);
 }
-.term-tune button:hover { color: var(--ink-2); }
-.term-tune button.is-on { color: var(--accent); border-bottom-color: var(--accent); }
+.term-tune button:last-child { border-right: 0; }
+.term-tune button:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+/* A wash alone was not enough to find at a glance in a row of four boxed
+   words — the segment separators read as borders on all of them. The bar
+   underneath is what a segmented control uses, and inset so it does not
+   move the row by a pixel when the selection changes. */
+.term-tune button.is-on {
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.term-tune button:disabled { cursor: default; }
 
 .term-view {
   min-height: 0; overflow: hidden;
@@ -419,11 +435,81 @@ pre {
 .term-verdict.is-rough { color: var(--t4-mid); }
 
 /* the waveform: the sum, with every note under it once you go looking */
-.term-wave { display: block; width: 100%; height: 104px; cursor: crosshair; }
+/* Scaled against the window rather than stepped at a breakpoint: the strip
+   below needs its lanes at every height, and a cliff at 820px put a
+   four-lane chord through the bottom of the pane at 821. */
+.term-wave { display: block; width: 100%; height: clamp(62px, 11vh, 104px); cursor: crosshair; }
 .term-parts { transition: opacity var(--dur-ui) var(--ease); }
 .term-tick {
   font-family: var(--font-mono); font-size: 8px; fill: var(--ink-3);
   letter-spacing: 0.04em;
+}
+
+/* The beat strip: one lane per pair of partials that an interval says
+   should coincide. The labels sit in their own columns so the drawing keeps
+   a clean time axis across every lane — the lanes are the same 1.2 seconds,
+   which is the only reason they can be compared to each other or to the
+   same chord in another tuning. */
+.term-beat {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: 3px var(--space-3);
+  /* Every row is one line, so the pane's reading leading only buys height
+     here — and height is what three lanes of this cost. */
+  font-size: 0.68rem; line-height: 1.2;
+}
+.term-beat-head {
+  /* Full width, against the prose measure every other p inherits — this one
+     is a header rail, and the pointer at its end has to land under the
+     control it is pointing at. */
+  grid-column: 1 / -1; max-width: none; margin: 0 0 2px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.7em;
+  font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.term-beat-head b { font-weight: 400; color: var(--ink-2); }
+/* Pointing back at the control, because this block is what it changes and
+   there is no other way to learn that. */
+.term-beat-cue { margin-left: auto; color: var(--accent-soft); }
+
+.term-beat-pair { color: var(--ink-2); white-space: nowrap; letter-spacing: 0.02em; }
+.term-beat-pair .term-swatch { margin-right: 2px; }
+.term-beat-pair .term-swatch + .term-swatch { margin-right: 7px; }
+
+.term-beat-lane { display: block; width: 100%; height: 16px; }
+
+.term-beat-rate {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--ink-2); white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  justify-content: flex-end; min-width: 5.4em;
+}
+/* Past about twenty a second the ear stops resolving the swells and hears
+   one rough tone, so the rate stops being a tempo and becomes a texture. */
+.term-beat-rate.is-rough { color: var(--t4-mid); }
+.term-beat-dot {
+  width: 7px; height: 7px; flex: none; border-radius: 50%;
+  background: var(--accent);
+  /* No duration unless a rate was set, so a pure interval's dot just sits
+     there — which is the correct picture of a pure interval. */
+  animation-name: beat-throb; animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+/* Three states, three marks, because two of them do not move and they do
+   not mean the same thing. A pure interval has nothing to show, so its dot
+   is there and dim. Roughness is not a slow pulse but a texture, so it
+   squares off rather than sitting still as a circle and reading as pure. */
+.term-beat-rate.is-pure .term-beat-dot { opacity: 0.22; }
+.term-beat-rate.is-rough .term-beat-dot {
+  background: var(--t4-mid); border-radius: 1px; opacity: 0.85;
+}
+/* One cycle is one swell and one dip, which is what |cos| does between
+   coincidences — so this dot is on the same clock as the lane beside it. */
+@keyframes beat-throb {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.12; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .term-beat-dot { animation-name: none; opacity: 1; }
 }
 
 /* The keyboard lives outside the chord's own markup so it survives you
@@ -431,13 +517,14 @@ pre {
    order inside the pane is set here instead. */
 .term-id { order: 1; }
 .term-wave { order: 2; }
-.term-keys { order: 3; }
-.term-read { order: 4; }
-.term-view > .term-cap, .term-bad { order: 5; }
+.term-beat { order: 3; }
+.term-keys { order: 4; }
+.term-read { order: 5; }
+.term-view > .term-cap, .term-bad { order: 6; }
 
 /* the keyboard — press a key and the chord changes under you */
 .term-keys { display: grid; justify-items: center; }
-.keys { display: block; height: 104px; max-width: 100%; }
+.keys { display: block; height: clamp(68px, 11vh, 104px); max-width: 100%; }
 /* Unlit keys sit well below the held ones in brightness — at 70% they were
    within twenty levels of the accent and the chord disappeared into the
    keyboard. */
@@ -497,7 +584,40 @@ pre {
 .term-sound:disabled { opacity: 0.4; cursor: default; }
 
 /* On a short window the Python line is the first thing that can go. */
-@media (max-height: 820px) { .term-py { display: none; } }
+/* On a short window the Python line is the first thing that can go, then
+   the two tallest blocks give ground. The strip stays, and stays last to
+   be cut: it is the only part of the readout that answers the question the
+   tuning buttons ask, and a four-note chord needs four lanes of it.
+
+   The waveform and the keyboard pay, in that order. Both are generous at
+   104px and neither loses anything by being shorter — the wave's shape is
+   in its zero crossings and the keyboard is a target, not a reading. */
+@media (max-height: 820px) {
+  .term-py { display: none; }
+  .term-beat-lane { height: 14px; }
+}
+@media (max-height: 720px) {
+  .term-view { gap: var(--space-2); }
+  .term-beat { gap: 1px var(--space-3); }
+  .term-beat-lane { height: 11px; }
+}
+/* The floor. Below this the sentence under the table goes — the period it
+   quotes is already the verdict beside the chord's name and the dashed line
+   in the waveform, so it is the one thing here said three times — and the
+   chord symbol stops being a display size. */
+@media (max-height: 660px) {
+  .term-view { padding: var(--space-2) var(--space-4) var(--space-3); }
+  .term-view > .term-read .term-cap { display: none; }
+  .term-sym { font-size: var(--step-1); }
+  .keys { height: clamp(56px, 10vh, 104px); }
+}
+/* Last resort. Everything in the pane is either a reading or a way in, and
+   the keyboard is the only way in with a twin — the prompt below does the
+   same job in one line. Left in, a seventh chord loses the bottom row of
+   its own pitch table, which is the readout contradicting itself. */
+@media (max-height: 620px) {
+  .term-keys { display: none; }
+}
 
 /* The rail's housing: a row at the foot of the room on a phone, and a
    column down the left margin on anything wider — where a scrollbar would
@@ -948,10 +1068,27 @@ pre {
   .term { font-size: 0.7rem; }
   .term-py, .term-cap { display: none; }
   .term-view { padding: var(--space-2) var(--space-3) var(--space-3); gap: var(--space-2); }
-  .term-bar { padding: 4px var(--space-3); }
-  .term-tune button { padding: 2px 5px; font-size: 0.6rem; letter-spacing: 0.04em; }
+  .term-bar { padding: 4px var(--space-3); gap: var(--space-2); }
+  /* The word "tuning" is what the buttons are for, and on a phone the
+     buttons are narrow enough to need it more, not less — so the bar's own
+     name goes instead. */
+  .term-name { display: none; }
+  .term-tune button { padding: 3px 5px; font-size: 0.6rem; letter-spacing: 0.04em; }
   .term-wave { height: 62px; }
-  .keys { height: 74px; }
+  .term-beat { font-size: 0.62rem; gap: 2px var(--space-2); }
+  .term-beat-head { font-size: 0.58rem; gap: 0.6em; }
+  /* The summary goes and the pointer stays. "Fastest 11.7 a second" is the
+     largest number in the rate column read back as a sentence; the pointer
+     is the only thing in the pane that says the corner is a control, and on
+     a phone the pane is all there is. */
+  .term-beat-head > span:not(.term-beat-cue) { display: none; }
+  .term-beat-lane { height: 11px; }
+  .term-beat-rate { min-width: 4.6em; gap: 5px; }
+  /* The strip's three lanes come out of the keyboard and the gaps, because
+     at this width the pane's height is fixed by the stage behind it and
+     there is nothing else left to take it from. */
+  .term-view { gap: 6px; }
+  .keys { height: 56px; }
   .term-read { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
   .term-sym { font-size: var(--step-1); }
   .term-id { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; }

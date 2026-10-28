@@ -509,11 +509,95 @@ tunes — to the bass, not to A440.
 
 The `JUST` table in `tuning.ts` is both the choral tuning and the reference
 the cents column is measured against, so the two cannot disagree. Switching to
-choral is the demonstration: every error collapses to zero and the waveform
-settles.
+choral is the demonstration: every error collapses to zero.
+
+The four words sit in the top right under the label **tuning**, boxed as a
+segmented control with the chosen one washed in the accent and underlined.
+They used to be four bare lowercase words in the corner of a bar, which is
+exactly what a status readout looks like — and that is how the most
+consequential control in the room came to be the one nobody pressed.
+
+**You can see the beating.** A cents column tells you a chord is wrong. It
+does not tell you what wrong sounds like, and +14¢ is not a quantity anybody
+hears. What you hear is beating, so the strip under the waveform draws it.
+
+Two pure sines a major third apart do not beat; they are two hundred Hz
+apart, which is two notes, not one note pulsing. What beats is a pair of
+**harmonics** that were supposed to land on the same frequency and missed. A
+major third is 5/4, so the fifth partial of the lower note and the fourth
+partial of the upper note should be the same pitch — and in equal temperament,
+around middle C, they are about eleven Hz apart. Eleven times a second the
+chord swells and dies. That is the number a piano tuner counts, and it is the
+entire audible content of a tuning system.
+
+`beatsIn` in `lib/acoustics.ts` finds those pairs. For each interval it takes
+the simple ratio the ear is listening for, reads off which partial of each
+note the ratio says must coincide, and subtracts: `|den·f_upper −
+num·f_lower|`. Each one gets a lane, drawn as the amplitude envelope the two
+partials actually produce — `|cos(π·Δf·t)|`, top and bottom — so a pure
+interval is a solid bar and a tempered one is a row of spindles that come at
+the rate the chord wobbles. Beside each lane the rate itself, and a dot whose
+pulse is one cycle of that lane: at eleven a second it shivers, at two it
+throbs, and a pure interval's dot sits still.
+
+The same D major triad, read four ways:
+
+| | 3:2 (fifth) | 5:4 (third) | 6:5 (minor third) |
+|---|---|---|---|
+| equal | 1.0/s | 11.7/s | 20.0/s |
+| choral | pure | pure | pure |
+| pythagorean | pure | 18.4/s | 27.5/s |
+| meantone | 2.7/s | pure | 6.8/s |
+
+Which is the textbook character of all four, arrived at from the pitches
+rather than quoted: meantone buys a pure third with a fifth that throbs,
+pythagorean does the exact opposite, choral has nothing left to beat. The
+numbers in that table are what the page renders, checked against the
+arithmetic computed independently.
+
+Three decisions hold the display together:
+
+- **The axis is fixed at 1.2 seconds**, not fitted to the chord. The whole
+  point is that you switch systems and compare, and an axis that rescaled to
+  each one would make every system look the same. 1.2s holds one slow swell of
+  a tempered fifth and thirty of a pythagorean third, which is the range these
+  systems span.
+- **Lanes are ranked by how low in the series the coincidence falls**, because
+  that is how loud the beat is — and because that ranking is a property of the
+  interval, not of the tuning. So the lanes stay put while you switch systems
+  and only their contents change, which is the comparison the strip exists for.
+- **Unisons and octaves are dropped**, and coincidences above the sixteenth
+  partial with them. Every system here extends by doubling, so octaves are pure
+  in all four and would take the first lane every time and sit there flat; and
+  past the sixteenth partial there is not enough energy left for the beat to be
+  audible. That cap also keeps `ratioTo`'s snapping honest — a tempered tritone
+  comes back as 45/32, which is not a coincidence anyone hears.
+
+Above about twenty a second the ear stops resolving the swells and hears one
+rough tone instead, so the rate stops being a tempo and becomes a texture: it
+goes warm, and its dot squares off rather than sitting still and reading as
+pure. The drawing is the same either way — the amplitude really does modulate
+at that rate — only the word for it changes.
+
+What this still cannot do is let you **hear** it. The audio is one pure sine
+per note, which is the whole reason the waveform is worth showing, and pure
+sines are exactly the signal in which none of this happens. The strip says what
+the speakers cannot.
 
 **It does not scroll.** Each chord replaces the last. A pane with its own
 scrollbar would swallow the wheel and strand you at the bottom of the rail.
+
+Which means the pane has a height budget and the strip spent some of it, so
+there is an explicit order in which things give. The waveform and the keyboard
+scale with the window rather than stepping at a breakpoint — a step at 820px
+put a four-note chord through the bottom of the pane at 821. Below 820 the
+three lines of Python go; below 660 the sentence under the table goes, because
+the period it quotes is already the verdict beside the chord's name and the
+dashed line in the waveform; below 620 the keyboard goes, because it is the
+only way in with a twin — the prompt does the same job in one line — and left
+in, a seventh chord loses the bottom row of its own pitch table, which is the
+readout contradicting itself. The strip is last to be cut, since it is the only
+part of the readout that answers the question the tuning buttons ask.
 
 **Chords are voiced around middle C.** The root takes whichever instance of
 itself is nearest middle C — C through F♯ above it, G through B below — so
@@ -593,7 +677,12 @@ system sits above it. The room is a definite `100dvh`, not a minimum, because
 the terminal would otherwise push it taller than the screen — and while the
 room has the wheel, a page taller than the screen is a page you cannot reach
 the bottom of. At the language and engineer stops the stage band gives back
-some of its height so the translations, and the ratio table, still fit.
+some of its height so the translations, and the ratio table, still fit. On a
+phone the pane's height is fixed by the stage behind it, so the beat strip's
+three lanes come out of the keyboard and the gaps, and the strip's own summary
+line goes — "fastest 11.7 a second" is the largest number in the rate column
+read back as a sentence. The pointer to the tuning control stays, because on a
+phone the pane is all there is.
 
 ## The three readings
 

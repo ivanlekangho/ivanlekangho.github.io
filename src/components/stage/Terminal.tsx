@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { HARMONY } from '../../data/piano'
-import { periodicity } from '../../lib/acoustics'
+import { beatsIn, periodicity } from '../../lib/acoustics'
 import { identify, parseChord, SUGGESTIONS, type Chord } from '../../lib/chords'
 import { useChordSound } from '../../lib/chordSound'
 import { centsBetween, freqsIn, TUNINGS, type TuningId } from '../../lib/temperament'
@@ -27,6 +27,25 @@ const MID = H / 2
 const SUM_A = H * 0.42          /* amplitude of the sum */
 const PART_A = H * 0.30         /* and of each note under it */
 const LANE = ['--t1-mid', '--t2-mid', '--t3-mid', '--t4-mid', '--t0-mid', '--accent']
+
+/**
+ * The beat strip runs on its own clock.
+ *
+ * The waveform above it is a few milliseconds wide, because that is the
+ * scale a chord's shape lives on. Beating lives three orders of magnitude
+ * below that — a swell and a dip a few times a second — so it cannot be
+ * drawn on the same axis as the thing it is happening to.
+ *
+ * Fixed, not fitted to the chord. The point of the strip is that you switch
+ * tuning systems and compare, and an axis that rescaled itself to each one
+ * would make every system look the same. 1.2 seconds holds one slow swell
+ * of a tempered fifth and thirty of a pythagorean third, which is the range
+ * these systems actually span.
+ */
+const BEAT_SPAN = 1.2
+const BEAT_H = 15
+const BEAT_MID = BEAT_H / 2
+const BEAT_A = BEAT_H * 0.44
 
 /**
  * Where an AI would plug in.
@@ -63,6 +82,31 @@ async function resolveChord(text: string): Promise<Chord | null> {
 }
 
 const f2 = (n: number) => n.toFixed(2)
+
+/**
+ * One lane of the beat strip: the amplitude envelope of two partials that
+ * were supposed to land on the same frequency and did not.
+ *
+ * Two equal sines Δf apart sum to a single tone whose amplitude follows
+ * |cos(π·Δf·t)| — full, then nothing, then full again, Δf times a second.
+ * That is drawn here literally, top and bottom, so a pure interval is a
+ * solid bar and a tempered one is a row of spindles. Sampled in proportion
+ * to how many of those spindles there are, so a slow lane stays cheap and a
+ * fast one keeps its points.
+ */
+function envelope(rate: number) {
+  const cycles = rate * BEAT_SPAN
+  const n = Math.min(1400, Math.max(200, Math.round(cycles * 44)))
+  const top: string[] = []
+  const bot: string[] = []
+  for (let i = 0; i <= n; i++) {
+    const x = ((i / n) * W).toFixed(1)
+    const a = Math.abs(Math.cos(Math.PI * cycles * (i / n))) * BEAT_A
+    top.push(`${x},${(BEAT_MID - a).toFixed(2)}`)
+    bot.push(`${x},${(BEAT_MID + a).toFixed(2)}`)
+  }
+  return `M${top.join('L')}L${bot.reverse().join('L')}Z`
+}
 
 /** Enough keyboard to hold a chord, with the chord near the middle of it. */
 function rangeFor(c: Chord) {
@@ -148,6 +192,13 @@ export default function Terminal({ live }: { live: boolean }) {
   })
   const worst = rows.reduce((n, r) => Math.max(n, Math.abs(r.off)), 0)
 
+  /* What the mistuning above actually does. Memoised because the envelopes
+     are a few thousand coordinates each and a pointer moving across the
+     waveform re-renders this component on every frame. */
+  const beat = useMemo(() => beatsIn(sorted, freqs), [sorted, freqs])
+  const envs = useMemo(() => beat.map((b) => envelope(b.rate)), [beat])
+  const fastest = beat.reduce((m, b) => Math.max(m, b.rate), 0)
+
   /* The sum, and each note under it. Sampled here rather than through the
      helper so the two share one time axis and one amplitude convention. */
   const path = (f: (t: number) => number, amp: number, n = 900) => {
@@ -185,13 +236,21 @@ export default function Terminal({ live }: { live: boolean }) {
     <div className="term" aria-label="Type or play a chord and see why it sounds the way it does">
       <div className="term-bar">
         <span className="term-name">chords.py</span>
-        <div className="term-tune" role="group" aria-label="Tuning system">
-          {TUNINGS.map((t) => (
-            <button key={t.id} type="button" title={t.blurb} disabled={!live}
-              className={t.id === tuning ? 'is-on' : undefined}
-              aria-pressed={t.id === tuning}
-              onClick={() => setTuning(t.id)}>{t.name}</button>
-          ))}
+        {/* Four unlabelled words in the corner of a bar read as a status
+            line, not as a control — so the group says what it is, and the
+            buttons are boxed rather than left as bare text. The strip
+            below points back up here, because the strip is the thing these
+            four words change. */}
+        <div className="term-tuner">
+          <span className="term-tune-label">tuning</span>
+          <div className="term-tune" role="group" aria-label="Tuning system">
+            {TUNINGS.map((t) => (
+              <button key={t.id} type="button" title={t.blurb} disabled={!live}
+                className={t.id === tuning ? 'is-on' : undefined}
+                aria-pressed={t.id === tuning}
+                onClick={() => setTuning(t.id)}>{t.name}</button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -249,6 +308,63 @@ export default function Terminal({ live }: { live: boolean }) {
                 </g>
               )}
             </svg>
+
+            {/* What the tuning does, on the timescale it does it on.
+                Each lane is one pair of partials that the interval says
+                should coincide: solid where they do, spindled where they
+                miss, and the spindles come at the rate the chord wobbles.
+                Switch systems and the whole block redraws — which is the
+                only way to make a four-cent difference visible. */}
+            {beat.length > 0 && (
+              <div className="term-beat">
+                <p className="term-beat-head">
+                  <b>beating</b>
+                  <span>
+                    {fastest < 0.05
+                      ? 'every coincidence exact — nothing beats'
+                      : `fastest ${fastest.toFixed(1)} a second, over ${BEAT_SPAN}s`}
+                  </span>
+                  <span className="term-beat-cue">tuning, top right ↗</span>
+                </p>
+
+                {beat.map((b, k) => {
+                  const lo = chord.names[b.i] ?? label(sorted[b.i])
+                  const hi = chord.names[b.j] ?? label(sorted[b.j])
+                  const pure = b.rate < 0.05
+                  return (
+                    <Fragment key={`${b.i}-${b.j}`}>
+                      <span className="term-beat-pair">
+                        <span className="term-swatch" style={{ background: lane(b.i) }} />
+                        <span className="term-swatch" style={{ background: lane(b.j) }} />
+                        {b.num}:{b.den}
+                      </span>
+                      <svg className="term-beat-lane" viewBox={`0 0 ${W} ${BEAT_H}`}
+                        preserveAspectRatio="none" role="img"
+                        aria-label={`${b.num} times ${lo} against ${b.den} times ${hi}, near ${f2(b.at)} hertz: ${
+                          pure ? 'exact, no beating'
+                            : `${b.rate.toFixed(1)} ${b.rough ? 'a second, heard as roughness' : 'wobbles a second'}`}`}>
+                        {/* Higher up the series is quieter, so a coincidence
+                            at the fifth partial is a beat you cannot miss
+                            and one at the sixteenth is a suspicion. */}
+                        <path d={envs[k]} fill={lane(b.j)}
+                          opacity={Math.max(0.42, Math.min(1, 4 / b.num))} />
+                      </svg>
+                      <span className={`term-beat-rate${
+                        pure ? ' is-pure' : b.rough ? ' is-rough' : ''}`}>
+                        {pure ? 'pure' : `${b.rate.toFixed(1)}/s`}
+                        {/* The number, felt. One cycle of this dot is one
+                            swell and dip of that pair — at eleven a second
+                            it shivers, at two it throbs, and a pure
+                            interval sits still. */}
+                        <i className="term-beat-dot" aria-hidden="true"
+                          style={pure || b.rough ? undefined
+                            : { animationDuration: `${(1 / b.rate).toFixed(3)}s` }} />
+                      </span>
+                    </Fragment>
+                  )
+                })}
+              </div>
+            )}
 
             <div className="term-read">
               <table onPointerLeave={() => setOnly(null)}>

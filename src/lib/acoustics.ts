@@ -110,3 +110,83 @@ export function temperamentError(root: Pitch, p: Pitch) {
 }
 
 export { hz, midi, ratioTo }
+
+/* ------------------------------------------------------------------ *
+ * Beating
+ * ------------------------------------------------------------------ */
+
+/** Above this the two partials stop being heard as one tone wobbling and
+ *  start being heard as two tones grinding. The drawing is the same either
+ *  way; only the word for it changes. */
+const ROUGH_HZ = 20
+
+/** How far up the harmonic series we are willing to look for a coincidence.
+ *  Past the sixteenth partial there is not enough energy left for the beat
+ *  to be audible, and `ratioTo` snapping to the nearest simple ratio stops
+ *  being a safe guide to what the ear is tracking — a tempered tritone comes
+ *  back as 45/32, which is not a coincidence anyone hears. */
+const MAX_PARTIAL = 16
+
+export type Beating = {
+  /** indices into the sorted chord */
+  i: number
+  j: number
+  /** the ratio the ear is listening for, hence which partials should coincide */
+  num: number
+  den: number
+  /** the frequency they should coincide at */
+  at: number
+  /** how far apart they actually are, in Hz — the rate the chord wobbles */
+  rate: number
+  /** heard as grinding rather than as a wobble */
+  rough: boolean
+}
+
+/**
+ * Why a tempered chord wobbles.
+ *
+ * Two pure sines a third apart do not beat — they are hundreds of Hz apart,
+ * which is two notes, not one note pulsing. What beats in a real chord is a
+ * pair of HARMONICS that are supposed to land on the same frequency and
+ * miss. A major third is 5/4, so the fifth harmonic of the lower note and
+ * the fourth harmonic of the upper note should be the same pitch; in equal
+ * temperament they are about eleven Hz apart in the middle of the keyboard,
+ * and eleven times a second the chord swells and dies.
+ *
+ * That is the number a piano tuner counts, and it is the whole audible
+ * content of a tuning system. Hence this, rather than the cents column,
+ * being the thing the terminal draws: cents tell you the chord is wrong,
+ * beats tell you what wrong sounds like.
+ *
+ * Unisons and octaves are dropped. Every system here extends by doubling,
+ * so they are pure in all four — and having the lowest partials of any
+ * interval they would otherwise take the first lane every time and sit
+ * there flat.
+ *
+ * Ranked by how low in the series the coincidence falls, because that is
+ * how loud the beat is, and because that ranking does not depend on the
+ * tuning — so the lanes stay put while you switch between systems and only
+ * their contents change, which is the comparison the whole display is for.
+ *
+ * Three of them. A triad has exactly three pairs, so nothing is lost there;
+ * a seventh chord has six, and the three that fall away are coincidences at
+ * the ninth partial and above, which are a theoretical beat rather than an
+ * audible one. The seventh of a dominant is the obvious thing to miss, and
+ * it is missed either way: its ratio is 16/9, last of six by this ranking
+ * whatever the limit.
+ */
+export function beatsIn(sorted: Pitch[], freqs: number[], limit = 3): Beating[] {
+  const out: Beating[] = []
+  for (let i = 0; i < sorted.length; i++) {
+    for (let j = i + 1; j < sorted.length; j++) {
+      const r = ratioTo(sorted[i], sorted[j])
+      if (r.num <= 2 || r.num > MAX_PARTIAL) continue
+      const rate = Math.abs(r.den * freqs[j] - r.num * freqs[i])
+      out.push({
+        i, j, num: r.num, den: r.den,
+        at: r.num * freqs[i], rate, rough: rate >= ROUGH_HZ,
+      })
+    }
+  }
+  return out.sort((a, b) => a.num - b.num || a.i - b.i).slice(0, limit)
+}
