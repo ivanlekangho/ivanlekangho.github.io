@@ -48,6 +48,9 @@ export default function Hall() {
 
       <figure className="score-system">
         <figcaption className="score-head">
+          {/* A credit line that happens to be a button is a credit line to
+              everyone who does not hover it, so this one is set in a pill
+              and lit on the accent. */}
           <button type="button" className="score-title" onClick={() => setSheet(true)}
             aria-haspopup="dialog">
             {/* One flex item, or the three runs of the credit wrap
@@ -55,9 +58,6 @@ export default function Hall() {
             <span className="score-title-text">
               {PIECE.composer} — <span>{PIECE.title}</span>, {PIECE.catalogue}
             </span>
-            {/* Said out loud, not left to a hover state: a credit line
-                looks like a credit line, and nobody clicks one. */}
-            <em className="score-title-cue">open the piece</em>
           </button>
           {pb.available && <div className="score-tag"><Transport pb={pb} /></div>}
         </figcaption>

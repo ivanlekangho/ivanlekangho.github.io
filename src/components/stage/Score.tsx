@@ -2,7 +2,7 @@ import { SYS, xAt } from '../../lib/beatmap'
 import { lerp } from '../../lib/easing'
 import { useNarrow } from '../../lib/useNarrow'
 import { staging } from './staging'
-import PianoStaves from './PianoRibbon'
+import PianoStaves, { PIANO_DY } from './PianoRibbon'
 import VoiceStaves, { VOICE_H } from './VoiceRibbon'
 
 /**
@@ -18,9 +18,6 @@ import VoiceStaves, { VOICE_H } from './VoiceRibbon'
  * sweeps the system and the notes sounding at that instant light up on
  * both staves at once.
  */
-
-/** Where the piano's own coordinate space begins inside the system. */
-const PIANO_DY = 200
 
 /**
  * The camera. Each reading needs a different amount of vertical room —
@@ -86,7 +83,7 @@ export default function Score({ p, beat }: { p: number; beat: number | null }) {
   )
 }
 
-/* VOICE_H is the voice block's own height; PIANO_DY deliberately overlaps
-   the empty top of the piano block so the two staves sit a staff-and-a-half
-   apart, which is the distance a vocal score uses. */
+/* VOICE_H is the voice block's own height. PIANO_DY — how far below it the
+   pianist's space begins — belongs to the piano now, because the language
+   stop reads it too: see PianoRibbon.tsx. */
 void VOICE_H

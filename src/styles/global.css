@@ -138,20 +138,11 @@ pre {
 }
 .score-title-text { display: inline; }
 .score-title-text span { color: var(--ink); font-weight: 500; }
-/* The instruction, not a hover state: a credit line that happens to be a
-   button is a credit line to everyone who does not hover it. */
-.score-title-cue {
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-style: normal; font-size: 0.6rem; letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--accent-soft); white-space: nowrap;
-}
-.score-title-cue::before { content: '\203A\00a0'; }
 .score-title:hover, .score-title:focus-visible {
   color: var(--accent); border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, var(--bg));
 }
-.score-title:hover .score-title-text span,
-.score-title:hover .score-title-cue { color: var(--accent); }
+.score-title:hover .score-title-text span { color: var(--accent); }
 .score-tag {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-4);
@@ -205,13 +196,24 @@ pre {
    ways underneath it. It owns the cell the full system owns at the stop
    before it, so the type can be read at arm's length. */
 .score-layer-lang { align-items: start; }
-.apparatus { width: 100%; max-width: var(--stage-w); padding-top: var(--space-2); }
+/* A query container, because every size in the table below is a function
+   of this one width. Two beats of the phrase are 5.1% of it apart, and a
+   word centred on its note gets half of that — so the type has to be read
+   off the box, not off the viewport. Sized off the viewport it was legible
+   at 62rem and colliding at 63. */
+.apparatus {
+  width: 100%; max-width: var(--stage-w); container-type: inline-size;
+}
 
 /* The piece, still on the page. Every row below is a reading of these
    nine notes and the words come off them, so the staff is not decoration
    here — take it away and the table is four lists of the same length. */
+/* No height cap, deliberately: a cap letterboxes the viewBox, and then x in
+   the system's coordinates is no longer a fixed share of this box's width —
+   which is the one thing every row below depends on. The staff takes the
+   height its own aspect asks for and nothing else. */
 .apparatus-staff {
-  display: block; width: 100%; max-height: 22vh; margin-bottom: var(--space-3);
+  display: block; width: 100%; height: auto; margin-bottom: var(--space-3);
 }
 
 .apparatus-thesis {
@@ -220,100 +222,139 @@ pre {
   font-size: var(--step-1); line-height: 1.1;
   letter-spacing: var(--display-tracking); color: var(--ink);
 }
+/* ---- the four rows, on the staff's own axis ----
+   Every row is the staff again. The label sits where the clef sits, and
+   each item sits at the share of the width its own note, or its own beat,
+   occupies in musical time — so a syllable is under the note it is sung
+   on, and a chord symbol is under the beat it falls on. Spread evenly
+   instead, which is what this was, the rows are four lists of the same
+   length and a reader has to take it on trust that the fourth syllable
+   goes with the fourth note. */
 .apparatus-rows { margin: 0; display: grid; }
 .arow {
-  display: grid; grid-template-columns: 7rem minmax(0, 1fr);
-  gap: var(--space-4); align-items: center;
+  display: grid; grid-template-columns: minmax(0, 1fr);
   padding: var(--space-3) 0;
   border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
 }
 .arow:first-child { border-top: 0; padding-top: 0; }
 .arow:last-child { padding-bottom: 0; }
-.arow dt {
+/* In the head of the row, where the clef and the key signature are: the
+   label is this row's clef, and it says in what the line is written. The
+   width is the share of the staff the head takes before the first note. */
+.arow > dt {
+  grid-area: 1 / 1; align-self: center; justify-self: start;
+  width: 18%; padding-right: 0.9rem; text-align: right;
   font-family: var(--font-label); font-weight: var(--label-weight);
   font-size: 0.7rem; letter-spacing: var(--label-tracking);
   text-transform: uppercase; color: var(--ink-2);
 }
-.arow dd { margin: 0; min-width: 0; }
+.arow > dd { grid-area: 1 / 1; margin: 0; min-width: 0; }
 
-/* The rows are set to one width and spread across it, so the words, the
-   translation and the chord symbols line up in columns down the table.
-   That vertical rhyme is the argument. */
+/* One cell with everything stacked in it, each item pushed out to its own x
+   by a margin — so where an item sits depends on its note and on nothing
+   else in the row. The cell still takes the height of the tallest item,
+   which is the one thing the old flow layout was doing for us. */
 .arow-syl {
   position: relative;   /* so a syllable's offset is measured against its row */
-  display: flex; flex-wrap: wrap; align-items: flex-end;
-  gap: var(--space-2) var(--space-4);
+  display: grid; align-items: start;
 }
-@media (min-width: 52rem) {
-  .arow-syl { flex-wrap: nowrap; justify-content: space-between; }
+.arow-syl > .syl, .arow-syl > .hyph {
+  grid-area: 1 / 1; justify-self: start; margin-left: var(--x);
 }
+/* The sung rows align on the baseline, not the box: the hyphen is set
+   larger than the syllables it joins, and any box alignment leaves it
+   floating above their x-height instead of sitting on the line. */
+.arow-sung { align-items: baseline; }
 
-/* A word sung across two notes is one word. Spread along the row with
-   everything else its halves read as two, so they travel as a group and
-   the hyphen sits inside the word where a vocal score puts it. */
-.wgroup {
-  position: relative;
-  /* baseline, not flex-start: the hyphen is set larger than the syllables
-     it joins, and any box alignment leaves it floating above their
-     x-height instead of sitting on the line with them. */
-  display: flex; align-items: baseline; min-width: 0;
-}
-.hyph {
-  padding: 0 0.3em; color: var(--accent);
-  font-size: var(--step-2); font-weight: 500; line-height: 1;
-  transition: opacity var(--dur-ui) var(--ease);
-}
-
-/* The arrival is a transform, so it never reflows the row it is landing
-   in — which is also why the resting slots can be measured once. */
+/* Nothing wide, and the ink hangs out both ways: the box IS the note's x,
+   so a syllable is centred on its notehead rather than starting there. */
 .syl {
   position: relative;   /* a fixed containing block: see useSlots() */
-  display: grid; justify-items: start; align-content: end; gap: 1px;
-  line-height: 1.15; transform-origin: left bottom;
+  display: flex; flex-direction: column; align-items: center;
+  width: 0; white-space: nowrap; line-height: 1.15;
 }
-.syl b { font-weight: 500; color: var(--ink); font-size: var(--step-1); }
+/* At the midpoint of the word, which is where a vocal score prints it —
+   and only possible at all now that the syllables are where the notes
+   are. */
+.hyph {
+  width: 0; display: flex; justify-content: center;
+  color: var(--accent); font-weight: 500; line-height: 1.15;
+  font-size: clamp(0.95rem, 2.3cqw, 1.44rem);           /* caps at --step-1 */
+  transition: opacity var(--dur-ui) var(--ease);
+}
+/* Set to what the music leaves room for: the alignment chose these sizes,
+   not taste. An engraver has the other move available and widens the
+   spacing until the lyric fits; here the box is fixed, so the type gives
+   way instead. Each caps at its step on the scale and shrinks from there
+   as the box narrows. */
+.syl b {
+  font-weight: 500; color: var(--ink);
+  font-size: clamp(0.78rem, 1.85cqw, 1.08rem);          /* caps at --step-0 */
+}
 .syl i {
-  font-style: normal; font-size: var(--step--1); letter-spacing: 0.02em; color: var(--ink-2);
+  font-style: normal; letter-spacing: 0.02em; color: var(--ink-2);
+  font-size: clamp(0.6rem, 1.3cqw, 0.84rem);            /* caps at --step--1 */
 }
-.syl .ipa { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0; }
+.syl .ipa {
+  font-family: var(--font-mono); letter-spacing: 0;
+  font-size: clamp(0.58rem, 1.25cqw, 0.78rem);
+}
 
 /* ---- Mandarin, on Chao's 1-5 scale ----
    Five hairlines ruled across the row and each tone drawn as the line it
    traces between them. A tone box with a rule along its top would bury the
    level tone, which runs along exactly that rule, so the scale is the only
    faint ink here and the contours are the only heavy ink. */
-.arow-han { --tone-h: 48px; padding-left: 1.6rem; }
+.arow-han { --tone-h: 48px; --tone-w: min(28px, 2.9cqw); }
 .tone-scale {
   position: absolute; left: 0; right: 0; top: 0; height: var(--tone-h);
   pointer-events: none;
 }
+/* The rules run from the first contour to the last and stop there, the way
+   a staff stops at its barline — --band-l and --band-r come from the same
+   axis the noteheads do, so the scale cannot drift off its own contours. */
 .tone-scale i {
-  position: absolute; left: 1.6rem; right: 0; height: 0;
+  position: absolute; height: 0;
+  left: calc(var(--band-l) - var(--tone-w) / 2);
+  right: calc(var(--band-r) - var(--tone-w) / 2);
   border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
 }
 .tone-scale i.is-edge { border-top-color: color-mix(in srgb, var(--ink) 32%, transparent); }
 .tone-scale span {
-  position: absolute; left: 0; line-height: 1;
+  position: absolute; left: calc(var(--band-l) - var(--tone-w) / 2); line-height: 1;
+  transform: translateX(-100%); padding-right: 7px;
   font-family: var(--font-label); font-weight: var(--label-weight);
   font-size: 0.64rem; letter-spacing: var(--label-tracking); color: var(--ink-2);
 }
-.tone-line { display: block; width: 28px; height: var(--tone-h); overflow: visible; }
-.arow-han .syl b { font-size: var(--step-3); line-height: 1; margin-top: 2px; }
+.tone-line { display: block; width: var(--tone-w); height: var(--tone-h); overflow: visible; }
+.arow-han .syl b {
+  font-size: clamp(1.25rem, 3.3cqw, 1.92rem);           /* caps at --step-2 */
+  line-height: 1; margin-top: 2px;
+}
 .arow-han .syl i { margin-top: 2px; }
 .arow-han .chao {
-  font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-3); margin-top: 0;
+  font-family: var(--font-mono); color: var(--ink-3); margin-top: 0;
+  font-size: clamp(0.56rem, 1.05cqw, 0.66rem);
 }
 
 /* The English is split on the German's own syllables, so the two rows can
-   be read down as well as across. Set in the same ink: a gloss dimmed a
-   step loses "I" and "a" altogether, and those are words. */
-.arow-en .syl { padding-top: 2px; }
+   be read down as well as across — and down the column, not just across
+   the row, now that both are under their own notes. Set in the same ink:
+   a gloss dimmed a step loses "I" and "a" altogether, and those are
+   words. */
 
 /* The chord row carries the name of the move as well, because that is the
    part of the vocabulary worth learning. */
-.arow-chords .syl { max-width: 7rem; }
+/* The only thing in the table that will not fit between two beats on one
+   line, so it is the only thing allowed to wrap. The box overlaps its
+   neighbour's; the ink does not. */
 .arow-chords .move {
-  font-size: 0.7rem; line-height: 1.25; color: var(--ink-3);
+  width: 6.6cqw; white-space: normal; text-align: center;
+  /* balance, or "cadential six-four" breaks at its own hyphen and reads
+     as "cadential six- / four". */
+  text-wrap: balance;
+  font-size: clamp(0.56rem, 1.08cqw, 0.7rem);
+  line-height: 1.25; color: var(--ink-3);
 }
 
 /* ============================================================
@@ -848,21 +889,39 @@ pre {
   .score-title { flex-wrap: wrap; justify-content: center; gap: var(--space-1); }
   /* Small, but the piece has to be on the page: every row under it is a
      reading of these nine notes. */
-  .apparatus-staff { max-height: 10vh; margin-bottom: var(--space-1); }
+  .apparatus-staff { margin-bottom: var(--space-1); }
   .apparatus-thesis { font-size: var(--step-0); margin-bottom: var(--space-2); }
-  .arow { grid-template-columns: minmax(0, 1fr); gap: 2px; padding: var(--space-1) 0; }
-  .arow dt { font-size: 0.6rem; letter-spacing: 0.1em; }
-  .arow-syl { gap: var(--space-1) var(--space-3); }
+  /* The staff's axis is 44px between the closest two notes at this width,
+     and no type fits that. So a phone gives up the alignment rather than
+     the rows: the label goes above, and the items spread across the row as
+     they used to. The arrival still works — it measures where things
+     actually landed — it just no longer lands under the note. */
+  .arow {
+    display: grid; grid-template-columns: minmax(0, 1fr);
+    gap: 2px; padding: var(--space-1) 0;
+  }
+  .arow > dt {
+    grid-area: auto; width: auto; padding: 0; text-align: left;
+    align-self: auto; justify-self: stretch;
+    font-size: 0.6rem; letter-spacing: 0.1em;
+  }
+  .arow > dd { grid-area: auto; }
+  .arow-syl {
+    display: flex; flex-wrap: nowrap; justify-content: space-between;
+    align-items: flex-end; gap: var(--space-1) var(--space-3);
+  }
+  .arow-sung { align-items: baseline; }
+  .arow-syl > .syl, .arow-syl > .hyph { margin-left: 0; width: auto; }
+  .syl { align-items: flex-start; }
   .syl b { font-size: var(--step-0); }
-  .arow-han { --tone-h: 32px; padding-left: 1.3rem; }
-  .tone-scale i { left: 1.3rem; }
-  .tone-scale span { font-size: 0.58rem; }
-  .tone-line { width: 20px; }
+  .syl i { font-size: 0.64rem; }
   .arow-han .syl b { font-size: var(--step-2); }
+  .arow-han { --tone-h: 32px; --tone-w: 20px; padding-left: 1.3rem; }
+  .tone-scale i { left: 1.3rem; right: 0; }
+  .tone-scale span { left: 0; transform: none; padding-right: 0; font-size: 0.58rem; }
   /* The pinyin already carries the tone mark; the Chao value is the one
      thing here a phone can lose without losing the argument. */
   .arow-han .chao { display: none; }
-  .syl i { font-size: 0.64rem; }
   .syl .ipa { font-size: 0.66rem; }
   /* Seven chords with a word under each will not sit evenly on one line
      at this width, and packed left they wrap ragged. Four even columns
@@ -871,8 +930,10 @@ pre {
     display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-2) var(--space-3);
   }
-  .arow-chords .syl { max-width: none; }
-  .arow-chords .move { font-size: 0.58rem; }
+  /* ...which means letting the grid place them: everything else in the
+     table is stacked in one cell and pushed out by a margin. */
+  .arow-chords > .syl { grid-area: auto; justify-self: start; }
+  .arow-chords .move { width: auto; font-size: 0.58rem; }
   .hyph { font-size: var(--step-0); padding: 0 0.22em; }
   html[data-mode='linguist'] .stage-svg { height: 15vh; }
   html[data-mode='linguist'] .hall-foot { padding-bottom: calc(15vh + var(--space-4)); }

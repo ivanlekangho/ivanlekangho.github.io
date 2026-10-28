@@ -32,6 +32,21 @@ const RIGHT = SYS.w - 14
 const TREBLE: StaffGeom = { gap: 11, bottomY: 86 }
 const BASS: StaffGeom = { gap: 11, bottomY: 196 }
 export const PIANO_H = 300
+
+/**
+ * Where the piano's own coordinate space begins inside the system. It
+ * deliberately overlaps the empty top of this block so the two staves sit a
+ * staff-and-a-half apart, which is the distance a vocal score uses.
+ *
+ * It lives here rather than in Score.tsx because the language stop needs it
+ * too: the chord symbols there start life on the pianist's staff, and they
+ * can only do that if they know where it is.
+ */
+export const PIANO_DY = 200
+
+/** Middle of the pianist's right hand, in the SYSTEM's coordinates — where
+ *  the chords the harmony row names are actually played. */
+export const RH_MID = PIANO_DY + TREBLE.bottomY - 2 * TREBLE.gap
 const BASS_BOTTOM_IDX = diatonic('G', 2)
 const U = TREBLE.gap                      /* both piano staves share a size */
 const HEAD_W = ENG.headRx * 2 * U         /* one notehead across — the displacement unit */

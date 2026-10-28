@@ -37,11 +37,17 @@ export function staging(p: number) {
 export function screens(p: number) {
   const f = (a: number, b: number) => ease(range(p, a, b))
   return {
-    /* The full system — singer over pianist. The language screen carries
-       its own copy of the voice staff, so the words have something to
-       come off once this one has gone; the handoff can be clean. */
-    score: 1 - f(0.08, 0.24),
-    language: f(0.14, 0.30) * (1 - f(0.58, 0.74)),
-    terminal: f(0.68, 0.88),
+    /* The full system — singer over pianist — and the language screen's own
+       copy of the singer's staff, drawn in the same box at the same crop.
+       So these two are one minus the other rather than two ramps that both
+       dip in the middle: the room never goes dim, and because the voice
+       staff is on the same pixels in both, it does not move at all. The
+       pianist's two staves simply leave from under it. */
+    score: 1 - f(0.10, 0.28),
+    /* Out on the same ramp the terminal comes in on, for the same reason:
+       two independent fades left the room at two thirds light halfway
+       through every drag, which reads as a fault rather than as a cue. */
+    language: f(0.10, 0.28) * (1 - f(0.62, 0.80)),
+    terminal: f(0.62, 0.80),
   }
 }

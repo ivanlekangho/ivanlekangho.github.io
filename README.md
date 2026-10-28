@@ -252,16 +252,26 @@ One number drives it: the rail position, 0 to 1.
 | **engineer** | the terminal | full cold wash, measured grid |
 
 **One screen at a time, in one box.** The three share a cell and hand over
-in sequence — `screens()` in `staging.ts` — rather than crossfading through
-each other. All three are the same width (`--stage-w`, set on
-`.score-system`) and open at the same top left corner, so walking the rail
-changes the reading rather than sliding the room sideways; the language
-screen carries its own copy of the voice staff, so the handoff from the full
-system can be clean instead of an overlap. An overlapping fade put the staves
-on top of the language table halfway through every scroll, and the earlier
-layout was worse than that: the staff drew the tone contours and the chord
-chart while a table underneath repeated both, so the Mandarin, the German and
-the harmony were each on screen twice and neither copy had room to be read.
+— `screens()` in `staging.ts` — rather than crossfading through each other.
+All three are the same width (`--stage-w`, set on `.score-system`) and open
+at the same top left corner, so walking the rail changes the reading rather
+than sliding the room sideways. The earlier layout was worse than an
+overlapping fade: the staff drew the tone contours and the chord chart while
+a table underneath repeated both, so the Mandarin, the German and the harmony
+were each on screen twice and neither copy had room to be read.
+
+Each handoff is **one weight, not two fades**: `score` is `1 - f(…)` of the
+same ramp `language` comes up on, and `language` goes out on the ramp
+`terminal` comes in on. Two independent ramps left the room at a third to two
+thirds light halfway through every drag, which reads as a fault rather than
+as a cue.
+
+The language screen carries its own copy of the voice staff, cropped at
+exactly `FRAME[0].y` and drawn in the same box at the same width — so the
+singer's staff is on the *same pixels* in both screens and does not move at
+all as they cross. Measured: the first notehead is at (516.44, 210.71) in
+both. What you see is the pianist's two staves leaving from under a staff
+that stays put.
 
 A consequence worth knowing: `VoiceRibbon.tsx` and `PianoRibbon.tsx` still
 contain their own language and physics states, and nothing reaches them now —
@@ -309,7 +319,9 @@ letterboxed at the stop most people land on.
 ### The piece, on parchment
 
 The credit over the stage — *Franz Schubert — Der Wanderer, D.489* — is a
-button. It lifts the piece out of the room as a sheet of aged paper: the vocal
+button, set in a bordered pill and lit on the accent, because a credit line
+that happens to be a button is a credit line to everyone who does not hover
+it. It lifts the piece out of the room as a sheet of aged paper: the vocal
 line engraved on its own, the three readings of the text, the Wang Wei echo,
 what the harmony is doing and how often the melody agrees with the Mandarin
 tone. An overlay rather than a section, because it is about the thing you are
@@ -325,7 +337,8 @@ would leave air wherever only the pianist plays.
 ### The linguist stop
 
 Headed **Language and music intertwined**: the baritone's own staff across
-the top, and under it the same line written out four ways.
+the top, and under it the same line written out four ways — every row on the
+staff's own axis.
 
 | Row | What is in it |
 |---|---|
@@ -340,46 +353,95 @@ rows are four ways of saying what those nine notes are. Its printed German
 hands itself over as the words leave — a staff still showing the syllables
 while they are also set out underneath is saying the line twice.
 
-The rows are set to one width and spread across it, so the characters, the
-German and the chord symbols line up in columns down the table. That
-vertical rhyme is the argument: the last row has a lexicon, an inflection
-(`⁶₄`, `⁷`) and a syntax — where a dominant is allowed to go — and it is
-sitting in the same table as three things nobody disputes are languages.
-Nothing on the page asserts that. The table shows it.
+**Every row is the staff again.** Each item sits at the share of the width
+its own note — or, in the harmony row, its own beat — occupies in musical
+time, read off the same axis the engraver uses, so a syllable is under the
+note it is sung on and a chord symbol is under the beat it falls on. The
+label sits where the clef sits: it is that row's clef, and it says in what
+the line is written.
+
+The rows used to be spread evenly across the width instead, which made them
+four lists of the same length — that the fourth syllable went with the
+fourth note was something a reader had to take on trust. Now the column is
+the argument: the last row has a lexicon, an inflection (`⁶₄`, `⁷`) and a
+syntax — where a dominant is allowed to go — and it is sitting under the same
+beats as three things nobody disputes are languages. Nothing on the page
+asserts that. The table shows it.
+
+How the alignment is done: the staff is drawn with **no height cap**, so its
+viewBox maps onto its box with no letterboxing and x in the system's
+coordinates is a fixed share of the row's width (`pct()` in
+`Apparatus.tsx`). One number per item, as `--x`, and the browser does the
+rest at every width. Everything in a row is stacked in one grid cell and
+pushed out by `margin-left: var(--x)`, so where an item sits depends on its
+note and on nothing else in the row — while the cell still takes the height
+of its tallest item, which is the one thing the old flow layout was doing.
+Each `.syl` is then **zero wide** with its ink hanging out both ways: the box
+*is* the note's x, so a syllable is centred on its notehead rather than
+starting there.
+
+**The type is sized off the box, not the viewport.** Two beats of the phrase
+are 5.1% of the width apart, and a word centred on its note gets half of
+that, so every size in the table is a `clamp(…, Ncqw, …)` against a
+container query on `.apparatus` — capped at its step on the modular scale
+and shrinking from there. Sized off the viewport it was legible at 62rem and
+colliding at 63. The alignment chose these sizes, not taste: an engraver has
+the other move available and widens the spacing until the lyric fits, but
+here the box is fixed, so the type gives way instead.
 
 The English is split onto the **same syllables as the German**, so the two
-rows can be read down as well as across: *strang-er* against *Fremd-ling*,
-*e-v'ry-where* against *ü-ber-all*. A word sung across more than one note
-is held together as a group with the hyphen inside it, where a vocal score
-puts it, instead of trailing off the end of a syllable and letting the two
-halves read as two words.
+rows read down as well as across: *strang-er* under *Fremd-ling*, *e-v'ry-where*
+under *ü-ber-all*. The hyphen inside a word sung across more than one note
+goes **in the middle of the gap the two words' ink actually leaves**, not at
+the midpoint of their two notes. Those are not the same point when the two
+words are different widths: *v'ry* and *where* are an eighth apart, and a dash
+put at the midpoint of their noteheads lands on the W. The gap is read out of
+the same measurement the arrival uses (`join()`).
 
-**The words arrive from their notes.** Scroll into this stop and each
-syllable starts on its own notehead — the character where the note was, the
-German and the English both off the lyric line — and travels out to its slot
-in the row, left to right, while the staff keeps its place above. What you
-watch is the notes becoming the words, which is the claim the room is making;
-the table is just where they come to rest. The chord symbols rise from under
-the staff at the x of the beat they fall on, since that is where that harmony
-was being played and a singer's page has no symbol for it.
+**The words arrive from their notes**, and now they arrive straight down.
+The lyrics become the German, the noteheads become the Mandarin, and the
+piano accompaniment becomes the chords — each row leaves the thing it is a
+reading of. Because the rows are on the staff's axis, `dx` comes out near
+zero for every item and the only journey left is vertical: the syllable drops
+out of its own notehead into its own column. Nothing crosses the room to get
+where it is going.
+
+Two clocks, because the rows do not all come off the same thing. The German,
+the English and the Mandarin leave the voice staff, which this screen also
+carries, so they wait until the crossfade is over and the staff they are
+leaving is the one you are looking at. The chords leave the pianist, who is
+only on the screen *before* this one, so they go while it is still there: a
+chord symbol starts life on the right-hand staff, at the x of its beat, on
+the pixels the chord itself occupied a moment earlier (`RH_MID`, exported
+from `PianoRibbon.tsx` along with `PIANO_DY` — the piano owns where the piano
+is), and it is already on its way down as the staff that printed it
+dissolves.
+
+A third, short ramp runs just before each item moves. It is the **same word
+in two typefaces at the same spot** — engraved at 12px under the staff, table
+type in the row — and both at full strength reads as a bad shadow rather than
+as one thing becoming another. So the printed lyric hands over *in place*
+first, and a character grows out of its notehead instead of being stamped on
+top of it.
 
 The start positions are the engraver's own: `xAt` for the beat, `noteY` for
-the pitch, `lyricY` for the German, mapped through the staff SVG's viewBox
-exactly as the browser maps it (`xMidYMid meet`: one scale, centred). The
-resting positions are measured, because the rows are laid out with
-`space-between` and where a word settles depends on how wide all the others
-are — a guess lands a few pixels off, which is the part the eye notices. Two
-traps worth knowing, both commented in `Apparatus.tsx`: applying a transform
-makes the transformed element the next one's `offsetParent`, so the number of
-hops changes while the animation runs and the measurement has to walk the
-chain (`offsetIn`) rather than add a fixed number of offsets; and the display
-face arrives over the network, so the slots are measured again on
+the pitch, `lyricY` for the German, `RH_MID` for the chords, mapped through
+the staff SVG's viewBox exactly as the browser maps it (`xMidYMid meet`: one
+scale, centred). The resting positions are still measured, because what a
+word's ink does inside its slot depends on its own width and on the font that
+arrived. Two traps worth knowing, both commented in `Apparatus.tsx`: applying
+a transform makes the transformed element the next one's `offsetParent`, so
+the number of hops changes while the animation runs and the measurement has
+to walk the chain (`offsetIn`) rather than add a fixed number of offsets; and
+the display face arrives over the network, so the slots are measured again on
 `document.fonts.ready`. `prefers-reduced-motion` puts everything home and
 skips the travel.
 
 Tones are plotted on **Chao's 1–5 scale**: five hairlines ruled across the
-Mandarin row and each tone drawn as the line it traces between them, with the
-Chao value (55, 35, 214, 51) printed under the pinyin. A tone box with a rule
+Mandarin row from the first contour to the last — the way a staff stops at
+its barline, off the same `--band-l` / `--band-r` the noteheads come from —
+and each tone drawn as the line it traces between them, with the Chao value
+(55, 35, 214, 51) printed under the pinyin. A tone box with a rule
 across the top would bury the level tone, which runs along exactly that rule,
 so the scale is the only faint ink in the band and the contours are the only
 heavy ink. The chart is sized from one custom property (`--tone-h`) and
@@ -395,10 +457,14 @@ crowded out the thing they were measuring. The measurements still exist —
 `prosody.ts` computes them and the piece sheet reports them at length, with
 the stress table and the 异客 problem written out.
 
-**On a phone** the staff and all four rows stay; three of four is not the
-argument. The row labels move above their rows, the tone band shortens, the
-Chao values drop (the pinyin already carries the tone mark), and the harmony
-sets itself in four even columns instead of wrapping ragged.
+**On a phone the alignment is the thing that goes, not a row.** The staff's
+axis is about 44px between the closest two notes at that width and no type
+fits it, so the rows spread evenly across the width again, the labels move
+above them, the tone band shortens, the Chao values drop (the pinyin already
+carries the tone mark), and the harmony sets itself in four even columns
+instead of wrapping ragged. All four rows stay; three of four is not the
+argument. The arrival still works — it measures where things actually landed
+— it just no longer lands under the note.
 
 ### The engineer stop: the terminal
 
