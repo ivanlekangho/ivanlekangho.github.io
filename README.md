@@ -53,8 +53,9 @@ npm run typecheck  # types only
 
 Everything you'll want to edit is a plain file. No CMS.
 
-Every section is its own route and opens as a panel over the hall, so each one
-has a URL you can link to directly.
+Every section is an anchor on the one page, so each has a URL you can link to
+directly. The things on display — projects, the impact work, the music — are
+records in one file; the sections are just the views of them.
 
 | What | File |
 |---|---|
@@ -78,21 +79,34 @@ has a URL you can link to directly.
 | Tone against tune, stress against the bar | `src/lib/prosody.ts` |
 | Scrolling the hall instead of the page | `src/lib/hallScroll.ts` |
 | Tone systems (Mandarin; Hakka stub) | `src/data/tones.ts` |
-| Bio, languages, study, honours, stack, the palette legend | `src/sections/About.tsx` |
+| **Every project, impact item and music credit** | `src/data/portfolio.ts` |
+| One of them, at a glance | `src/components/Card.tsx` |
+| A grid of them, and the sheet they open into | `src/components/WorkGrid.tsx`, `src/components/WorkSheet.tsx` |
+| The overlay shell they all share | `src/components/Sheet.tsx` |
+| A heading that holds a table shut | `src/components/Fold.tsx` |
+| Who he is, in three paragraphs | `src/sections/About.tsx` |
+| Research and software | `src/sections/Projects.tsx` |
+| Cancer Society, the Uyghur paper, Chin State, the pharmacy | `src/sections/Impact.tsx` |
 | Voice, instruments, composition, the saxophone research | `src/sections/Music.tsx` |
-| Roles, Cancer Society, projects, service | `src/sections/Work.tsx` |
-| The essay, what he's reading toward, the log index | `src/sections/Writing.tsx` |
+| The essay, the open questions, the log index | `src/sections/Writing.tsx` |
+| Roles, leadership, study, honours, languages, stack | `src/sections/Record.tsx` |
 | Contact | `src/sections/Contact.tsx` |
 | A log post on its own page | `src/pages/Post.tsx` |
 | The menu bar and its section list | `src/components/Menu.tsx` |
 | Log posts | `src/content/log/*.md` |
 
-**One page, five anchors.** `#about`, `#music`, `#work`, `#writing`, `#contact`
-all live on `/`, and the menu bar — which arrives the moment the hall is behind
-you — is how you get back to any of them, the hall included. Every URL this site
-has ever had still works: the old panel routes redirect to the matching anchor
-(see `MOVED` in `src/App.tsx`), and `/log/<slug>` redirects to
-`/writing/<slug>`.
+**One page, seven anchors.** `#about`, `#projects`, `#impact`, `#music`,
+`#writing`, `#record`, `#contact` all live on `/`, and the menu bar — which
+arrives the moment the hall is behind you — is how you get back to any of them,
+the hall included. Every URL this site has ever had still works: the old panel
+routes redirect to the matching anchor (see `MOVED` in `src/App.tsx`), with
+`/work` now landing on `#projects` and `/skills` and `/education` on `#record`,
+and `/log/<slug>` redirects to `/writing/<slug>`.
+
+**To add a project**, add a record to `PROJECTS` in `src/data/portfolio.ts`.
+`line` is the sentence on the card and `bullets` is what opens behind it; an
+item with bullets becomes a button, an item with only an `href` becomes a link,
+and an item with neither stays a plain box. Nothing else needs touching.
 
 ### Adding a log post
 
@@ -213,8 +227,32 @@ The Actions flow doesn't run Jekyll at all.)
 
 One scrolling page. The first screen is the **recital room** (the hall, the
 home page — the same thing by any of those names) — a Steinway, a baritone, and
-hanging over them the one system they are both reading. Below it, five bands:
-the room explained, about, work, writing, contact.
+hanging over them the one system they are both reading. Below it, six bands:
+about, projects, impact, music, writing, record, contact.
+
+**The work comes before the paperwork.** It used to be the other way round:
+About opened with four paragraphs of biography and then five tables — languages,
+study, honours, stack, the palette — so a reader met a list of prizes about four
+screens before they met a project. All of that is real and none of it is the
+argument, so it is now one section called Record at the foot of the page, with
+every table but Roles and Leadership folded shut behind its own heading. Record
+went from 4,000 pixels to 1,400 by doing nothing but closing.
+
+**Sections are grids of cards, not lists of entries.** A card carries the three
+things that decide whether a reader wants the rest — what it is, one line of
+what came of it, what it was built with — and the rest is one click away in an
+overlay. Finding out whether there was a project worth reading used to mean
+reading all of them; nine music credits now fit on one screen where nine list
+rows did not fit on three. On a laptop the grids span the label column as well
+as the prose column, because a grid does not owe the prose column its width, and
+that is the difference between two cards per row and three.
+
+**The three things grouped under Impact were scattered across three headings.**
+The charity engineering was an internship under Roles, the paper on Uyghur
+linguistic marginalisation was a project, and the teaching in Chin State and the
+pharmacy were two lines in a Service list at the very bottom. Nothing connected
+them except that they are the same motive — which is the claim About makes, so
+they are now the section that demonstrates it.
 
 **The rail is down the left edge**, where a scrollbar would be, because that
 is what it does. The same markup serves the vertical rail on a desktop and the
@@ -236,6 +274,13 @@ to read. It arrives as soon as you leave and then never goes away, and it marks
 which section you are in with an `IntersectionObserver` band in the upper third
 of the viewport.
 
+Seven sections do not fit a phone's bar. The list has always scrolled
+horizontally, but with the scrollbar hidden nothing said so, and the last two
+sections were simply missing as far as a reader could tell. A mask now fades
+whichever edge there is more content past — right at the start, left at the end,
+both in the middle — driven by `animation-timeline: scroll(self inline)` where
+that exists and left as a plain right-hand fade where it does not.
+
 **The bands take the colour of the reading you chose.** Colour is a custom
 property on `<html>`, so if you leave the hall at the engineer stop the rest of
 the site is lit in steel; leave at musician and it is lit in warm gold. Nothing
@@ -244,6 +289,28 @@ special makes this happen — it is the same lighting board.
 ## How the recital room works
 
 One number drives it: the rail position, 0 to 1.
+
+**Only two things in the room are allowed to re-render while it moves.** The
+rail changes `pos` on every frame of a scroll, which re-renders the hall, which
+used to re-render all three layers — including the terminal, which rebuilt four
+nine-hundred-point polylines each time, and the score, which is 480 nodes of
+engraving. Eighty-one kilobytes of path data regenerated sixty times a second
+for two layers that were not visible yet. That is what the middle of the drag
+felt like.
+
+Both are wrapped in `memo` now. The terminal's only prop is a boolean, so it
+renders twice — once when the stop arrives and once when it leaves — and the
+score's `p` is clamped below the first morph in `Hall.tsx`, so past the clamp
+its props stop changing and so does it. The waveform's polylines are memoised on
+the chord rather than rebuilt per render, since hovering the wave sets state on
+every pointer move. Counted as DOM mutations over a thirty-frame drag: the
+terminal and the score now take zero. What is left moving is the stage and the
+language table, which both have to.
+
+Measure this with mutation counts, not timers. A page in a hidden browser pane
+is a background page — no `requestAnimationFrame` and clamped `setTimeout` — so
+frame timings taken from one say more about Chrome's throttling than about the
+render.
 
 | Rail | What is on screen | The room |
 |---|---|---|

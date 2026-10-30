@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import Sheet from '../Sheet'
 import Todo from '../Todo'
 import { PHRASE, PIECE } from '../../data/phrase'
 import { PIANO_PIECE, PROGRESSION } from '../../data/piano'
@@ -23,38 +23,12 @@ const W = 760
 const GEO: StaffGeom = { gap: 15, bottomY: 110 }
 
 export default function PieceSheet({ onClose }: { onClose: () => void }) {
-  const box = useRef<HTMLDivElement>(null)
-  const restore = useRef<Element | null>(null)
   const axis = soloAxis(170, W - 36)
   const L = voiceLayout(GEO, PHRASE, axis)
 
-  useEffect(() => {
-    restore.current = document.activeElement
-    box.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    /* The room normally owns the wheel; while the sheet is up it does not. */
-    document.documentElement.setAttribute('data-sheet', '')
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.documentElement.removeAttribute('data-sheet')
-      ;(restore.current as HTMLElement | null)?.focus?.()
-    }
-  }, [onClose])
-
   return (
-    <div className="sheet-layer">
-      <div className="sheet-scrim" onClick={onClose} aria-hidden="true" />
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={PIECE.title}
-        ref={box} tabIndex={-1} data-keeps-scroll>
-        <button type="button" className="sheet-close" onClick={onClose} aria-label="Close">
-          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
-            <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor"
-              strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </button>
-
-        <div className="sheet-body">
+    <Sheet onClose={onClose} label={PIECE.title} tone="paper">
+      <>
           <p className="sheet-eyebrow">{PIECE.composer}, {PIECE.year}</p>
           <h2 className="sheet-title">{PIECE.title}</h2>
           <p className="sheet-sub">
@@ -174,8 +148,7 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
             transcribed. A MusicXML or MIDI export from your notation software is one
             click and makes them exact.
           </Todo>
-        </div>
-      </div>
-    </div>
+      </>
+    </Sheet>
   )
 }

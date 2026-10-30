@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
+import Card from '../components/Card'
 import Todo from '../components/Todo'
 import { POSTS } from '../lib/posts'
 
 /**
- * Writing — the essay, what he is currently reading toward, and the log.
+ * Writing — the essay, the open questions, the log.
+ *
+ * The two papers are writing as well, and they are not duplicated here:
+ * they sit with the work they came out of, and this section points at them
+ * rather than listing them twice.
  *
  * The "looking into" list is deliberately phrased as open questions rather
  * than as expertise. Everything in it came from Ivan's own notes, and none
@@ -67,16 +72,25 @@ export default function Writing() {
           it, or tell the story of when you first noticed.
         </Todo>
 
+        <h3 className="h-rule">Papers</h3>
+        <p className="lede">
+          The two longest things written are filed with the work they came out of:{' '}
+          <a href="#projects">authorship inequality in international collaboration</a>
+          {' '}under Projects, and{' '}
+          <a href="#impact">the digital machinery of Uyghur oppression</a> under
+          Impact. Both open to a sample.
+        </p>
+
         <h3 className="h-rule">Looking into</h3>
-        <ul className="index">
+        {/* Open questions, not expertise — and side by side rather than
+            stacked, because four full-width paragraphs read as four essays
+            you have to get through to find the one you care about. */}
+        <div className="cards">
           {LOOKING.map((l) => (
-            <li key={l.title} className="index-row index-row-wide">
-              <span className="index-main" style={{ color: `var(--${l.family}-deep)` }}>{l.title}</span>
-              <span className="index-sub">{l.text}</span>
-              <span className="index-meta" />
-            </li>
+            <Card key={l.title} kind="Question" title={l.title} line={l.text}
+              tint={l.family} />
           ))}
-        </ul>
+        </div>
 
         <h3 className="h-rule">Log</h3>
         {POSTS.length === 0 ? (

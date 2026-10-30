@@ -750,6 +750,15 @@ pre {
   /* The heading and the block it introduces share a grid row, so they need
      the same top margin or the heading floats below its own material. */
   .band .shell > .h-rule + * { margin-top: var(--space-8); }
+
+  /* A grid of cards is not prose and does not owe the prose column its
+     width. Spanning the label column too turns two cards per row into
+     three on a laptop, which is the difference between scanning a section
+     and scrolling one. The label stays above it rather than beside it —
+     fine for a grid, wrong for a paragraph, which is why this is only the
+     grids. */
+  .band .shell > .cards { grid-column: 1 / -1; }
+  .band .shell > .h-rule:has(+ .cards) { margin-bottom: var(--space-2); }
 }
 
 .h-hero {
@@ -875,13 +884,163 @@ pre {
   display: grid; place-items: center; padding: clamp(0.75rem, 3vw, 2.5rem);
 }
 .sheet-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.68); }
+/* ============================================================
+   Folds — a heading that holds a table shut
+   ============================================================ */
+.fold { border-top: 1px solid var(--rule); }
+.fold:last-of-type { border-bottom: 1px solid var(--rule); }
+.fold > summary {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--space-4); padding: var(--space-4) 0;
+  cursor: pointer; list-style: none;
+  transition: color var(--dur-ui) var(--ease);
+}
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover .fold-title { color: var(--ink); }
+.fold > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.fold-title {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--accent);
+  transition: color var(--dur-ui) var(--ease);
+}
+.fold-count {
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--ink-3);
+}
+/* The marker is drawn rather than inherited, because the default triangle
+   is a different shape in every browser and this page has one hairline
+   vocabulary. A plus that becomes a minus — the only two states there are. */
+.fold-title::before {
+  content: ''; display: inline-block; vertical-align: 0.08em;
+  width: 9px; height: 9px; margin-right: 0.85em;
+  background:
+    linear-gradient(currentColor, currentColor) center / 9px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1px 9px no-repeat;
+  transition: background-size var(--dur-ui) var(--ease);
+}
+.fold[open] > summary .fold-title::before {
+  background:
+    linear-gradient(currentColor, currentColor) center / 9px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1px 0 no-repeat;
+}
+/* The tables inside already carry their own bottom margin, and the fold
+   supplies the rule above them, so the body only needs its own top edge. */
+.fold-body { padding-bottom: var(--space-2); }
+.fold-body > .index:last-child, .fold-body > :last-child { margin-bottom: 0; }
+
+/* ============================================================
+   Cards — the at-a-glance layer
+
+   The sections used to be vertical lists of long entries: to find out
+   whether there was a project worth reading you had to read all of them.
+   A card holds the three things that decide that — what it is, one line of
+   what came of it, and what it was built with — and the rest is one click
+   away. Twelve of these fit on a screen; twelve entries did not fit on
+   five.
+   ============================================================ */
+.cards {
+  list-style: none; margin: 0 0 var(--space-6); padding: 0;
+  display: grid; gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
+}
+/* A row of one is a paragraph with a border round it, so a lone card keeps
+   a column's width rather than stretching across the band. */
+.cards-tight { grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); }
+
+.card {
+  position: relative; display: flex; flex-direction: column; gap: var(--space-2);
+  margin: 0; padding: var(--space-4);
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--ink) 2.5%, transparent);
+  text-align: left; font: inherit; color: inherit;
+  transition: border-color var(--dur-ui) var(--ease),
+              background-color var(--dur-ui) var(--ease),
+              transform var(--dur-ui) var(--ease);
+}
+/* Only the ones that open something behave like a control. A card with
+   nothing behind it should not invite a click it cannot answer. */
+button.card, a.card { cursor: pointer; }
+a.card { text-decoration: none; }
+button.card:hover, button.card:focus-visible, a.card:hover, a.card:focus-visible {
+  border-color: var(--accent); transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+button.card:focus-visible, a.card:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.card-eyebrow {
+  display: flex; justify-content: space-between; gap: var(--space-3);
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; color: var(--ink-3); margin: 0;
+}
+.card-title {
+  margin: 0; font-size: var(--step-1); line-height: 1.2; color: var(--ink);
+  font-weight: 500; text-wrap: balance;
+}
+.card-line { margin: 0; color: var(--ink-2); font-size: var(--step--1); line-height: 1.55; }
+.card .chips { margin: auto 0 0; padding-top: var(--space-2); }
+/* The affordance, stated rather than implied — and only on the cards that
+   have somewhere to go. */
+.card-more {
+  margin: auto 0 0; padding-top: var(--space-2);
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--accent-soft);
+}
+button.card:hover .card-more, button.card:focus-visible .card-more,
+a.card:hover .card-more, a.card:focus-visible .card-more { color: var(--accent); }
+
+/* A card that is mostly a picture: the Cancer Society photograph, and
+   anything else where the image is the evidence. */
+.card-figure { margin: 0 0 var(--space-3); }
+.card-figure img { display: block; width: 100%; height: auto; }
+
+/* A frame for something that is not here yet — a photograph, or the figures
+   from a paper. Drawn at the size the real thing will occupy, so the layout
+   it is holding open is the layout you will get, and marked as empty rather
+   than filled with a stand-in that could be mistaken for the work. */
+.photo { margin: 0 0 var(--space-4); max-width: 44rem; }
+.photo-slot, .exhibit {
+  display: grid; place-content: center; gap: var(--space-1);
+  text-align: center; padding: var(--space-4);
+  border: 1px dashed color-mix(in srgb, var(--accent) 48%, transparent);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  color: var(--ink-3);
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+}
+.photo-slot { aspect-ratio: 3 / 2; }
+.photo-slot p { margin: 0; max-width: none; color: var(--ink-2); }
+.photo figcaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--ink-3);
+}
+.exhibit { margin: 0 0 var(--space-4); }
+.exhibit p { margin: 0; max-width: none; color: var(--ink-2); }
+.exhibit-note { text-transform: none; letter-spacing: 0.02em; color: var(--ink-3) !important; }
+
+.sheet-link { margin: var(--space-4) 0 0; font-family: var(--font-mono); font-size: var(--step--1); }
+
+/* The shell every overlay shares: a box of a readable width that cannot grow
+   past the window. The skin below is what differs. */
 .sheet {
   position: relative;
   width: min(54rem, 100%);
   max-height: min(88vh, 54rem);
   display: flex; flex-direction: column;
-  /* Aged paper, built from light rather than from an image: a warm base with
-     a sunlit corner and two patches of foxing. */
+  color: var(--ink);
+}
+
+/* Paper, for the score — because that is what a score is printed on. Built
+   from light rather than from an image: a warm base with a sunlit corner and
+   two patches of foxing. */
+.sheet-paper {
   background-color: #EADDBE;
   background-image:
     radial-gradient(ellipse 70% 60% at 16% 10%, rgba(255, 251, 236, 0.92), transparent 62%),
@@ -891,9 +1050,9 @@ pre {
   transform: rotate(-0.35deg);
   animation: sheet-in 340ms var(--ease) both;
 
-  /* Inside the sheet, paper is paper: these are fixed rather than taken from
-     the lighting board, because parchment does not change colour when the
-     house lights come up. */
+  /* Inside this one, paper is paper: fixed rather than taken from the
+     lighting board, because parchment does not change colour when the house
+     lights come up. */
   --ink: #241C12;
   --ink-2: #5A4A35;
   --ink-3: #8A7558;
@@ -904,11 +1063,31 @@ pre {
   --accent-soft: #A98C52;
   --t0-mid: #6E6259; --t1-mid: #4C6B54; --t2-mid: #8E6A20;
   --t3-mid: #5F4E8C; --t4-mid: #9C4F47;
-  color: var(--ink);
 }
 @keyframes sheet-in {
   from { opacity: 0; transform: rotate(-1.2deg) translateY(16px) scale(0.985); }
   to   { opacity: 1; transform: rotate(-0.35deg); }
+}
+
+/* And a plain panel for everything that is not a score. It keeps the page's
+   own light, because a paper on authorship inequality laid out on simulated
+   parchment would be a costume rather than a design. */
+.sheet-panel {
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--panel-rule) 90%, transparent);
+  box-shadow: 0 44px 110px rgb(0 0 0 / 0.55);
+  animation: sheet-rise 300ms var(--ease) both;
+  --ink: var(--panel-ink);
+  --ink-2: var(--panel-ink-2);
+  --ink-3: color-mix(in srgb, var(--panel-ink-2) 70%, var(--panel));
+  --rule: var(--panel-rule);
+  --accent: var(--panel-accent);
+  --accent-deep: var(--panel-accent);
+  --accent-soft: color-mix(in srgb, var(--panel-accent) 72%, var(--panel));
+}
+@keyframes sheet-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
 }
 .sheet-close {
   position: absolute; top: 12px; right: 12px; z-index: 2;
@@ -1120,12 +1299,41 @@ pre {
   .rail-stop:last-child  { transform: translateX(-90%); }
   .rail-stop-num { display: none; }
 
-  .menu-inner { height: 3.1rem; gap: var(--space-4); padding-inline: var(--space-4); }
+  .menu-inner { height: 3.1rem; gap: var(--space-3); padding-inline: var(--space-4); }
   .menu-brand span { display: none; }
-  .menu-inner a { font-size: 0.68rem; letter-spacing: 0.08em; }
+  .menu-inner a { font-size: 0.64rem; letter-spacing: 0.06em; }
+  /* Seven sections do not fit a phone's bar, and the list has always
+     scrolled — but with the scrollbar hidden, nothing said so, and the last
+     two sections were simply missing as far as a reader could tell. The
+     fade is the scrollbar: it only appears on the side there is more on, so
+     it goes when you reach the end. */
+  .menu-inner ul {
+    gap: var(--space-3);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+  }
+  /* Scroll-driven, so the fade is on the right until you scroll, then on
+     both sides, then on the left — the two ends and the middle. */
+  @supports (animation-timeline: scroll()) {
+    .menu-inner ul {
+      animation: menu-fade linear both;
+      animation-timeline: scroll(self inline);
+    }
+    @keyframes menu-fade {
+      from {
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+      }
+      to {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 1.6rem);
+        mask-image: linear-gradient(to right, transparent, #000 1.6rem);
+      }
+    }
+  }
 
   .h-hero { font-size: var(--step-4); }
-  .sheet { transform: none; max-height: 92vh; }
+  .sheet { max-height: 92vh; }
+  .sheet-paper { transform: none; }
   .sheet-title { font-size: var(--step-3); }
   .chips li { font-size: 0.68rem; padding: 2px 7px; }
 }

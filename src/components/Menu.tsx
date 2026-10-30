@@ -16,9 +16,11 @@ import { Link, useLocation } from 'react-router-dom'
 
 export const SECTIONS = [
   { id: 'about', label: 'About' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'impact', label: 'Impact' },
   { id: 'music', label: 'Music' },
-  { id: 'work', label: 'Work' },
   { id: 'writing', label: 'Writing' },
+  { id: 'record', label: 'Record' },
   { id: 'contact', label: 'Contact' },
 ]
 

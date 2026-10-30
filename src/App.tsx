@@ -4,9 +4,11 @@ import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
 import { useHallScroll } from './lib/hallScroll'
 import About from './sections/About'
+import Projects from './sections/Projects'
+import Impact from './sections/Impact'
 import Music from './sections/Music'
-import Work from './sections/Work'
 import Writing from './sections/Writing'
+import Record from './sections/Record'
 import Contact from './sections/Contact'
 import Post from './pages/Post'
 
@@ -28,11 +30,12 @@ import Post from './pages/Post'
 const MOVED: [string, string][] = [
   ['/recital', '/#music'],
   ['/about', '/#about'],
-  ['/work', '/#work'],
-  ['/impact', '/#work'],
-  ['/projects', '/#work'],
-  ['/skills', '/#about'],
-  ['/education', '/#about'],
+  ['/work', '/#projects'],
+  ['/impact', '/#impact'],
+  ['/projects', '/#projects'],
+  /* Skills, education and the prize list all live in Record now. */
+  ['/skills', '/#record'],
+  ['/education', '/#record'],
   ['/now', '/#about'],
   ['/writing', '/#writing'],
   ['/how-i-think', '/#writing'],
@@ -50,9 +53,11 @@ function Home() {
     <>
       <Hall />
       <About />
+      <Projects />
+      <Impact />
       <Music />
-      <Work />
       <Writing />
+      <Record />
       <Contact />
     </>
   )
