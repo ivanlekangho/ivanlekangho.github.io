@@ -61,16 +61,6 @@ export const PROJECTS: Item[] = [
       '10+ REST endpoints with stateful server-side routing, relational models on RDS and media storage on S3.',
     ],
   },
-  {
-    id: 'this-site',
-    title: 'This website',
-    kind: 'Built here',
-    when: '2026',
-    line: 'The recital room at the top of this page: a music engraving engine, a scroll-driven lighting board and an acoustics terminal that computes beat rates from the pitches, all hand-written.',
-    stack: ['React', 'TypeScript', 'SVG', 'Web Audio', 'Vite'],
-    href: 'https://github.com/ivanlekangho/ivanlekangho.github.io',
-    cta: 'Source',
-  },
 ]
 
 /* ------------------------------------------------------------------ */
