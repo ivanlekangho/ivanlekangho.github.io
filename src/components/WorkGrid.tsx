@@ -32,6 +32,7 @@ export default function WorkGrid({ items, tight }: { items: Item[]; tight?: bool
               title={it.title}
               line={it.line}
               stack={it.stack}
+              pending={!it.line}
               more={opens ? (it.cta ?? 'Read more') : it.href ? (it.cta ?? 'Visit') : undefined}
               onOpen={opens ? () => setOpen(it) : undefined}
               href={opens ? undefined : it.href}

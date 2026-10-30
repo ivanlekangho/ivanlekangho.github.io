@@ -20,10 +20,11 @@ export default function Impact() {
         <h2 className="h-hero">Built for someone<br />who needed it</h2>
 
         <p className="lede">
-          A cancer support charity’s internal tooling, a paper on who is pushed out
-          of digital space, six weeks of Python taught into Chin State, and four
-          years behind a pharmacy counter. All of it has a named person on the
-          other end.
+          A cancer support charity’s internal tooling, two quarters of
+          introductory computer science, a research lab, a paper on who is pushed
+          out of digital space, six weeks of Python taught into Chin State, and
+          four years behind a pharmacy counter. All of it has a named person on
+          the other end.
         </p>
 
         <h3 className="h-rule">Cancer Society of New Zealand</h3>
@@ -60,6 +61,14 @@ export default function Impact() {
 
         <h3 className="h-rule">Elsewhere</h3>
         <WorkGrid items={IMPACT} />
+        <Todo>
+          The SPOG lab card is a title and nothing else, because the name is all
+          I have. What does it stand for, what does the lab work on, and what is
+          your part in it — and is it the same group as the Stanford Speech and
+          Cognitive Development Lab already under Record, or a separate one? If
+          it is the same, say so and I will merge them rather than list one
+          person’s lab twice.
+        </Todo>
         <Todo>
           Dates for Code4Myanmar — which six weeks, and which year.
         </Todo>

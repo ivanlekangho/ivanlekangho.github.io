@@ -86,7 +86,7 @@ records in one file; the sections are just the views of them.
 | A heading that holds a table shut | `src/components/Fold.tsx` |
 | Who he is, in three paragraphs | `src/sections/About.tsx` |
 | Research and software | `src/sections/Projects.tsx` |
-| Cancer Society, the Uyghur paper, Chin State, the pharmacy | `src/sections/Impact.tsx` |
+| Cancer Society, teaching, the lab, the Uyghur paper, Chin State, the pharmacy | `src/sections/Impact.tsx` |
 | Voice, instruments, composition, the saxophone research | `src/sections/Music.tsx` |
 | The essay, the open questions, the log index | `src/sections/Writing.tsx` |
 | Roles, leadership, study, honours, languages, stack | `src/sections/Record.tsx` |

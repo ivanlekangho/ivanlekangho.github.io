@@ -22,7 +22,7 @@ const ROLES = [
   },
   {
     org: 'Stanford School of Engineering',
-    role: 'Section leader, introductory computer science — Python, JavaScript and C++ for 15–20 students a quarter',
+    role: 'Section leader, CS106A and CS106B — Python, then C++ and data structures, for 15–20 students a quarter. Under Impact.',
     when: 'Mar 2026 – present',
   },
   {

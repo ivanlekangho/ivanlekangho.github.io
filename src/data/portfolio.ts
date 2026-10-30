@@ -20,8 +20,9 @@ export type Item = {
   /** The eyebrow — what kind of thing this is. */
   kind: string
   when?: string
-  /** The card's one line. */
-  line: string
+  /** The card's one line. Absent where the fact is not his to invent —
+   *  the loud note under the grid is carrying it instead. */
+  line?: string
   stack?: string[]
   /** The sheet's body. An item with none of these does not open. */
   bullets?: string[]
@@ -106,6 +107,23 @@ export const CHARITY: Item[] = [
 
 /** Everything else under social impact. */
 export const IMPACT: Item[] = [
+  {
+    id: 'teaching',
+    title: 'CS106A and CS106B',
+    kind: 'Section leader',
+    when: 'Mar 2026 – present',
+    line: 'Stanford’s introductory computer science sequence — Python, then C++ and data structures — for 15–20 students a quarter.',
+    stack: ['Python', 'C++', 'JavaScript'],
+    bullets: [
+      'Section leader for Stanford’s introductory computer science sequence: CS106A in Python, CS106B in C++ and data structures.',
+      '15–20 students a quarter, in section and in office hours.',
+    ],
+  },
+  {
+    id: 'spog',
+    title: 'SPOG lab',
+    kind: 'Research',
+  },
   {
     id: 'uyghur',
     title: 'Mandarin, Monitors, and Marginalization: The Digital Machinery of Uyghur Oppression',

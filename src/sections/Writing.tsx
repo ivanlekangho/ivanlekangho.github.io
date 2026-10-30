@@ -28,6 +28,14 @@ const LOOKING = [
     text: 'Indigenous language and data sovereignty — Te Hiku Media’s licence, Māori data sovereignty frameworks. A speech corpus is not a neutral asset, and the people who built the archive are usually not the people who end up monetising it.',
   },
   {
+    /* Same family as the recording question above it, and next to it on
+       purpose: both are about who holds a decision rather than who is
+       consulted about one. */
+    title: 'Who a gene drive needs permission from',
+    family: 't1',
+    text: 'Gene drives are on the table for predator control in New Zealand, and a drive does not stop at a property line, a trial boundary or a border. Who is liable once it crosses one, and whether Māori get a decision rather than a consultation, are the two questions the Gene Technology Bill does not appear to reach.',
+  },
+  {
     title: 'Censorship as an engineering artefact',
     family: 't4',
     text: 'Chinese-language text analysis and platform asymmetry: what is sayable on Weibo, and what Douyin surfaces that TikTok does not for the same query. The interesting part is that the difference is measurable.',

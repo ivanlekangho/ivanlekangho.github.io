@@ -10,7 +10,7 @@ import Chips from './Chips'
  * invitation to click that leads nowhere is worse than no invitation.
  */
 export default function Card({
-  kind, when, title, line, stack, more, onOpen, href, tint,
+  kind, when, title, line, stack, more, onOpen, href, tint, pending,
 }: {
   kind?: string
   when?: string
@@ -20,6 +20,10 @@ export default function Card({
   /** One of the four tone families, where the title's colour carries
    *  meaning rather than decoration. */
   tint?: string
+  /** Says out loud that the description is missing. A card with nothing in
+   *  it but a title is four fifths empty space, and empty space reads as a
+   *  bug rather than as a gap unless something labels it. */
+  pending?: boolean
   /** The label on the affordance. Its presence is what makes this a button. */
   more?: string
   onOpen?: () => void
@@ -38,6 +42,7 @@ export default function Card({
       </h4>
       {line && <p className="card-line">{line}</p>}
       {stack && stack.length > 0 && <Chips items={stack} label="Stack" />}
+      {pending && <p className="card-pending">Needs a description</p>}
       {more && <p className="card-more">{more}</p>}
     </>
   )
