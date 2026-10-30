@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { SYS, xAt } from '../../lib/beatmap'
 import { lerp } from '../../lib/easing'
 import { useNarrow } from '../../lib/useNarrow'
@@ -46,7 +47,13 @@ const TOP = 150 - 4 * 13
 const BOT = PIANO_DY + 196
 const BX = 16
 
-export default function Score({ p, beat }: { p: number; beat: number | null }) {
+/**
+ * Also memoised. Hall.tsx clamps `p` below the first morph so the staff is
+ * held at notation while it dissolves — which means that past the clamp the
+ * props stop changing, and a component whose props stop changing should stop
+ * re-rendering. Four hundred and eighty nodes of engraving, once.
+ */
+function Score({ p, beat }: { p: number; beat: number | null }) {
   const s = staging(p)
   const head = beat === null ? null : xAt(beat)
   const F = useNarrow() ? FRAME_NARROW : FRAME
@@ -87,3 +94,5 @@ export default function Score({ p, beat }: { p: number; beat: number | null }) {
    pianist's space begins — belongs to the piano now, because the language
    stop reads it too: see PianoRibbon.tsx. */
 void VOICE_H
+
+export default memo(Score)

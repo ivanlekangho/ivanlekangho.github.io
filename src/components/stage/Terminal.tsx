@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { HARMONY } from '../../data/piano'
 import { beatsIn, periodicity } from '../../lib/acoustics'
 import { identify, parseChord, SUGGESTIONS, type Chord } from '../../lib/chords'
@@ -96,14 +96,18 @@ const f2 = (n: number) => n.toFixed(2)
  */
 function envelope(rate: number) {
   const cycles = rate * BEAT_SPAN
-  const n = Math.min(1400, Math.max(200, Math.round(cycles * 44)))
+  /* Twenty-two samples per spindle, which at this lane height is past the
+     point where more of them change the drawing — and a hundred and fifty
+     fewer per lane than the first version, which put forty kilobytes of
+     path data in the document for three thin ribbons. */
+  const n = Math.min(700, Math.max(120, Math.round(cycles * 22)))
   const top: string[] = []
   const bot: string[] = []
   for (let i = 0; i <= n; i++) {
     const x = ((i / n) * W).toFixed(1)
     const a = Math.abs(Math.cos(Math.PI * cycles * (i / n))) * BEAT_A
-    top.push(`${x},${(BEAT_MID - a).toFixed(2)}`)
-    bot.push(`${x},${(BEAT_MID + a).toFixed(2)}`)
+    top.push(`${x},${(BEAT_MID - a).toFixed(1)}`)
+    bot.push(`${x},${(BEAT_MID + a).toFixed(1)}`)
   }
   return `M${top.join('L')}L${bot.reverse().join('L')}Z`
 }
@@ -128,7 +132,14 @@ function openingChord(): Chord {
   return parseChord(last.symbol) ?? parseChord('C')!
 }
 
-export default function Terminal({ live }: { live: boolean }) {
+/**
+ * Wrapped in `memo` because the rail re-renders the hall on every frame of a
+ * scroll and this pane is the most expensive thing in it: four polylines of
+ * nine hundred points each, plus three beat envelopes. Its only prop is a
+ * boolean, so memo turns sixty renders a second into two — one when the stop
+ * arrives and one when it leaves.
+ */
+function Terminal({ live }: { live: boolean }) {
   const [line, setLine] = useState('')
   const [chord, setChord] = useState<Chord | null>(openingChord)
   const [tuning, setTuning] = useState<TuningId>('equal')
@@ -230,6 +241,12 @@ export default function Terminal({ live }: { live: boolean }) {
   const sumAt = (t: number) => raw(t) / peak
   const tHover = at === null ? 0 : at * span
 
+  /* The sum and the component sines, built once per chord rather than once
+     per render: hovering the waveform sets state sixty times a second, and
+     each of these is a nine-hundred-point string. */
+  const sumPath = useMemo(() => path(sumAt, SUM_A), [freqs, span, peak])    // eslint-disable-line react-hooks/exhaustive-deps
+  const partPaths = useMemo(() => freqs.map((f) => path(partial(f), PART_A)), [freqs, span]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const fromPiece = HARMONY.find((h) => chord && h.symbol === chord.symbol)
 
   return (
@@ -277,14 +294,14 @@ export default function Terminal({ live }: { live: boolean }) {
 
               {/* each note on its own, under the sum, once you go looking */}
               <g className="term-parts" style={{ opacity: at === null && only === null ? 0.22 : 1 }}>
-                {freqs.map((f, i) => (
-                  <polyline key={i} points={path(partial(f), PART_A)} fill="none"
+                {partPaths.map((d, i) => (
+                  <polyline key={i} points={d} fill="none"
                     stroke={lane(i)} strokeWidth="1"
                     opacity={only === null ? 0.6 : only === i ? 1 : 0.12} />
                 ))}
               </g>
 
-              <polyline points={path(sumAt, SUM_A)} fill="none" stroke="var(--accent)"
+              <polyline points={sumPath} fill="none" stroke="var(--accent)"
                 strokeWidth="1.6" strokeLinejoin="round" />
 
               {/* where the whole shape starts over, if the window reaches it */}
@@ -434,3 +451,5 @@ y = sum(sin(2*pi*f*t) for f in notes.values())`}</pre>
     </div>
   )
 }
+
+export default memo(Terminal)
