@@ -21,10 +21,10 @@ export default function Impact() {
 
         <p className="lede">
           A cancer support charity’s internal tooling, two quarters of
-          introductory computer science, a research lab, a paper on who is pushed
-          out of digital space, six weeks of Python taught into Chin State, and
-          four years behind a pharmacy counter. All of it has a named person on
-          the other end.
+          introductory computer science, two research labs, a paper on who is
+          pushed out of digital space and one on who a gene drive has to ask, six
+          weeks of Python taught into Chin State, and four years behind a
+          pharmacy counter. All of it has a named person on the other end.
         </p>
 
         <h3 className="h-rule">Cancer Society of New Zealand</h3>
@@ -62,12 +62,21 @@ export default function Impact() {
         <h3 className="h-rule">Elsewhere</h3>
         <WorkGrid items={IMPACT} />
         <Todo>
-          The SPOG lab card is a title and nothing else, because the name is all
-          I have. What does it stand for, what does the lab work on, and what is
-          your part in it — and is it the same group as the Stanford Speech and
-          Cognitive Development Lab already under Record, or a separate one? If
-          it is the same, say so and I will merge them rather than list one
-          person’s lab twice.
+          <b>Two labs, two titles, no descriptions.</b> SPOG and SoyaLab are both
+          a name and nothing else, because a name is all I have and a lab is not
+          something to invent a description for. For each: what it stands for,
+          what the lab works on, and what your part in it is. And the question
+          that matters most — is either of them the Stanford Speech and Cognitive
+          Development Lab already listed under Record? If so, say which, and I
+          will merge rather than list one person’s lab twice under two names.
+        </Todo>
+        <Todo>
+          <b>The gene drive paper.</b> I have your argument but not the artefact:
+          its real title, when you wrote it and what it was for, and whether
+          there is a PDF or a passage you want readable. The card is currently
+          titled by description rather than by name. While you are there, the
+          Uyghur paper’s excerpt frame is still empty — one of those two filled
+          is worth more than both described.
         </Todo>
         <Todo>
           Dates for Code4Myanmar — which six weeks, and which year.

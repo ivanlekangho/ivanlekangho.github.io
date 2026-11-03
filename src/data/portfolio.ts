@@ -125,6 +125,11 @@ export const IMPACT: Item[] = [
     kind: 'Research',
   },
   {
+    id: 'soyalab',
+    title: 'SoyaLab',
+    kind: 'Research',
+  },
+  {
     id: 'uyghur',
     title: 'Mandarin, Monitors, and Marginalization: The Digital Machinery of Uyghur Oppression',
     kind: 'Research',
@@ -133,6 +138,17 @@ export const IMPACT: Item[] = [
     exhibit: 'uyghur',
     bullets: [
       'How Chinese state media, platform design and language policy combine to push Uyghur linguistic expression out of digital space — three mechanisms usually studied separately, read as one machine.',
+    ],
+  },
+  {
+    id: 'gene-drives',
+    title: 'Gene drives in New Zealand',
+    kind: 'Research',
+    line: 'Who is liable once a gene drive crosses a border, and whether Māori get a decision rather than a consultation — two gaps the Gene Technology Bill does not appear to reach.',
+    stack: ['Research paper', 'Biotechnology policy', 'Law'],
+    bullets: [
+      'Gene drives are on the table for predator control in New Zealand, and a drive does not stop at a property line, a trial boundary or a border.',
+      'Two legal gaps follow from that: who is liable once it has crossed one, and whether Māori get a decision rather than a consultation. Neither appears to be reached by the Gene Technology Bill.',
     ],
   },
   {
