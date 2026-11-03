@@ -757,8 +757,19 @@ pre {
      and scrolling one. The label stays above it rather than beside it —
      fine for a grid, wrong for a paragraph, which is why this is only the
      grids. */
-  .band .shell > .cards { grid-column: 1 / -1; }
-  .band .shell > .h-rule:has(+ .cards) { margin-bottom: var(--space-2); }
+  .band .shell > .cards,
+  .band .shell > .group,
+  .band .shell > .edu { grid-column: 1 / -1; }
+  /* A label sitting in the narrow column needs the big top margin on the
+     block beside it so the two share a baseline. A block that spans both
+     columns is BELOW its label, not beside it, so the same margin becomes
+     a seventy-pixel hole. */
+  .band .shell > .h-rule:has(+ .cards),
+  .band .shell > .h-rule:has(+ .group),
+  .band .shell > .h-rule:has(+ .edu) { margin-bottom: var(--space-3); }
+  .band .shell > .h-rule + .cards,
+  .band .shell > .h-rule + .group,
+  .band .shell > .h-rule + .edu { margin-top: 0; }
 }
 
 .h-hero {
@@ -931,73 +942,181 @@ pre {
 .fold-body > .index:last-child, .fold-body > :last-child { margin-bottom: 0; }
 
 /* ============================================================
+   Arrival
+
+   Sections and grids rise into place the first time you reach them.
+   The hidden state lives behind .can-reveal, which lib/reveal.ts adds to
+   <html> only when it is actually going to run — so with JavaScript off,
+   an observer missing, or reduced motion asked for, the default below is
+   simply "visible" and nothing is ever stuck invisible.
+
+   Cards inside a revealed grid stagger by index. Six steps and then it
+   stops: past about 150ms of delay a stagger reads as the page being slow
+   rather than as the cards arriving.
+   ============================================================ */
+.can-reveal [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 620ms var(--ease-out), transform 620ms var(--ease-out);
+}
+.can-reveal [data-reveal].is-in { opacity: 1; transform: none; }
+
+.can-reveal .cards[data-reveal] > .card {
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 560ms var(--ease-out), transform 560ms var(--ease-out);
+}
+.can-reveal .cards[data-reveal].is-in > .card { opacity: 1; transform: none; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(1) { transition-delay: 0ms; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(2) { transition-delay: 45ms; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(3) { transition-delay: 90ms; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(4) { transition-delay: 115ms; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(5) { transition-delay: 135ms; }
+.can-reveal .cards[data-reveal].is-in > .card:nth-child(n+6) { transition-delay: 150ms; }
+/* A card lifts under the pointer on its own curve; the arrival transform
+   must not fight the hover transform once it has landed. */
+.can-reveal .cards[data-reveal].is-in > button.card:hover,
+.can-reveal .cards[data-reveal].is-in > a.card:hover { transform: translateY(-3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .can-reveal [data-reveal],
+  .can-reveal .cards[data-reveal] > .card { opacity: 1; transform: none; }
+}
+
+/* ============================================================
    Cards — the at-a-glance layer
 
-   The sections used to be vertical lists of long entries: to find out
-   whether there was a project worth reading you had to read all of them.
-   A card holds the three things that decide that — what it is, one line of
-   what came of it, and what it was built with — and the rest is one click
-   away. Twelve of these fit on a screen; twelve entries did not fit on
-   five.
+   The first version of this was a paragraph with a border round it: four
+   lines of grey prose at one size, twelve times down a page, which is how
+   a grid of distinct things comes to look like wallpaper. Three devices
+   fix that, and all three are about variation rather than decoration.
+
+   One: the number leads. A metric at display size differs from card to
+   card and is the most trustworthy thing this site has to offer.
+   Two: the lead card in each group is twice as wide. An even grid reads
+   as a list.
+   Three: the body text is one sentence. The sheet is for reading.
    ============================================================ */
 .cards {
-  list-style: none; margin: 0 0 var(--space-6); padding: 0;
-  display: grid; gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
+  margin: 0 0 var(--space-7);
+  display: grid; gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  align-items: stretch;
+  /* Dense, because a two-column card in a three-column grid leaves a hole
+     beside it and the next card starts a fresh row. Music has three lead
+     cards and without this it had three holes. Dense backfills them with
+     whichever later card fits, which reorders the grid against the DOM —
+     acceptable here because the order within a group carries no argument,
+     and the lead card is still first either way. */
+  grid-auto-flow: row dense;
 }
-/* A row of one is a paragraph with a border round it, so a lone card keeps
-   a column's width rather than stretching across the band. */
 .cards-tight { grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); }
 
 .card {
-  position: relative; display: flex; flex-direction: column; gap: var(--space-2);
-  margin: 0; padding: var(--space-4);
+  position: relative; display: flex; flex-direction: column;
+  gap: var(--space-2); margin: 0;
+  padding: var(--space-5) var(--space-4) var(--space-4);
   border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--ink) 2.5%, transparent);
   text-align: left; font: inherit; color: inherit;
-  transition: border-color var(--dur-ui) var(--ease),
-              background-color var(--dur-ui) var(--ease),
-              transform var(--dur-ui) var(--ease);
+  /* The one place this site uses a soft easing rather than a linear one:
+     a card under a pointer should feel like an object being picked up. */
+  transition:
+    border-color 240ms var(--ease-out),
+    background-color 240ms var(--ease-out),
+    box-shadow 240ms var(--ease-out),
+    transform 240ms var(--ease-spring);
 }
-/* Only the ones that open something behave like a control. A card with
-   nothing behind it should not invite a click it cannot answer. */
+
+/* The lead card of a group: two columns where there is room, and its
+   number set at twice the size. */
+.card-lead { grid-column: span 2; }
+@media (max-width: 46rem) { .card-lead { grid-column: span 1; } }
+
 button.card, a.card { cursor: pointer; }
 a.card { text-decoration: none; }
 button.card:hover, button.card:focus-visible, a.card:hover, a.card:focus-visible {
-  border-color: var(--accent); transform: translateY(-2px);
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  box-shadow: 0 14px 34px -18px rgb(0 0 0 / 0.55);
+  transform: translateY(-3px);
 }
 button.card:focus-visible, a.card:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+  outline: 2px solid var(--accent); outline-offset: 3px;
 }
 
 .card-eyebrow {
   display: flex; justify-content: space-between; gap: var(--space-3);
   font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  font-size: 0.68rem; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--ink-3); margin: 0;
 }
-.card-title {
-  margin: 0; font-size: var(--step-1); line-height: 1.2; color: var(--ink);
-  font-weight: 500; text-wrap: balance;
+
+/* The number, and what it counts. */
+.card-metric { margin: var(--space-2) 0 0; display: flex; align-items: baseline; gap: 0.55em; }
+.card-metric b {
+  font-weight: 600; font-size: var(--step-3); line-height: 1;
+  letter-spacing: -0.03em; color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
-.card-line { margin: 0; color: var(--ink-2); font-size: var(--step--1); line-height: 1.55; }
-.card .chips { margin: auto 0 0; padding-top: var(--space-2); }
-/* The affordance, stated rather than implied — and only on the cards that
-   have somewhere to go. */
+.card-metric span {
+  font-size: var(--step--1); color: var(--ink-3); line-height: 1.3; text-wrap: balance;
+}
+.card-lead .card-metric b { font-size: var(--step-4); }
+
+.card-title {
+  margin: 0; font-size: var(--step-0); line-height: 1.25; color: var(--ink);
+  font-weight: 500; letter-spacing: -0.012em; text-wrap: balance;
+}
+.card-lead .card-title { font-size: var(--step-1); letter-spacing: -0.018em; }
+.card-line {
+  margin: 0; color: var(--ink-2); font-size: var(--step--1); line-height: 1.55;
+  max-width: 44ch;
+}
+.card .chips { margin: var(--space-1) 0 0; }
+
+/* Everything that sits at the foot, pushed there so cards of different
+   content length still line up along the bottom. */
+.card-foot {
+  margin-top: auto; padding-top: var(--space-3);
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  justify-content: space-between; gap: var(--space-2) var(--space-4);
+}
 .card-more {
-  margin: auto 0 0; padding-top: var(--space-2);
-  font-family: var(--font-label); font-size: var(--step--1);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--accent-soft);
+  font-family: var(--font-label); font-size: 0.68rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent-soft); transition: color 240ms var(--ease-out);
 }
 button.card:hover .card-more, button.card:focus-visible .card-more,
 a.card:hover .card-more, a.card:focus-visible .card-more { color: var(--accent); }
 
+/* ---- attachments -------------------------------------------------
+   The signal that there is something to open rather than something to
+   read about. A card with one of these has evidence behind it. */
+.atts { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.att {
+  display: inline-flex; align-items: center; gap: 0.45em;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-label); font-size: 0.66rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); text-decoration: none;
+  transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
+a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.att-mark { flex: none; }
+/* Declared but not delivered. Only ever visible while developing — the
+   component drops these from the built site. */
+.att.is-missing {
+  color: var(--ink-3); border-style: dashed;
+  border-color: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+
 /* Same dashed frame as the photograph and the figures, at one line high:
    the site has one way of saying "this is missing" and this is it. */
 .card-pending {
-  margin: auto 0 0; padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3);
   border: 1px dashed color-mix(in srgb, var(--accent) 48%, transparent);
   background: color-mix(in srgb, var(--accent) 4%, transparent);
   color: var(--ink-3); text-align: center;
@@ -1005,10 +1124,22 @@ a.card:hover .card-more, a.card:focus-visible .card-more { color: var(--accent);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
 }
 
-/* A card that is mostly a picture: the Cancer Society photograph, and
-   anything else where the image is the evidence. */
-.card-figure { margin: 0 0 var(--space-3); }
-.card-figure img { display: block; width: 100%; height: auto; }
+/* ---- groups ------------------------------------------------------ */
+.group { margin-bottom: var(--space-6); }
+.group-gloss {
+  margin: 0 0 var(--space-4); max-width: 40ch;
+  color: var(--ink-3); font-size: var(--step--1);
+}
+
+/* ---- education --------------------------------------------------- */
+.edu { margin-bottom: var(--space-6); }
+.edu-deg { margin: 0; font-size: var(--step-1); color: var(--ink); letter-spacing: -0.015em; }
+.edu-when {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--ink-3);
+}
+.edu .chips { margin-bottom: var(--space-5); }
 
 /* A frame for something that is not here yet — a photograph, or the figures
    from a paper. Drawn at the size the real thing will occupy, so the layout

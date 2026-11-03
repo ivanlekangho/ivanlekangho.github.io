@@ -22,10 +22,10 @@ export default function About() {
     <section id="about" className="band">
       <div className="shell">
         <p className="eyebrow">About</p>
-        <h2 className="h-hero">&ldquo;Ich bin ein<br />Fremdling überall&rdquo;</h2>
+        <h2 className="h-hero" data-reveal>&ldquo;Ich bin ein<br />Fremdling überall&rdquo;</h2>
 
         <div className="prose">
-          <p className="lede">
+          <p className="lede" data-reveal>
             <em>I am a stranger everywhere.</em> My favourite line in any song.
             Schubert gives it to a baritone with nowhere to be from, and the room
             at the top of this page is built out of the bars that carry it: one

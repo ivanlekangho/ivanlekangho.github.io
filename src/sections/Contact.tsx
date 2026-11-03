@@ -9,7 +9,7 @@ export default function Contact() {
     <section id="contact" className="band band-last">
       <div className="shell">
         <p className="eyebrow">Contact</p>
-        <h2 className="h-hero">Say hello</h2>
+        <h2 className="h-hero" data-reveal>Say hello</h2>
 
         <ul className="index">
           {LINKS.map((l) => (

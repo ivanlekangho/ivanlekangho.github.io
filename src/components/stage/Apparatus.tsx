@@ -425,7 +425,7 @@ export default function Apparatus({ p }: { p: number }) {
 
       <dl className="apparatus-rows">
         <div className="arow">
-          <dt>Mandarin</dt>
+          <dt>Chinese</dt>
           <dd className="arow-syl arow-han" data-row="han" style={HAN_BAND}>
             <ToneScale />
             {HAN.map(({ n, i }, k) => (
