@@ -38,8 +38,16 @@ export type Attachment = {
 
 export type Item = {
   id: string
-  /** The card's title. Short. */
-  title: string
+  /** The company, school or ensemble. Set in ink above the title, because
+   *  it is the first thing most readers scan for and it was previously
+   *  buried in the same grey micro-caps as the date. Where a thing was
+   *  made for nobody — a paper, a side project — there is none, and the
+   *  card starts at its title instead. */
+  org?: string
+  /** What was done. Short. Optional, because the two labs are an org and
+   *  nothing else, and inventing a job title for them would be worse than
+   *  leaving the line out. */
+  title?: string
   /** The real, full title, where the card shows an abbreviation of it. */
   fullTitle?: string
   group: Group
@@ -72,10 +80,11 @@ export const ITEMS: Item[] = [
   /* ---------------------------------------------------------- work */
   {
     id: 'charity-db',
+    org: 'Cancer Society of New Zealand',
     group: 'work',
     featured: true,
     title: 'Rebuilding an undocumented patient database',
-    kind: 'Cancer Society',
+    kind: 'Engineering',
     when: 'Jun – Sep 2026',
     metric: { value: '95%', label: 'faster extraction' },
     line: 'No documentation, no declared foreign keys. The schema came back out of the data.',
@@ -89,9 +98,10 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'charity-governance',
+    org: 'Cancer Society of New Zealand',
     group: 'work',
     title: 'Deciding what a charity may keep',
-    kind: 'Cancer Society',
+    kind: 'Data governance',
     when: '2026',
     metric: { value: '60k', label: 'donor records' },
     line: 'Which records the privacy policy required deleting, and which lapsed donors were worth keeping.',
@@ -103,9 +113,10 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'charity-apis',
+    org: 'Cancer Society of New Zealand',
     group: 'work',
     title: 'Two APIs replacing two forms',
-    kind: 'Cancer Society',
+    kind: 'Engineering',
     when: '2026',
     metric: { value: '80%', label: 'less overpayment' },
     line: 'Driver reimbursement from map distance rather than self-reported hours.',
@@ -117,9 +128,10 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'teaching',
+    org: 'Stanford University',
     group: 'work',
     title: 'CS106A and CS106B',
-    kind: 'Teaching',
+    kind: 'Section leader',
     when: 'Mar 2026 – present',
     metric: { value: '15–20', label: 'students a quarter' },
     line: 'Section leader for Stanford’s intro sequence — Python, then C++ and data structures.',
@@ -131,16 +143,18 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'code4myanmar',
+    org: 'Code4Myanmar',
     group: 'work',
-    title: 'Code4Myanmar',
+    title: 'Volunteer Python instructor',
     kind: 'Teaching',
-    line: 'Six weeks of Python, taught remotely into Chin State.',
+    line: 'Six weeks, remote, for college-aged students in Chin State.',
     stack: ['Python'],
   },
   {
     id: 'pharmacy',
+    org: 'Grafton Pharmacy',
     group: 'work',
-    title: 'Grafton Pharmacy',
+    title: 'Four years behind the counter',
     kind: 'Service',
     when: '2020 – 2024',
     metric: { value: '300+', label: 'hours' },
@@ -198,8 +212,8 @@ export const ITEMS: Item[] = [
       'Two legal gaps follow from that: who is liable once it has crossed one, and whether Māori get a decision rather than a consultation. Neither appears to be reached by the Gene Technology Bill.',
     ],
   },
-  { id: 'spog', group: 'research', title: 'SPOG lab', kind: 'Lab' },
-  { id: 'soyalab', group: 'research', title: 'SoyaLab', kind: 'Lab' },
+  { id: 'spog', org: 'SPOG lab', group: 'research', kind: 'Lab' },
+  { id: 'soyalab', org: 'SoyaLab', group: 'research', kind: 'Lab' },
 
   /* ------------------------------------------------------ projects */
   {
@@ -232,10 +246,11 @@ export const byGroup = (g: Group) => ITEMS.filter((i) => i.group === g)
 export const MUSIC: Item[] = [
   {
     id: 'mixedco',
+    org: 'Mixed Company, Stanford',
     group: 'work',
     featured: true,
-    title: 'Mixed Company',
-    kind: 'Musical Director',
+    title: 'Musical Director',
+    kind: 'A cappella',
     when: '2026 – present',
     metric: { value: 'MD', label: 'Stanford’s oldest all-gender a cappella group' },
     line: 'Running the rehearsals, the arrangements and the room.',
@@ -244,6 +259,7 @@ export const MUSIC: Item[] = [
   },
   {
     id: 'abendlied',
+    org: 'NZCF–SOUNZ',
     group: 'work',
     featured: true,
     title: 'Abendlied',
@@ -262,6 +278,7 @@ export const MUSIC: Item[] = [
   },
   {
     id: 'ipq',
+    org: 'Cambridge IPQ',
     group: 'research',
     featured: true,
     title: 'The shape of a saxophone mouthpiece',
@@ -278,23 +295,26 @@ export const MUSIC: Item[] = [
   },
   {
     id: 'nzssc',
+    org: 'NZ Secondary Students’ Choir',
     group: 'work',
-    title: 'NZ Secondary Students’ Choir',
-    kind: 'Soloist',
+    title: 'Soloist',
+    kind: 'Choir',
     when: '2023 – 2024',
     metric: { value: '1 of 56', label: 'nationally' },
     line: 'Represented New Zealand at the China International Chorus Festival.',
   },
   {
     id: 'kings-choirs',
+    org: 'King’s College',
     group: 'work',
-    title: 'King’s College choirs',
+    title: 'Kappella, and All the King’s Men',
     kind: 'Choir leader',
     when: '2020 – 2024',
     line: 'Kappella and All the King’s Men — Gold, Silver and Bronze at the National Big Sing.',
   },
   {
     id: 'sax',
+    org: 'Little Big Band',
     group: 'work',
     title: 'Alto saxophone',
     kind: 'Grade 8, distinction',
@@ -303,6 +323,7 @@ export const MUSIC: Item[] = [
   },
   {
     id: 'violin',
+    org: 'King’s College Symphony Orchestra',
     group: 'work',
     title: 'Violin',
     kind: 'Grade 6, distinction',

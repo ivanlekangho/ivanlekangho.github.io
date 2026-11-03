@@ -34,6 +34,7 @@ export default function WorkGrid({ items, tight }: { items: Item[]; tight?: bool
               key={it.id}
               kind={it.kind}
               when={it.when}
+              org={it.org}
               title={it.title}
               line={it.line}
               stack={it.stack}

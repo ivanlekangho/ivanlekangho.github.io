@@ -729,14 +729,52 @@ pre {
    the material runs in one measured column. No centred stacks, no card
    grids, no rounded boxes — the structure is made of hairlines.
    ============================================================ */
+/* ---- panels -------------------------------------------------------
+   Every section is at least a screen tall and snaps to the top of the
+   window. `proximity` rather than `mandatory`: three of these sections
+   hold more than a screen of content, and mandatory snapping on a panel
+   taller than the viewport fights the reader the whole way down it and
+   can strand content out of reach entirely. Proximity snaps when you let
+   go near an edge and leaves you alone in the middle of a long one,
+   which is the behaviour people actually mean by "it snaps".
+
+   svh, not vh: on a phone, vh is the height with the URL bar hidden, so
+   a 100vh panel is taller than the screen until you scroll.
+
+   `safe center` centres the content of a short panel and quietly stops
+   centring on a panel taller than the window — plain `center` would push
+   the top of a long one above the scroll origin where it cannot be
+   reached. */
 .band {
+  min-height: 100svh;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column; justify-content: safe center;
   padding-block: clamp(3.5rem, 8vh, 6.5rem);
   border-top: 1px solid var(--rule);
   scroll-margin-top: 3.5rem;
+  /* The slab edge. A hairline alone made seven sections read as one long
+     document; a shadow above each one makes them read as stacked. */
+  box-shadow: 0 -26px 64px -34px rgb(0 0 0 / 0.6);
 }
- /* Tall enough that the last section can actually reach the top of the
-    viewport when you jump to it from the menu. */
-.band-last { padding-bottom: clamp(5rem, 12vh, 9rem); min-height: calc(100vh - 3.5rem); }
+/* Alternate the ground very slightly, so a section change is visible
+   before the heading is read. Two percent — any more and it stripes. */
+.band:nth-of-type(even) { background: color-mix(in srgb, var(--ink) 2%, transparent); }
+.band > .shell { width: 100%; }
+
+.band-last { padding-bottom: clamp(5rem, 12vh, 9rem); }
+
+html {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 3.5rem;
+}
+/* Snapping is involuntary motion, so anyone who asked for less of it gets
+   an ordinary scroll. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-snap-type: none; }
+}
+/* A sheet is a scroll container of its own; the page must not be
+   snapping underneath it. */
+html[data-sheet] { scroll-snap-type: none; }
 .shell { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--gutter); }
 
 @media (min-width: 64rem) {
@@ -1064,6 +1102,21 @@ button.card:focus-visible, a.card:focus-visible {
 }
 .card-lead .card-metric b { font-size: var(--step-4); }
 
+/* The company or the school, and the loudest thing on a card after the
+   number. It used to be the eyebrow — grey micro-caps, the same weight as
+   the date beside it — which buried exactly the word a reader scanning a
+   portfolio is looking for. */
+.card-org {
+  margin: var(--space-1) 0 0; color: var(--ink);
+  font-size: var(--step-0); font-weight: 600; letter-spacing: -0.014em;
+  line-height: 1.2; text-wrap: balance;
+}
+.card-lead .card-org { font-size: var(--step-1); letter-spacing: -0.02em; }
+/* With an org above it the title is the subordinate line, not the loud
+   one, so it steps back to the weight of body copy. */
+.card-org + .card-title { font-weight: 400; color: var(--ink-2); font-size: var(--step--1); }
+.card-lead .card-org + .card-title { font-size: var(--step-0); }
+
 .card-title {
   margin: 0; font-size: var(--step-0); line-height: 1.25; color: var(--ink);
   font-weight: 500; letter-spacing: -0.012em; text-wrap: balance;
@@ -1125,21 +1178,49 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 }
 
 /* ---- groups ------------------------------------------------------ */
-.group { margin-bottom: var(--space-6); }
+/* Impact holds three groups and five screens of cards, so the section
+   cannot be one panel. Each group is its own snap target instead, which
+   is what makes "it snaps" true of the longest section rather than only
+   of the short ones. */
+.group {
+  min-height: 100svh; scroll-snap-align: start; scroll-margin-top: 3.5rem;
+  display: flex; flex-direction: column; justify-content: safe center;
+  margin-bottom: var(--space-6);
+}
 .group-gloss {
   margin: 0 0 var(--space-4); max-width: 40ch;
   color: var(--ink-3); font-size: var(--step--1);
 }
 
 /* ---- education --------------------------------------------------- */
-.edu { margin-bottom: var(--space-6); }
-.edu-deg { margin: 0; font-size: var(--step-1); color: var(--ink); letter-spacing: -0.015em; }
+/* Each school is its own screen. Together they are two and a half, and
+   the snap would otherwise land on "Education" and then on nothing until
+   Contact. */
+.edu {
+  min-height: 100svh; scroll-snap-align: start; scroll-margin-top: 3.5rem;
+  display: flex; flex-direction: column; justify-content: safe center;
+  margin-bottom: var(--space-7);
+}
+.edu-org {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display); font-weight: 600;
+  font-size: var(--step-3); letter-spacing: -0.028em; line-height: 1.05;
+  color: var(--ink); text-transform: none;
+}
+.edu-deg { margin: 0; font-size: var(--step-0); color: var(--ink-2); }
 .edu-when {
   margin: 0 0 var(--space-4);
   font-family: var(--font-label); font-size: var(--step--1);
   letter-spacing: var(--label-tracking); text-transform: uppercase; color: var(--ink-3);
 }
 .edu .chips { margin-bottom: var(--space-5); }
+/* Twelve prizes was the single reason this panel ran past its screen. Two
+   columns did not help — halving the width made every row wrap and the
+   list came out the same height — so the rows get tighter instead. They
+   are one line each and were being set with reading leading. */
+.edu-honours .index-row { padding-block: 7px; }
+.edu-honours .index-main { font-size: var(--step--1); font-weight: 500; }
+.edu-honours .index-sub { font-size: 0.76rem; line-height: 1.4; }
 
 /* A frame for something that is not here yet — a photograph, or the figures
    from a paper. Drawn at the size the real thing will occupy, so the layout

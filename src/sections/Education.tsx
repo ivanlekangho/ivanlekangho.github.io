@@ -55,9 +55,12 @@ const STANFORD_CLUBS = [
   { org: 'Phi Kappa Psi', role: 'Deputy Chair, Risk Management and Violence Intervention & Prevention', when: 'Sep 2026 – present' },
 ]
 
-function Rows({ items }: { items: { org?: string; what?: string; role?: string; where?: string; when: string }[] }) {
+function Rows({ items, className }: {
+  items: { org?: string; what?: string; role?: string; where?: string; when: string }[]
+  className?: string
+}) {
   return (
-    <ul className="index">
+    <ul className={className ? `index ${className}` : 'index'}>
       {items.map((r) => (
         <li key={(r.org ?? r.what)! + r.when} className="index-row">
           <span className="index-main">{r.org ?? r.what}</span>
@@ -76,20 +79,20 @@ export default function Education() {
         <p className="eyebrow">Education</p>
         <h2 className="h-hero" data-reveal>Two schools</h2>
 
-        <h3 className="h-rule">Stanford</h3>
         <div className="edu" data-reveal>
+          <h3 className="edu-org">Stanford University</h3>
           <p className="edu-deg">B.S. Computer Science, B.S. Mathematics</p>
           <p className="edu-when">to June 2028</p>
           <Chips items={COURSEWORK} label="Coursework" />
           <Rows items={STANFORD_CLUBS} />
         </div>
 
-        <h3 className="h-rule">King’s College</h3>
         <div className="edu" data-reveal>
-          <p className="edu-deg">Cambridge International and NZQA, Auckland</p>
+          <h3 className="edu-org">King’s College, Auckland</h3>
+          <p className="edu-deg">Cambridge International and NZQA</p>
           <p className="edu-when">to 2024</p>
           <Rows items={KINGS_ROLES} />
-          <Rows items={KINGS_HONOURS} />
+          <Rows items={KINGS_HONOURS} className="edu-honours" />
         </div>
 
         <Todo>

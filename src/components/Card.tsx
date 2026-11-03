@@ -73,12 +73,15 @@ export function Attachments({ items }: { items: Attachment[] }) {
 }
 
 export default function Card({
-  kind, when, title, line, stack, more, onOpen, href, tint, pending,
+  kind, when, org, title, line, stack, more, onOpen, href, tint, pending,
   metric, featured, attachments,
 }: {
   kind?: string
   when?: string
-  title: string
+  /** The company, school or ensemble. The loudest thing on the card after
+   *  the number — it is what a reader scans a portfolio for. */
+  org?: string
+  title?: string
   line?: string
   stack?: string[]
   /** One of the four tone families, where the title's colour carries
@@ -105,15 +108,18 @@ export default function Card({
           {when && <span>{when}</span>}
         </p>
       )}
+      {org && <p className="card-org">{org}</p>}
       {metric && (
         <p className="card-metric">
           <b>{metric.value}</b>
           <span>{metric.label}</span>
         </p>
       )}
-      <h4 className="card-title" style={tint ? { color: `var(--${tint}-deep)` } : undefined}>
-        {title}
-      </h4>
+      {title && (
+        <h4 className="card-title" style={tint ? { color: `var(--${tint}-deep)` } : undefined}>
+          {title}
+        </h4>
+      )}
       {line && <p className="card-line">{line}</p>}
       {stack && stack.length > 0 && <Chips items={stack} label="Stack" />}
       {pending && <p className="card-pending">Needs a description</p>}

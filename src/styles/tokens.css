@@ -69,19 +69,20 @@
   --t0-wash: #F1EDE7;  --t0-mid: #C9BFB4;  --t0-deep: #6E6259;
 
   /* --- type -------------------------------------------------------
-     Two faces, and no third. Inter sets everything that is read; Commit
+     Two faces, and no third. Geist sets everything that is read; Commit
      Mono sets everything that is measured — labels, data, frequencies,
-     roman numerals.
+     roman numerals. Code keeps the mono on purpose: on this site mono
+     means "measured", and that distinction is load-bearing at the
+     engineer stop.
 
-     Inter rather than a display face, because the hierarchy here is
-     carried by size, weight and space rather than by a second voice, and
-     a neutral grotesque is the one kind of type that gets out of the way
-     of a music stave and a waveform on the same page. It is variable, so
-     the weight shift between the three stops below is free, and it has
-     real italics — which the face this replaced did not.
+     A neutral grotesque rather than a display face, because the hierarchy
+     here is carried by size, weight and space rather than by a second
+     voice, and a neutral face is the one kind of type that gets out of
+     the way of a music stave and a waveform on the same page. Geist is
+     variable, so the weight shift between the three stops below is free.
      ------------------------------------------------------------------ */
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:    'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-mono:    'Commit Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   /* TODO(font): the Mandarin line renders in a system CJK face for now.
      Ship a subsetted LXGW WenKai containing only the glyphs actually used

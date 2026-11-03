@@ -64,9 +64,11 @@ function UyghurExhibit() {
 
 export default function WorkSheet({ item, onClose }: { item: Item; onClose: () => void }) {
   return (
-    <Sheet onClose={onClose} label={item.fullTitle ?? item.title}>
-      <p className="sheet-eyebrow">{item.kind}{item.when ? ` — ${item.when}` : ''}</p>
-      <h2 className="sheet-title">{item.fullTitle ?? item.title}</h2>
+    <Sheet onClose={onClose} label={item.fullTitle ?? item.title ?? item.org ?? 'Detail'}>
+      <p className="sheet-eyebrow">
+        {[item.org, item.kind, item.when].filter(Boolean).join(' — ')}
+      </p>
+      <h2 className="sheet-title">{item.fullTitle ?? item.title ?? item.org}</h2>
       {item.stack && item.stack.length > 0 && <Chips items={item.stack} label="Stack" />}
 
       {item.exhibit === 'authorship' && <AuthorshipExhibit />}

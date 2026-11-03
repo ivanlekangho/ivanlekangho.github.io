@@ -20,7 +20,7 @@ export default function Music() {
         <p className="eyebrow">Music</p>
         <h2 className="h-hero" data-reveal>Voice, saxophone,<br />violin, composition</h2>
 
-        <WorkGrid items={MUSIC} />
+        <WorkGrid items={MUSIC} tight />
 
         <Todo>
           Two attachment slots are waiting on this page and they are the two
