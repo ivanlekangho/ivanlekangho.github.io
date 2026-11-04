@@ -751,22 +751,77 @@ pre {
   display: flex; flex-direction: column; justify-content: safe center;
   padding-block: clamp(3.5rem, 8vh, 6.5rem);
   border-top: 1px solid var(--rule);
-  scroll-margin-top: 3.5rem;
+  /* No scroll-margin here. The container's scroll-padding-top already
+     insets the snapport by the height of the menu; setting both made
+     every snap land 112px low — the section's top sitting half a bar
+     below the bar, which is what "the snap doesn't work" looked like. */
   /* The slab edge. A hairline alone made seven sections read as one long
      document; a shadow above each one makes them read as stacked. */
   box-shadow: 0 -26px 64px -34px rgb(0 0 0 / 0.6);
 }
-/* Alternate the ground very slightly, so a section change is visible
-   before the heading is read. Two percent — any more and it stripes. */
-.band:nth-of-type(even) { background: color-mix(in srgb, var(--ink) 2%, transparent); }
+/* ---- a colour per section ----------------------------------------
+   Each band takes one of the four tone families as its accent, so the
+   metric on a card, the rules, the eyebrow and the hover state all shift
+   together and a section is identifiable before a word of it is read.
+   Alternating one grey two percent lighter did not do that.
+
+   The families are the ones the Mandarin tones already use, so this
+   introduces no new hue to the site — it spends the palette that was
+   sitting in a folded table. The wash is four percent: enough to feel
+   the ground change under you, not enough to stripe. */
+.band { --tone: var(--t0-mid); }
+#about     { --tone: var(--t3-mid); }
+#impact    { --tone: var(--t1-mid); }
+#music     { --tone: var(--t2-mid); }
+#education { --tone: var(--t4-mid); }
+#contact   { --tone: var(--t0-mid); }
+
+.band {
+  --accent: var(--tone);
+  --accent-deep: var(--tone);
+  /* Mixed toward transparent rather than toward --bg: --bg is rewritten
+     on every frame of a rail drag, and mixing against it made five
+     bands' worth of colour recompute sixty times a second for sections
+     nobody was looking at. */
+  --accent-soft: color-mix(in srgb, var(--tone) 72%, transparent);
+  background:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--tone) 6%, transparent),
+      color-mix(in srgb, var(--tone) 2%, transparent) 42%,
+      transparent);
+}
 .band > .shell { width: 100%; }
 
 .band-last { padding-bottom: clamp(5rem, 12vh, 9rem); }
 
+/* A section that contains its own panels is not itself a panel. Impact
+   held three groups and Education two schools, and all of them were snap
+   targets at once — the browser had a candidate at the section's top and
+   another 1,200px later, and picked between them unpredictably. Only the
+   leaves snap now. */
+.band:has(.group), .band:has(.edu) { scroll-snap-align: none; }
+
 html {
-  scroll-snap-type: y proximity;
+  /* Mandatory, so a section lands rather than drifts. The one thing this
+     needs is an exception for the hall, below.
+
+     Worth recording how the hall exception was found, because it looked
+     like a snap bug and was not: a mandatory container must always rest
+     on a snap position, and the hall starts at document top, so its
+     position computes to -56px once scroll-padding insets the snapport.
+     -56 does not exist. Without a position of its own at zero the browser
+     takes the next valid one and throws the page down to About on load —
+     the centrepiece skipped, and the wheel hijack dead with it, since the
+     room only owns the wheel while scrollY is 0. */
+  scroll-snap-type: y mandatory;
   scroll-padding-top: 3.5rem;
 }
+/* The hall is the one place mandatory must not reach. It starts at
+   document top, so its snap position computes to -56px once the padding
+   above insets the snapport — a position that does not exist — and the
+   room only owns the wheel while scrollY is 0. Giving it a snap position
+   of its own at exactly zero keeps the first screen reachable. */
+.hall { scroll-snap-align: start; scroll-margin-top: -3.5rem; }
 /* Snapping is involuntary motion, so anyone who asked for less of it gets
    an ordinary scroll. */
 @media (prefers-reduced-motion: reduce) {
@@ -1055,7 +1110,11 @@ html[data-sheet] { scroll-snap-type: none; }
   padding: var(--space-5) var(--space-4) var(--space-4);
   border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--ink) 2.5%, transparent);
+  /* A flat tint rather than a mix of --ink. The lighting board rewrites
+     --ink on every frame of a rail drag, and mixing from it made two
+     dozen off-screen cards recompute their ground sixty times a second
+     for a difference nobody can see. Every stop on this site is dark. */
+  background: rgb(255 255 255 / 0.028);
   text-align: left; font: inherit; color: inherit;
   /* The one place this site uses a soft easing rather than a linear one:
      a card under a pointer should feel like an object being picked up. */
@@ -1183,7 +1242,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    is what makes "it snaps" true of the longest section rather than only
    of the short ones. */
 .group {
-  min-height: 100svh; scroll-snap-align: start; scroll-margin-top: 3.5rem;
+  min-height: 100svh; scroll-snap-align: start;
   display: flex; flex-direction: column; justify-content: safe center;
   margin-bottom: var(--space-6);
 }
@@ -1197,7 +1256,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    the snap would otherwise land on "Education" and then on nothing until
    Contact. */
 .edu {
-  min-height: 100svh; scroll-snap-align: start; scroll-margin-top: 3.5rem;
+  min-height: 100svh; scroll-snap-align: start;
   display: flex; flex-direction: column; justify-content: safe center;
   margin-bottom: var(--space-7);
 }
