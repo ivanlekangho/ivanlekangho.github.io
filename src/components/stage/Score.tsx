@@ -28,7 +28,20 @@ import VoiceStaves, { VOICE_H } from './VoiceRibbon'
  * the notation and opens out as the rail moves.
  */
 export const FRAME = [
-  { y: 78, h: 342 },   // musician: top line of the voice staff to the bass staff
+  /* musician: top line of the voice staff down to the lowest ink in the
+     piece, which is NOT the bass staff's bottom line.
+
+     This used to stop at h: 342 — 24 units below that bottom line, which
+     looked like plenty. It was not. The left hand's lowest notes live on
+     ledger lines under the staff: the D2 that resolves the phrase sits at
+     418 and the A1 opening bar 2 sits at 429, three ledgers down. The old
+     frame ended at 420, so the A1 notehead and its third ledger line were
+     cropped off the bottom of the camera entirely, and the D2 lost its
+     lower half. The note was in the data, drawn, correctly coloured, and
+     outside the picture.
+
+     429 + the notehead's own half-height, plus air: the bottom is 444. */
+  { y: 78, h: 366 },
   { y: 14, h: 450 },   // linguist: the tone arrows down to the progression
   { y: 52, h: 446 },   // engineer: data series down to the ratios
 ]
