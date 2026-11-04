@@ -417,6 +417,7 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
         const hollow = n.event.beats >= 2
         const acc = WRITTEN.get(n.key)
         const on = live(n)
+        const morph = Math.max(s.tAB, s.tBC)
         return (
           <g key={n.key}>
             <g opacity={s.oA} stroke="var(--staff)" strokeWidth={ENG.ledger * U}>
@@ -426,9 +427,23 @@ export default function PianoStaves({ p, beat }: { p: number; beat: number | nul
               ))}
             </g>
             {on && <circle cx={x} cy={y} r={13} fill={`var(--${fam}-mid)`} opacity="0.18" />}
+            {/* Bravura's own notehead while the staff is a staff, and the
+                plain ellipse once the morph starts — a glyph cannot untilt
+                itself into a dot, and the dot is where these are going.
+                They sit at the same point, so the handover is invisible.
+
+                The minim used to be an ellipse filled with --hall and ringed
+                at 1.8px: a hole the colour of the room, which on a dark
+                stage read as nothing at all. Bar two of the left hand is an
+                A octave minim and it looked like a missing note, because to
+                a reader it was one. The real glyph has a real counter. */}
+            <g opacity={1 - morph}>
+              <Glyph name={hollow ? 'noteheadHalf' : 'noteheadBlack'} gap={U} centre
+                x={x} y={y} fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`} />
+            </g>
             <ellipse cx={0} cy={0} rx={ENG.headRx * U} ry={ENG.headRy * U}
-              fill={hollow ? 'var(--hall)' : `var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
-              stroke={hollow ? `var(--${fam}-${on ? 'deep' : 'mid'})` : 'none'} strokeWidth={hollow ? 1.8 : 0}
+              opacity={morph}
+              fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
               transform={`translate(${x} ${y}) rotate(${lerp(ENG.headTilt, 0, s.tAB)}) scale(${scale * (on ? 1.4 : 1)})`} />
             {acc && (
               <Glyph gap={U} x={xA - g.gap * 1.95} y={yA} opacity={s.oA} fill="var(--ink-2)"

@@ -143,7 +143,7 @@ export function VoiceLyrics({
 }: { g: StaffGeom; layout: L; fontSize?: number; opacity?: number; notes?: Note[] }) {
   const sung = notes.map((n, i) => (n.german ? i : -1)).filter((i) => i >= 0)
   return (
-    <g fontFamily="var(--font-body)" fontSize={fontSize ?? g.gap * 0.82} fill="var(--ink-2)"
+    <g fontFamily="var(--font-score)" fontSize={fontSize ?? g.gap * 0.9} fill="var(--ink-2)"
       opacity={opacity} letterSpacing="0.02em">
       {notes.map((n, i) => {
         if (!n.german) return null

@@ -130,8 +130,9 @@ pre {
   border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg) 46%, transparent);
-  font-family: var(--font-display); font-weight: var(--display-weight);
-  font-size: var(--step-1); letter-spacing: var(--display-tracking);
+  /* The credit belongs to the score, so it is set in the score's face. */
+  font-family: var(--font-score); font-weight: 400;
+  font-size: var(--step-1); letter-spacing: -0.004em;
   color: var(--ink-2);
   transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease),
     background-color var(--dur-ui) var(--ease);
@@ -1390,6 +1391,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--space-2);
 }
 .sheet-title {
+  font-family: var(--font-score);
   font-size: var(--step-4); color: var(--ink); margin: 0 0 var(--space-2);
 }
 .sheet-sub {
@@ -1458,7 +1460,8 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   /* The stage is a band pinned to the bottom here, so the system can sit
      in the middle of what is left instead of hugging the header. */
   .score-system { padding-inline: var(--space-3); align-items: center; }
-  .score-title { font-size: var(--step-0); }
+  .score-title {
+  font-family: var(--font-score); font-size: var(--step-0); }
   .score-tag { font-size: 0.66rem; letter-spacing: 0.08em; gap: var(--space-3); }
   .score-svg { max-height: 28vh; }
   .score-layer { align-items: center; }
@@ -1467,7 +1470,8 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
      which the piece sheet carries at length. */
   /* All four rows stay on a phone — three of four is not the argument.
      The label column drops above its row so the content gets the width. */
-  .score-title { flex-wrap: wrap; justify-content: center; gap: var(--space-1); }
+  .score-title {
+  font-family: var(--font-score); flex-wrap: wrap; justify-content: center; gap: var(--space-1); }
   /* Small, but the piece has to be on the page: every row under it is a
      reading of these nine notes. */
   .apparatus-staff { margin-bottom: var(--space-1); }

@@ -42,6 +42,10 @@ export const PATH = {
   flagDown: 'M16 -14C25 -14 38 -8 40 8C57 103 131 190 182 269C245 368 306 487 306 612C306 690 286 761 278 793C275 804 269 808 262 808C247 808 230 789 240 760C254 718 261 668 261 623C261 564 236 480 221 446C184 362 134 281 0 236V1C0 -9 8 -14 16 -14Z',
   /** U+E000 — one em tall; scale it to the system */
   brace: 'M49 397C49 327 14 265 14 192C14 92 41 34 63 6C67 1 69 0 71 0C74 0 77 3 77 6C77 9 76 12 72 17C67 25 44 75 44 128C44 181 74 275 81 334C82 339 82 344 82 350C82 409 49 480 20 498C49 516 82 587 82 646C82 651 82 657 81 662C74 722 44 815 44 869C44 921 67 971 72 980C76 984 77 987 77 990C77 992 76 994 75 994C74 995 73 997 71 997C69 997 67 995 63 990C41 963 14 905 14 805C14 706 49 666 49 603C49 556 30 530 2 498C20 478 49 462 49 397Z',
+  /** U+E0A4 — origin at the left edge, centred on the pitch */
+  noteheadBlack: 'M0 -42C0 -94 43 -125 97 -125C186 -125 295 -43 295 42C295 93 255 125 198 125C88 125 0 44 0 -42Z',
+  /** U+E0A3 — the same oval with a hole; a minim or a semibreve-tied head */
+  noteheadHalf: 'M97 -125C262 -125 295 9 295 42C295 93 254 125 196 125C47 125 0 10 0 -42C0 -95 42 -125 97 -125ZM29 -44C29 5 174 84 221 84C240 84 251 75 258 63C261 57 264 51 264 44C264 1 123 -87 75 -87C54 -87 42 -76 35 -64C32 -58 29 -51 29 -44Z',
 } as const
 
 /** Ink bounds in font units, [xMin, yMin, xMax, yMax], y up. Lets a
@@ -58,6 +62,8 @@ export const BBOX: Record<GlyphName, [number, number, number, number]> = {
   flagUp: [0, -810.1921176545985, 264, 9],
   flagDown: [0, -14, 306, 808],
   brace: [2, 0, 82, 997],
+  noteheadBlack: [0, -125, 295, 125],
+  noteheadHalf: [0, -125, 295, 125],
 }
 
 export type GlyphName = keyof typeof PATH

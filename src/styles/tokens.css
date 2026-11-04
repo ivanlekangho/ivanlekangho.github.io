@@ -84,6 +84,12 @@
   --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-body:    'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-mono:    'Commit Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* The score's own voice. Lyrics, the credit over the stage and the piece
+     sheet are set in this and nothing else is: engraved text is a Century
+     Schoolbook and has been for a century, and a grotesque under a staff
+     reads as a slide about music rather than as music. C059 is URW's
+     Century Schoolbook — the same lineage as Dorico's Edwin. */
+  --font-score:   'C059', 'Century Schoolbook', 'New Century Schoolbook', Georgia, serif;
   /* TODO(font): the Mandarin line renders in a system CJK face for now.
      Ship a subsetted LXGW WenKai containing only the glyphs actually used
      (我处处皆为异客 …) — the full font is several megabytes. */

@@ -34,6 +34,8 @@ WANTED = [
     ('flagUp', 0xE240, 'origin at the tip of an up stem'),
     ('flagDown', 0xE241, 'origin at the tip of a down stem'),
     ('brace', 0xE000, 'one em tall; scale it to the system'),
+    ('noteheadBlack', 0xE0A4, 'origin at the left edge, centred on the pitch'),
+    ('noteheadHalf', 0xE0A3, 'the same oval with a hole; a minim or a semibreve-tied head'),
 ]
 
 f = TTFont(SRC)

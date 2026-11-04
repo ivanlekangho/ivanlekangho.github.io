@@ -4,7 +4,7 @@ import { PHRASE, PIECE } from '../../data/phrase'
 import { PIANO_PIECE, PROGRESSION } from '../../data/piano'
 import { soloAxis } from '../../lib/beatmap'
 import { noteY, type StaffGeom } from '../../lib/notation'
-import { ENG } from '../../lib/smufl'
+import { Glyph } from '../../lib/smufl'
 import { FITS, TALLY } from '../../lib/prosody'
 import { SYLLABLES } from '../../data/mandarin'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
@@ -44,9 +44,8 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
               return (
                 <g key={n.id}>
                   <NoteMarks n={n} x={L.xs[i]} y={y} dir={L.dirs[i]} g={GEO} />
-                  <ellipse cx={L.xs[i]} cy={y} rx={ENG.headRx * GEO.gap} ry={ENG.headRy * GEO.gap}
-                    transform={`rotate(${ENG.headTilt} ${L.xs[i]} ${y})`}
-                    fill={`var(--t${n.tone ?? 0}-mid)`} />
+                  <Glyph name={n.beats >= 2 ? 'noteheadHalf' : 'noteheadBlack'} gap={GEO.gap}
+                    centre x={L.xs[i]} y={y} fill={`var(--t${n.tone ?? 0}-mid)`} />
                 </g>
               )
             })}

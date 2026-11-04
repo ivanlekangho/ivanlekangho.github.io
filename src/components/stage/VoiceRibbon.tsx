@@ -4,7 +4,7 @@ import { MANDARIN } from '../../data/tones'
 import { SYS, barX, xAt } from '../../lib/beatmap'
 import { diatonic, noteY, type StaffGeom } from '../../lib/notation'
 import { ARROW, FITS, STRONG_BEATS } from '../../lib/prosody'
-import { ENG } from '../../lib/smufl'
+import { ENG, Glyph } from '../../lib/smufl'
 import { NoteMarks, VoiceLyrics, VoiceStaffFurniture, voiceLayout } from '../score/VoiceStaff'
 import { lerp } from '../../lib/easing'
 import { staging } from './staging'
@@ -152,8 +152,13 @@ export default function VoiceStaves({ p, beat }: { p: number; beat: number | nul
             {on && <circle cx={x} cy={y} r={15} fill={`var(--${fam}-mid)`} opacity="0.2" />}
             {/* the notehead, and the word it turns into — same place, one
                 fading as the other arrives */}
+            <g opacity={(1 - s.oB) * (1 - Math.max(s.tAB, s.tBC))}>
+              <Glyph name={n.beats >= 2 ? 'noteheadHalf' : 'noteheadBlack'} gap={GEO.gap}
+                centre x={x} y={y}
+                fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`} />
+            </g>
             <ellipse cx={0} cy={0} rx={ENG.headRx * GEO.gap} ry={ENG.headRy * GEO.gap}
-              opacity={1 - s.oB}
+              opacity={(1 - s.oB) * Math.max(s.tAB, s.tBC)}
               fill={`var(--${fam}-${on || s.tBC > 0.5 ? 'deep' : 'mid'})`}
               transform={`translate(${x} ${y}) rotate(${lerp(ENG.headTilt, 0, s.tAB)}) scale(${scale})`} />
             {n.han && (
