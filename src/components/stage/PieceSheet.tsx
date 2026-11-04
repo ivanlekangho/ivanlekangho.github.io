@@ -143,9 +143,13 @@ export default function PieceSheet({ onClose }: { onClose: () => void }) {
             what was actually hard about it.
           </Todo>
           <Todo>
-            The piano chord voicings are still measured off a screenshot rather than
-            transcribed. A MusicXML or MIDI export from your notation software is one
-            click and makes them exact.
+            <b>One question about key.</b> The MuseScore file you sent is in E
+            minor; the room is in B minor, a fourth below, which is where the
+            original image-read put it. Every note here is now your file
+            transposed down that fourth. If E minor is the key you actually
+            sing, say so and the whole room moves — it is one transposition in
+            <code>phrase.ts</code> and <code>piano.ts</code> and the harmony
+            labels follow automatically.
           </Todo>
       </>
     </Sheet>

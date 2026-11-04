@@ -780,12 +780,12 @@ each to put back.
 
 ## Known gaps
 
-- The piano chord voicings in `src/data/piano.ts` are **measured off a
-  screenshot, not transcribed** — see `PIANO_UNVERIFIED`. The pitches are good
-  (the same pipeline reproduced the vocal line exactly) but a MusicXML or MIDI
-  export would make the voicings certain. The vocal line is confirmed. The one
-  phrasing slur in `SLURS` is visible in Ivan's score image but where it ends
-  is read, not measured.
+- The piano is **transcribed from Ivan's MuseScore file** now, not read off a
+  photograph — `PIANO_UNVERIFIED` is false. What is still open is the key: his
+  file is in E minor and the room is in B minor, a fourth below, and the data
+  here is his file transposed down. If E minor is the key he sings, the room
+  should move. The one phrasing slur in `SLURS` is visible in the score but
+  where it ends is read, not measured.
 - Chinese text falls back to a system CJK face. Ship a subsetted `LXGW WenKai`
   containing only the glyphs used — the full font is several megabytes.
 - `react-markdown` is most of the ~128 KB gzipped bundle. If the log stays

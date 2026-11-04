@@ -4,22 +4,23 @@ import type { Pitch } from '../lib/tuning'
  * THE PIANO PART — Schubert, "Der Wanderer" D.489, the "Ich bin ein Fremdling
  * überall" bar and a half, in B minor.
  *
- * HOW THIS WAS READ. Not by eye. The score image was processed: staff lines
- * found by row-ink density, staff and ledger rules stripped by vertical run
- * length, beams stripped by horizontal run length, then a notehead-sized
- * ellipse correlated across the page with greedy non-maximum suppression.
- * The same pipeline was validated against the vocal line first, where it
- * reproduced Ivan's hand-checked pitches exactly, including the one he hadn't
- * listed. Accidentals were read off magnified glyph bitmaps.
+ * WHERE THIS CAME FROM. Ivan's own MuseScore file, which settles it. Every
+ * pitch, duration, beam and tie below was read out of the score's XML and
+ * transposed down a perfect fourth — his file is in E minor and the room is
+ * in B minor (see the note on key in PIECE).
  *
- * ⚠️  STILL WANTS A SECOND PAIR OF EYES — see PIANO_UNVERIFIED. The reading is
- *     measured, not guessed, and the harmony it produces is coherent (see the
- *     cadence below), but chord voicings are the place a pixel of error turns
- *     into a wrong chord. A MusicXML or MIDI export from Ivan's notation
- *     software would make this exact and is one click.
+ * It replaces an image-processing read of a score photograph, which got the
+ * voice exactly right, got the whole left hand exactly right including the
+ * A octave minim that opens bar 2, and got two right-hand chords wrong:
+ * an A read as a G in the beamed quavers of bar 1, and an A missing
+ * altogether from the dominant seventh in bar 2. Both were a notehead
+ * landing a step off, which is what a pixel of error looks like once it is
+ * a chord. The first of them also mis-named the harmony — B7 was being
+ * called B augmented, because the note that makes it a seventh was the one
+ * that went missing.
  */
 
-export const PIANO_UNVERIFIED = true
+export const PIANO_UNVERIFIED = false
 
 export type PianoEvent = {
   id: string
@@ -39,12 +40,12 @@ const p = (step: Pitch['step'], octave: number, accidental?: Pitch['accidental']
 export const RH: PianoEvent[] = [
   { id: 'r0', beats: 0.5, pitches: [], rest: true },
   { id: 'r1', beats: 1.0, pitches: [p('F', 3, 'sharp'), p('B', 3), p('D', 4)] },
-  { id: 'r2', beats: 0.5, beam: 'rb', pitches: [p('F', 3, 'sharp'), p('G', 3), p('B', 3), p('D', 4, 'sharp')] },
-  { id: 'r3', beats: 0.5, beam: 'rb', pitches: [p('F', 3, 'sharp'), p('G', 3), p('B', 3), p('D', 4, 'sharp')] },
+  { id: 'r2', beats: 0.5, beam: 'rb', pitches: [p('F', 3, 'sharp'), p('A', 3), p('B', 3), p('D', 4, 'sharp')] },
+  { id: 'r3', beats: 0.5, beam: 'rb', pitches: [p('F', 3, 'sharp'), p('A', 3), p('B', 3), p('D', 4, 'sharp')] },
   { id: 'r4', beats: 1.5, pitches: [p('G', 3), p('B', 3), p('E', 4)] },
   { id: 'r5', beats: 0.5, pitches: [p('G', 3), p('B', 3, 'flat'), p('E', 4)] },
   { id: 'r6', beats: 1.0, pitches: [p('F', 3, 'sharp'), p('A', 3), p('D', 4)] },
-  { id: 'r7', beats: 1.0, pitches: [p('G', 3), p('C', 4, 'sharp')] },
+  { id: 'r7', beats: 1.0, pitches: [p('G', 3), p('A', 3), p('C', 4, 'sharp')] },
   { id: 'r8', beats: 1.0, pitches: [p('F', 3, 'sharp'), p('A', 3), p('D', 4)] },
   { id: 'r9', beats: 1.0, pitches: [], rest: true },
 ]
@@ -89,7 +90,7 @@ export type HarmonyStep = {
 export const HARMONY: HarmonyStep[] = [
   { atBeat: 0.5, beats: 1.0, symbol: 'Bm',    numeral: 'i',      name: 'B minor',
     move: 'tonic', key: 'b' },
-  { atBeat: 1.5, beats: 1.0, symbol: 'B+',    numeral: 'V/iv',   name: 'B augmented',
+  { atBeat: 1.5, beats: 1.0, symbol: 'B7',    numeral: 'V⁷/iv',  name: 'B dominant seventh',
     move: 'secondary dominant', key: 'b',
     note: 'The D♯ pulls upward to E: a dominant pointing at the subdominant.' },
   { atBeat: 2.5, beats: 1.5, symbol: 'Em',    numeral: 'iv',     name: 'E minor',
