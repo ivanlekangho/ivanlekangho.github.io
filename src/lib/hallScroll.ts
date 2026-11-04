@@ -41,22 +41,50 @@ export function useHallScroll(enabled: boolean) {
     let arrivedAt = 0
     let wasAway = window.scrollY > 1
 
-    const settle = () => {
-      const p = gesture ?? posRef.current
-      gesture = null
+    /** Which stop a gesture began from, so it cannot travel past the next
+     *  one. Null between gestures. */
+    let fromStop: number | null = null
+
+    /** Index of the stop nearest a rail position. */
+    const nearest = (p: number) => {
       let best = 0
       for (let i = 1; i < STOP_AT.length; i++) {
         if (Math.abs(STOP_AT[i] - p) < Math.abs(STOP_AT[best] - p)) best = i
       }
-      goTo(MODES[best])
+      return best
+    }
+
+    const settle = () => {
+      const p = gesture ?? posRef.current
+      gesture = null
+      fromStop = null
+      goTo(MODES[nearest(p)])
     }
 
     /** Anything with its own scrollbar keeps the wheel. */
     const theirs = (t: EventTarget | null) =>
       t instanceof Element && !!t.closest('[data-keeps-scroll]')
 
+    /**
+     * One gesture, one stop.
+     *
+     * The rail is 560px of wheel travel end to end, which a single trackpad
+     * flick clears easily — so a flick used to carry musician straight past
+     * linguist to engineer, and the middle reading, which is the one the
+     * whole room is arguing for, could be skipped without ever being seen.
+     *
+     * So a gesture remembers the stop it began at and cannot travel beyond
+     * the adjacent one. Momentum after your fingers lift belongs to the
+     * same gesture and is spent against the same ceiling; the next stop
+     * needs a new one. Scrubbing the rail by hand is unaffected — that goes
+     * through setPos directly and is not a gesture.
+     */
     const advance = (dy: number) => {
-      const next = Math.min(1, Math.max(0, (gesture ?? posRef.current) + dy / SPAN))
+      if (fromStop === null) fromStop = nearest(posRef.current)
+      const lo = STOP_AT[Math.max(0, fromStop - 1)]
+      const hi = STOP_AT[Math.min(STOP_AT.length - 1, fromStop + 1)]
+      const raw = (gesture ?? posRef.current) + dy / SPAN
+      const next = Math.min(hi, Math.max(lo, raw))
       gesture = next
       setPos(next)
       clearTimeout(timer)

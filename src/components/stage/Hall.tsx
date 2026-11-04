@@ -28,7 +28,7 @@ import { screens } from './staging'
  * Scrolling walks the rail rather than the page (lib/hallScroll.ts); once the
  * lights are full up, the next scroll leaves the room.
  */
-export default function Hall() {
+export default function Hall({ onAbout }: { onAbout: () => void }) {
   const { pos } = useMode()
   const pb = usePlayback()
   const [sheet, setSheet] = useState(false)
@@ -42,8 +42,21 @@ export default function Hall() {
       <StageScene p={pos} />
 
       <header className="hall-head">
-        <p className="brand-name">Ivan Ho</p>
+        {/* An h1, at last. The page had none: the name was a paragraph, so
+            search engines and screen readers were handed a document with no
+            title. The styling is unchanged — only the tag. */}
+        <h1 className="brand-name">Ivan Ho</h1>
         <p className="brand-sub">Stanford CS / Math / Linguistics / Music</p>
+        {/* About lives behind this rather than in a screen of its own below.
+            It carries the quotation and its translation on the face, so a
+            reader who never clicks has still been told the one thing that
+            matters. */}
+        <button type="button" className="brand-about" aria-haspopup="dialog"
+          onClick={onAbout}>
+          <span className="brand-about-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
+          <span className="brand-about-gloss">I am a stranger everywhere</span>
+          <span className="brand-about-cue">About</span>
+        </button>
       </header>
 
       <figure className="score-system">

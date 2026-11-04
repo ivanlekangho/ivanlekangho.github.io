@@ -15,14 +15,13 @@ import { Link, useLocation } from 'react-router-dom'
  */
 
 export const SECTIONS = [
-  { id: 'about', label: 'About' },
   { id: 'impact', label: 'Impact' },
   { id: 'music', label: 'Music' },
   { id: 'education', label: 'Education' },
   { id: 'contact', label: 'Contact' },
 ]
 
-export default function Menu() {
+export default function Menu({ onAbout }: { onAbout?: () => void }) {
   const onHome = useLocation().pathname === '/'
   /* A post has no hall above it, so the bar is simply always there. */
   const [shown, setShown] = useState(!onHome)
@@ -81,6 +80,15 @@ export default function Menu() {
         )}
 
         <ul>
+          {/* About is not a section any more, so its entry in the bar opens
+              the sheet instead of scrolling anywhere. Without it, About
+              would be reachable only from the top of the page. */}
+          {onAbout && (
+            <li>
+              <button type="button" className="menu-about" onClick={onAbout}
+                aria-haspopup="dialog">About</button>
+            </li>
+          )}
           {SECTIONS.map((s) => (
             <li key={s.id}>
               <a href={onHome ? `#${s.id}` : `/#${s.id}`}

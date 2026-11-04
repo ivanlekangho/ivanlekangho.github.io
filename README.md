@@ -84,7 +84,7 @@ records in one file; the sections are just the views of them.
 | A grid of them, and the sheet they open into | `src/components/WorkGrid.tsx`, `src/components/WorkSheet.tsx` |
 | The overlay shell they all share | `src/components/Sheet.tsx` |
 | A heading that holds a table shut | `src/components/Fold.tsx` |
-| Who he is, in three paragraphs | `src/sections/About.tsx` |
+| Who he is, behind a click in the hall | `src/components/AboutSheet.tsx` |
 | Research and software | `src/sections/Projects.tsx` |
 | Cancer Society, teaching, the lab, the Uyghur paper, Chin State, the pharmacy | `src/sections/Impact.tsx` |
 | Voice, instruments, composition, the saxophone research | `src/sections/Music.tsx` |
@@ -95,8 +95,10 @@ records in one file; the sections are just the views of them.
 | The menu bar and its section list | `src/components/Menu.tsx` |
 | Log posts | `src/content/log/*.md` |
 
-**One page, seven anchors.** `#about`, `#projects`, `#impact`, `#music`,
-`#writing`, `#record`, `#contact` all live on `/`, and the menu bar — which
+**One page, four anchors.** `#impact`, `#music`, `#education`, `#contact`
+all live on `/`. About is not among them: it is a sheet, opened from the
+doorway under the name in the hall or from its entry in the bar, so `/about`
+lands at the top of the page where that doorway is, and the menu bar — which
 arrives the moment the hall is behind you — is how you get back to any of them,
 the hall included. Every URL this site has ever had still works: the old panel
 routes redirect to the matching anchor (see `MOVED` in `src/App.tsx`), with
@@ -227,8 +229,25 @@ The Actions flow doesn't run Jekyll at all.)
 
 One scrolling page. The first screen is the **recital room** (the hall, the
 home page — the same thing by any of those names) — a Steinway, a baritone, and
-hanging over them the one system they are both reading. Below it, six bands:
-about, projects, impact, music, writing, record, contact.
+hanging over them the one system they are both reading. Below it, four
+bands: impact, music, education, contact.
+
+**About is a door, not a floor.** It was a full screen between the hall and
+the work — a heading, two paragraphs, and eight hundred pixels of air — which
+is a lot of page to scroll through on the way to the thing you came for. The
+same two paragraphs are now a sheet, opened from a bordered control under the
+name. The control carries the quotation and its translation on its face, which
+is the hedge against the obvious risk: a reader who never clicks has still been
+told the one thing that matters.
+
+**One gesture, one stop.** The rail is 560px of wheel travel end to end, which
+a single trackpad flick clears easily — so a flick could carry musician past
+linguist to engineer, and the middle reading, the one the whole room is arguing
+for, could be skipped without ever being seen. A gesture now remembers the stop
+it began at and cannot travel past the adjacent one; momentum after your
+fingers lift belongs to the same gesture and spends itself against the same
+ceiling. Dragging the rail by hand is unaffected, because that is not a
+gesture — it goes through `setPos` directly.
 
 **The work comes before the paperwork.** It used to be the other way round:
 About opened with four paragraphs of biography and then five tables — languages,

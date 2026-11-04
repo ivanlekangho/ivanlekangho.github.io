@@ -1076,6 +1076,69 @@ html[data-sheet] { scroll-snap-type: none; }
   .can-reveal .cards[data-reveal] > .card { opacity: 1; transform: none; }
 }
 
+/* ---- the About doorway -------------------------------------------
+   About is not a section any more; it is this, under the name. It has
+   to read as a thing you open rather than a line of copy, so it is a
+   bordered control with the quotation on the face and the word About
+   where a button's label goes. The quotation is doing double duty: a
+   reader who never clicks has still been told the one thing that
+   matters, which is the whole risk of putting a biography behind a
+   click. */
+.brand-about {
+  display: inline-grid; justify-items: start; gap: 2px;
+  margin-top: var(--space-3); padding: 8px 14px 9px;
+  font: inherit; text-align: left; cursor: pointer;
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-ui) var(--ease-out),
+              background-color var(--dur-ui) var(--ease-out),
+              transform var(--dur-ui) var(--ease-spring);
+}
+.brand-about:hover, .brand-about:focus-visible {
+  border-color: var(--accent); transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+}
+.brand-about:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.brand-about-line {
+  font-family: var(--font-score); font-size: var(--step-0);
+  color: var(--ink); line-height: 1.2;
+}
+.brand-about-gloss { font-size: var(--step--1); color: var(--ink-2); }
+/* The affordance, said rather than implied, with an arrow that moves. */
+.brand-about-cue {
+  margin-top: 3px;
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent-soft);
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.brand-about-cue::after {
+  content: ' \2192'; display: inline-block;
+  transition: transform var(--dur-ui) var(--ease-out);
+}
+.brand-about:hover .brand-about-cue,
+.brand-about:focus-visible .brand-about-cue { color: var(--accent); }
+.brand-about:hover .brand-about-cue::after { transform: translateX(3px); }
+
+/* The same entry in the bar, so About is reachable once the hall is
+   behind you. It is a button, not an anchor, because there is nowhere
+   to scroll to. */
+.menu-about {
+  font: inherit;
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: var(--step--1); letter-spacing: var(--label-tracking);
+  text-transform: uppercase; white-space: nowrap;
+  color: var(--ink-3); background: none; border: 0; cursor: pointer;
+  padding: 2px 0; border-bottom: 1px solid transparent;
+  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+}
+.menu-about:hover { color: var(--ink); }
+
+/* A lede inside a sheet, where .lede's own colour and measure do not apply. */
+.sheet-lede { font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); }
+.sheet-lede em { color: var(--ink); font-style: italic; }
+
 /* ============================================================
    Cards — the at-a-glance layer
 

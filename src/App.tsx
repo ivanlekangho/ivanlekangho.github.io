@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import AboutSheet from './components/AboutSheet'
 import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
 import { useHallScroll } from './lib/hallScroll'
 import { useReveal } from './lib/reveal'
-import About from './sections/About'
 import Impact from './sections/Impact'
 import Music from './sections/Music'
 import Education from './sections/Education'
@@ -28,16 +28,18 @@ import Post from './pages/Post'
 /** Where the old panel URLs went. */
 const MOVED: [string, string][] = [
   ['/recital', '/#music'],
-  ['/about', '/#about'],
+  /* About is a sheet in the hall now, not a section, so its old URL lands
+     at the top of the page where the doorway is. */
+  ['/about', '/'],
   ['/work', '/#impact'],
   ['/impact', '/#impact'],
   ['/projects', '/#impact'],
   ['/skills', '/#education'],
   ['/education', '/#education'],
-  ['/now', '/#about'],
+  ['/now', '/'],
   /* The writing section is gone; its two papers are cards under Impact. */
   ['/writing', '/#impact'],
-  ['/how-i-think', '/#about'],
+  ['/how-i-think', '/'],
   ['/log', '/#impact'],
   ['/contact', '/#contact'],
 ]
@@ -47,11 +49,10 @@ function MovedPost() {
   return <Navigate to={`/writing/${slug}`} replace />
 }
 
-function Home() {
+function Home({ onAbout }: { onAbout: () => void }) {
   return (
     <>
-      <Hall />
-      <About />
+      <Hall onAbout={onAbout} />
       <Impact />
       <Music />
       <Education />
@@ -89,17 +90,18 @@ function HashScroll() {
 export default function App() {
   const { pathname } = useLocation()
   const onHome = pathname === '/'
+  const [about, setAbout] = useState(false)
   useHallScroll(onHome)
   useReveal(pathname)
 
   return (
     <>
-      <a href="#about" className="sr-only">Skip to content</a>
-      <Menu />
+      <a href="#impact" className="sr-only">Skip to content</a>
+      <Menu onAbout={() => setAbout(true)} />
       <HashScroll />
       <main id="main">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home onAbout={() => setAbout(true)} />} />
           <Route path="/writing/:slug" element={<Post />} />
           {MOVED.map(([from, to]) => (
             <Route key={from} path={from} element={<Navigate to={to} replace />} />
@@ -108,6 +110,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      {about && <AboutSheet onClose={() => setAbout(false)} />}
     </>
   )
 }
