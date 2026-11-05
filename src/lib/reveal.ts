@@ -49,15 +49,43 @@ export function useReveal(key?: string) {
       { rootMargin: '0px 0px -12% 0px', threshold: 0 },
     )
 
-    for (const el of document.querySelectorAll('[data-reveal]:not(.is-in)')) {
-      /* Already above the viewport — a deep link into the middle of the
-         page, or a reload that restored the scroll position. There is no
-         arrival left to make, and waiting for one would leave the whole
-         page above the reader blank until they scrolled up through it. */
-      if (el.getBoundingClientRect().bottom < 0) { el.classList.add('is-in'); continue }
-      io.observe(el)
+    /**
+     * Anything already overhead is simply here.
+     *
+     * This is a sweep and not a branch inside the observer, because the
+     * observer cannot see this case at all: an IntersectionObserver
+     * notifies on threshold crossings, and an element that goes from below
+     * the window to above it inside one frame reads as ratio 0 both times.
+     * No crossing, no callback, and the element sits at opacity 0 above the
+     * reader for as long as the page is open. One hard flick down this page
+     * left Impact's heading and lede permanently invisible that way.
+     *
+     * So: on every scroll, and on mount, anything whose bottom edge is past
+     * the top of the window gets marked arrived. It covers the fast flick,
+     * a deep link into the middle of the page, and a reload that restored
+     * the scroll position — all three are the same thing, an element with
+     * no arrival left to make.
+     */
+    let queued = false
+    const sweep = () => {
+      queued = false
+      for (const el of document.querySelectorAll('[data-reveal]:not(.is-in)')) {
+        if (el.getBoundingClientRect().bottom >= 0) continue
+        el.classList.add('is-in')
+        io.unobserve(el)
+      }
     }
-    return () => io.disconnect()
+    const onScroll = () => {
+      if (queued) return
+      queued = true
+      requestAnimationFrame(sweep)
+    }
+
+    for (const el of document.querySelectorAll('[data-reveal]:not(.is-in)')) io.observe(el)
+    sweep()
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
     /* Keyed on the route: without a dependency array this rebuilt the
        observer after every single render of the app. */
   }, [key])

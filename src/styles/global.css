@@ -749,6 +749,15 @@ pre {
 .band {
   min-height: 100svh;
   scroll-snap-align: start;
+  /* Stop at every panel, not merely at one of them. Mandatory snapping
+     only guarantees the scroll comes to REST on a snap position — it is
+     free to fly over several on the way, and it did: one hard flick from
+     the top landed at 4311px having passed Work and Research without
+     either ever being half on screen. `always` makes each gesture hand
+     back at the next panel down. A panel taller than the window still
+     scrolls through normally, because an oversized snap area lets the
+     scroll rest anywhere that keeps it covering the window. */
+  scroll-snap-stop: always;
   display: flex; flex-direction: column; justify-content: safe center;
   padding-block: clamp(3.5rem, 8vh, 6.5rem);
   border-top: 1px solid var(--rule);
@@ -822,7 +831,7 @@ html {
    above insets the snapport — a position that does not exist — and the
    room only owns the wheel while scrollY is 0. Giving it a snap position
    of its own at exactly zero keeps the first screen reachable. */
-.hall { scroll-snap-align: start; scroll-margin-top: -3.5rem; }
+.hall { scroll-snap-align: start; scroll-snap-stop: always; scroll-margin-top: -3.5rem; }
 /* Snapping is involuntary motion, so anyone who asked for less of it gets
    an ordinary scroll. */
 @media (prefers-reduced-motion: reduce) {
@@ -1306,7 +1315,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    is what makes "it snaps" true of the longest section rather than only
    of the short ones. */
 .group {
-  min-height: 100svh; scroll-snap-align: start;
+  min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always;
   display: flex; flex-direction: column; justify-content: safe center;
   margin-bottom: var(--space-6);
 }
@@ -1320,7 +1329,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    the snap would otherwise land on "Education" and then on nothing until
    Contact. */
 .edu {
-  min-height: 100svh; scroll-snap-align: start;
+  min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always;
   display: flex; flex-direction: column; justify-content: safe center;
   margin-bottom: var(--space-7);
 }
