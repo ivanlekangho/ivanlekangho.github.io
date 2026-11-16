@@ -823,7 +823,22 @@ html {
      takes the next valid one and throws the page down to About on load —
      the centrepiece skipped, and the wheel hijack dead with it, since the
      room only owns the wheel while scrollY is 0. */
-  scroll-snap-type: y mandatory;
+  /* Proximity, not mandatory — and this is forced by the hall rather than
+     chosen. Mandatory insists the scroll always REST on a snap position,
+     and the room insists on holding the page still while it spends the
+     wheel on the rail. Two owners, one scroll position.
+
+     That conflict was invisible while the hall was the first thing in the
+     document, because scroll zero is a place snap cannot drag you away
+     from. Second in the document, behind the hero, it bites: the reader
+     gets pinned in the room with no way down to the work, and a downward
+     gesture can throw the page upward.
+
+     Proximity snaps when you let go near an edge and otherwise keeps its
+     hands off, which is the only one of the two that can share a page with
+     a scroll-hijacked region. `scroll-snap-stop: always` still stops a
+     flick flying over panels. */
+  scroll-snap-type: y proximity;
   scroll-padding-top: 3.5rem;
 }
 /* The hall is the one place mandatory must not reach. It starts at
@@ -831,7 +846,10 @@ html {
    above insets the snapport — a position that does not exist — and the
    room only owns the wheel while scrollY is 0. Giving it a snap position
    of its own at exactly zero keeps the first screen reachable. */
-.hall { scroll-snap-align: start; scroll-snap-stop: always; scroll-margin-top: -3.5rem; }
+/* The hall is the second screen now, so it snaps like any other panel —
+   the negative margin that kept it reachable at document top belongs to
+   the hero. */
+.hall { scroll-snap-align: start; scroll-snap-stop: always; }
 /* Snapping is involuntary motion, so anyone who asked for less of it gets
    an ordinary scroll. */
 @media (prefers-reduced-motion: reduce) {
@@ -840,6 +858,9 @@ html {
 /* A sheet is a scroll container of its own; the page must not be
    snapping underneath it. */
 html[data-sheet] { scroll-snap-type: none; }
+/* And neither may it snap while the room has the wheel — see the note in
+   lib/hallScroll.ts. Two systems, one scroll position. */
+html[data-in-hall] { scroll-snap-type: none; }
 .shell { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--gutter); }
 
 @media (min-width: 64rem) {
@@ -1147,6 +1168,98 @@ html[data-sheet] { scroll-snap-type: none; }
 /* A lede inside a sheet, where .lede's own colour and measure do not apply. */
 .sheet-lede { font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); }
 .sheet-lede em { color: var(--ink); font-style: italic; }
+
+/* ============================================================
+   The hero — the first screen
+
+   Proportions, not pixels. The Figma frame is 939px wide and every
+   measurement in it is a fraction of that, so they are written here as
+   fractions and the screen holds at any width.
+   ============================================================ */
+.hero {
+  min-height: 100svh;
+  display: flex; flex-direction: column;
+  background: var(--hero-paper);
+  color: var(--hero-ink);
+  border: 1px solid var(--hero-ink);
+  /* The first element in the document needs its snap position to be zero,
+     and scroll-padding-top would otherwise put it at -56px, which does not
+     exist. This is the same exception the hall used to carry, moved up with
+     the first screen. */
+  scroll-snap-align: start; scroll-snap-stop: always;
+  scroll-margin-top: -3.5rem;
+}
+
+.hero-nav {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--hero-ink);
+  flex: none;
+}
+.hero-nav a {
+  display: flex; align-items: center; justify-content: center;
+  /* 5.9% of the panel width in the design, floored so it stays tappable. */
+  min-height: max(3rem, 5.9vw);
+  padding: 0 var(--space-3);
+  border-right: 1px solid var(--hero-ink);
+  font-family: var(--font-label); font-weight: 500;
+  font-size: clamp(0.62rem, 1.17vw, 0.8rem);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: inherit; text-decoration: none;
+  transition: background-color var(--dur-ui) var(--ease-out),
+              color var(--dur-ui) var(--ease-out);
+}
+.hero-nav a:last-child { border-right: 0; }
+.hero-nav a:hover, .hero-nav a:focus-visible {
+  background: var(--hero-ink); color: var(--hero-paper);
+}
+
+.hero-name {
+  margin: 0; flex: none;
+  /* max-width: none against the global prose measure every p inherits —
+     34rem was wrapping "Ivan Ho" onto two lines and pushing the hero three
+     hundred pixels past the window. Measured: the string is 3.28em wide in
+     Geist Light, so 25vw fills about 82% of the screen on one line, with
+     enough headroom that a fallback face cannot overflow it. */
+  max-width: none; white-space: nowrap;
+  font-weight: 300; font-size: clamp(2.4rem, 25vw, 28rem);
+  line-height: 1.06; letter-spacing: -0.012em;
+  text-align: center; color: var(--hero-ink);
+}
+
+/* The red, and the portrait that overruns it on both edges. */
+.hero-shot {
+  position: relative; flex: 1 1 auto;
+  min-height: max(18rem, 40vh);
+  background: var(--hero-red);
+  overflow: hidden;
+}
+.hero-portrait {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  /* 733 tall in a 547.75 block, starting 93.52 above it. */
+  top: -17.1%; height: 133.8%; width: auto; max-width: none;
+  display: block;
+}
+.hero-next {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 12.4%; min-width: 4rem;
+  display: grid; place-items: center;
+  background: var(--hero-red); border: 0; cursor: pointer;
+  transition: background-color var(--dur-ui) var(--ease-out);
+}
+.hero-next:hover, .hero-next:focus-visible {
+  background: color-mix(in srgb, #000 12%, var(--hero-red));
+}
+.hero-next img { display: block; transition: transform var(--dur-ui) var(--ease-out); }
+.hero-next:hover img { transform: translateX(4px); }
+
+/* On a phone the name at 21.3vw is unreadably small, and the nav's four
+   cells stop fitting one row. Both get their own floor. */
+@media (max-width: 40rem) {
+  .hero-nav { grid-template-columns: repeat(2, 1fr); }
+  .hero-nav a:nth-child(2) { border-right: 0; }
+  .hero-nav a:nth-child(-n + 2) { border-bottom: 1px solid var(--hero-ink); }
+  .hero-name { font-size: clamp(2.2rem, 23vw, 5rem); }
+}
 
 /* ============================================================
    Cards — the at-a-glance layer

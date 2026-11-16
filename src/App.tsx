@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import AboutSheet from './components/AboutSheet'
+import Hero from './components/Hero'
 import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
 import { useHallScroll } from './lib/hallScroll'
@@ -52,6 +53,7 @@ function MovedPost() {
 function Home({ onAbout }: { onAbout: () => void }) {
   return (
     <>
+      <Hero />
       <Hall onAbout={onAbout} />
       <Impact />
       <Music />

@@ -35,11 +35,78 @@ export function useHallScroll(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return
+    /**
+     * The room only takes the wheel when the room is the first screen.
+     *
+     * It no longer is — the hero is above it — and that one fact undoes
+     * the whole mechanism. Hijacking the wheel means holding the page
+     * still, which a region can only do at scroll zero, where there is
+     * nowhere above to be pushed to. Mid-document it has to argue with
+     * the scroll engine for the position on every frame, and the argument
+     * has no stable winner: measured, the rail either pinned the reader
+     * in the room with no way down to the work, or let the page run past
+     * all three stops without advancing one of them.
+     *
+     * So below the fold the rail is driven by its own control — the three
+     * stops are buttons and the handle drags — and the wheel belongs to
+     * the page, which is what a reader expects of a section that is not
+     * the first thing they met. Put the hall back at the top and this
+     * wakes up again on its own.
+     */
+    if ((document.querySelector('.hall') as HTMLElement | null)?.offsetTop) return
     let timer = 0
     let touchY: number | null = null
     let gesture: number | null = null
     let arrivedAt = 0
-    let wasAway = window.scrollY > 1
+
+    /**
+     * The room owns the wheel while the room is the screen.
+     *
+     * This used to be `scrollY <= 1`, because the hall was the first thing
+     * in the document. It is the second thing now — the hero is above it —
+     * so being at the top of the page no longer means being in the room.
+     *
+     * The test is how much of the window the room covers, not where its
+     * top edge is. Position was the first thing I tried and it was wrong:
+     * a snapped panel rests with its top at the menu line, 56px down, not
+     * at zero, so a `top <= 4` test never fired once and the rail simply
+     * ignored the wheel. Coverage does not care about the offset.
+     */
+    const inHall = () => {
+      const el = document.querySelector('.hall')
+      if (!el) return false
+      const r = el.getBoundingClientRect()
+      const covered = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)
+      return covered >= window.innerHeight * 0.85
+    }
+
+    let wasAway = !inHall()
+
+    /**
+     * While the room has the wheel, the page has no snap.
+     *
+     * These two systems both insist on owning the scroll position, and
+     * they cannot both have it. The hall holds the page still and spends
+     * the wheel on the rail; mandatory snapping keeps relocating the page
+     * to the nearest snap position. That conflict was invisible while the
+     * hall was the first thing in the document, because scroll zero is a
+     * place snap cannot drag you away from. Second in the document, they
+     * fight: the reader ends up pinned in the room with no way down to the
+     * work, and a downward gesture can throw the page upward.
+     *
+     * So the room suspends snapping for as long as it is the screen — the
+     * same exception an open sheet already takes. Leaving re-arms it, and
+     * by then the next panel is most of the window, so snap settles onto
+     * the thing you were heading for anyway.
+     */
+    const marker = () => {
+      const root = document.documentElement
+      if (inHall()) root.setAttribute('data-in-hall', '')
+      else root.removeAttribute('data-in-hall')
+    }
+    marker()
+    window.addEventListener('scroll', marker, { passive: true })
+    window.addEventListener('resize', marker)
 
     /** Which stop a gesture began from, so it cannot travel past the next
      *  one. Null between gestures. */
@@ -95,9 +162,9 @@ export function useHallScroll(enabled: boolean) {
     const mine = (dy: number) => {
       /* While the piece sheet is up it owns the wheel, not the room. */
       if (document.documentElement.hasAttribute('data-sheet')) return false
-      const atTop = window.scrollY <= 1
-      if (wasAway && atTop) { arrivedAt = performance.now(); wasAway = false }
-      if (!atTop) { wasAway = true; return false }
+      const here = inHall()
+      if (wasAway && here) { arrivedAt = performance.now(); wasAway = false }
+      if (!here) { wasAway = true; return false }
       if (performance.now() - arrivedAt < ARRIVAL_GRACE) return false
       const p = gesture ?? posRef.current
       /* Downward past the last stop, or upward before the first, is the
@@ -134,6 +201,9 @@ export function useHallScroll(enabled: boolean) {
     window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     return () => {
+      document.documentElement.removeAttribute('data-in-hall')
+      window.removeEventListener('scroll', marker)
+      window.removeEventListener('resize', marker)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)

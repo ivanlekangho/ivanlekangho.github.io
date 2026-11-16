@@ -106,6 +106,15 @@
   --step-4:  clamp(2.38rem, 1.92rem + 2.30vw, 3.42rem);
   --step-5:  clamp(2.70rem, 1.70rem + 4.60vw, 5.25rem);
 
+  /* --- the first screen -------------------------------------------
+     The hero is the one surface on this site that the lighting board does
+     not touch: a flat light panel and one red, fixed at every stop. Taken
+     from the Figma frame rather than derived from the palette, which is
+     why they are literals and not mixes. */
+  --hero-paper: #EEEEEE;
+  --hero-ink:   #20242F;
+  --hero-red:   #C43030;
+
   /* --- space & shape --------------------------------------------- */
   --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;
   --space-4: 1rem;    --space-5: 1.5rem;  --space-6: 2rem;
