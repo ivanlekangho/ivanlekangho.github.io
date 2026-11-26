@@ -1,3 +1,4 @@
+import Chapters, { type Chapter } from '../components/Chapters'
 import Todo from '../components/Todo'
 
 /**
@@ -19,48 +20,66 @@ import Todo from '../components/Todo'
  * large, not that there is more to read.
  */
 export default function About() {
+  const chapters: Chapter[] = [
+    {
+      id: 'the-line',
+      label: 'The line',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>The line</p>
+          <div className="about-text" data-reveal>
+            <p className="about-lede">
+              <em>I am a stranger everywhere.</em> My favourite line in any
+              song. Schubert gives it to a baritone with nowhere to be from,
+              and the recital room at the end of this site is built out of the
+              bars that carry it: one phrase, read three ways.
+            </p>
+            <p className="about-source">
+              Schubert, <cite>Der Wanderer</cite>, D.489
+            </p>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'the-work',
+      label: 'The work',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>The work</p>
+          <h2 className="chapter-head" data-reveal>
+            Who is this built to understand?
+          </h2>
+          <div className="about-text" data-reveal>
+            <p>
+              I want to make fewer people strangers in their own world — work
+              where technology, language and art meet, and one question
+              underneath all of it. A database that could not answer a question
+              about a patient. Authorship that does not count the Global South.
+              A model that answers in Hakka, my first language, confidently and
+              wrongly.
+            </p>
+          </div>
+        </>
+      ),
+    },
+  ]
+
   return (
-    <section id="about" className="band band-about">
-      <div className="shell">
-        <p className="eyebrow">About</p>
-
-        <blockquote className="about-quote" data-reveal>
-          <p className="about-line">
-            &ldquo;Ich bin ein<br />Fremdling überall&rdquo;
-          </p>
-          <footer className="about-source">
-            Schubert, <cite>Der Wanderer</cite>, D.489 — the bar the recital
-            room at the end of this page is built out of
-          </footer>
-        </blockquote>
-
-        <div className="about-text" data-reveal>
-          <p className="about-lede">
-            <em>I am a stranger everywhere.</em> My favourite line in any song.
-            Schubert gives it to a baritone with nowhere to be from, and the
-            room at the end of this page is built out of the bars that carry
-            it: one phrase, read three ways.
-          </p>
-          <p>
-            I want to make fewer people strangers in their own world — work
-            where technology, language and art meet, and one question
-            underneath all of it: who is this built to understand? A database
-            that could not answer a question about a patient. Authorship that
-            does not count the Global South. A model that answers in Hakka, my
-            first language, confidently and wrongly.
-          </p>
-        </div>
-
-        <Todo>
-          The second sentence of the first paragraph is mine, not yours: you
-          asked for something about why this line is the centrepiece and that
-          is my guess at it. Replace it — the real reason will be better than
-          a plausible one. Still open too: how much of the queer framing you
-          want stated here rather than left as subtext. And this is a whole
-          screen now rather than a sheet, so it has room for the longer story
-          if you want one — the Hakka paragraph that was cut would sit here.
-        </Todo>
-      </div>
-    </section>
+    <Chapters
+      title={<>&ldquo;Ich bin ein<br />Fremdling <em>überall</em>&rdquo;</>}
+      subtitle="I am a stranger everywhere"
+      chapters={chapters}
+    >
+      <Todo>
+        The second sentence of the first paragraph is mine, not yours: you asked
+        for something about why this line is the centrepiece and that is my
+        guess at it. Replace it — the real reason will be better than a
+        plausible one. Still open too: how much of the queer framing you want
+        stated here rather than left as subtext. And this is two screens now
+        rather than a sheet, so there is room for the longer story if you want
+        one — the Hakka paragraph that was cut would sit here.
+      </Todo>
+    </Chapters>
   )
 }

@@ -5,6 +5,7 @@ import Mark from '../components/Mark'
 import Player from '../components/Player'
 import Todo from '../components/Todo'
 import WorkGrid from '../components/WorkGrid'
+import Chapters, { type Chapter } from '../components/Chapters'
 import { MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
 
 /**
@@ -224,69 +225,88 @@ export default function Creative() {
   const compositions = WORKS.filter((w) => w.kind === 'Composition')
   const performances = WORKS.filter((w) => w.kind === 'Performance')
 
+  const chapters: Chapter[] = [
+    {
+      id: 'composition',
+      label: 'Composition',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Composition</p>
+          <h2 className="chapter-head" data-reveal>Written for people I knew</h2>
+          <div className="works">
+            {compositions.map((w) => <Stage key={w.id} work={w} />)}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'performance',
+      label: 'Performance',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Performance</p>
+          <h2 className="chapter-head" data-reveal>One route through a continent</h2>
+          <div className="works">
+            {performances.map((w) => <Stage key={w.id} work={w} />)}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'ensembles',
+      label: 'Ensembles',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Ensembles</p>
+          <h2 className="chapter-head" data-reveal>Choirs, a big band, an orchestra</h2>
+          <WorkGrid items={MUSIC} tight minimal />
+
+          {/* The room is not in the bar, because it is the end of an
+              argument rather than a tab. This is where it belongs instead:
+              whoever has just listened to the compositions is the likeliest
+              person to want one phrase of Schubert read three ways. */}
+          <p className="to-hall">
+            <Link to="/hall">
+              <span className="to-hall-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
+              <span className="to-hall-gloss">
+                The recital room — one phrase of Schubert, read three ways
+              </span>
+            </Link>
+          </p>
+        </>
+      ),
+    },
+  ]
+
   return (
-    <section id="creative" className="band">
-      <div className="shell">
-        <p className="eyebrow">Creative</p>
-        <h2 className="h-hero" data-reveal>Composer and Performer</h2>
-        <p className="lede lede-list" data-reveal>
-          Voice, Strings, Woodwind: Ensemble and Solo
-        </p>
-
-        <h3 className="h-rule">Composition</h3>
-        <div className="works">
-          {compositions.map((w) => <Stage key={w.id} work={w} />)}
-        </div>
-
-        <h3 className="h-rule">Performance</h3>
-        <div className="works">
-          {performances.map((w) => <Stage key={w.id} work={w} />)}
-        </div>
-
-        <h3 className="h-rule">Ensembles</h3>
-        <WorkGrid items={MUSIC} tight />
-
-        {/* The room is not in the bar, because it is the end of an argument
-            rather than a tab. This is where it belongs instead: whoever has
-            just listened to the compositions is the likeliest person to want
-            one phrase of Schubert read three ways. */}
-        <p className="to-hall">
-          <Link to="/hall">
-            <span className="to-hall-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
-            <span className="to-hall-gloss">
-              The recital room — one phrase of Schubert, read three ways
-            </span>
-          </Link>
-        </p>
-
-        <Todo>
-          <b>Two pictures are still missing their files.</b> The clarinet
-          quintet stock image and the Daffodil Day photograph both came
-          through in the conversation but not as anything I could copy, so
-          save them to <code>public/photos/clarinet-quintet.jpg</code> and{' '}
-          <code>public/photos/daffodil-day.jpg</code> and they appear on their
-          own — the slots are already pointing at them. If the clarinet
-          picture is licensed for this, say so and I will add the credit; if
-          it is not, it should come down, and the disclosure on it does not
-          change that.
-        </Todo>
-        <Todo>
-          <b>Introduction and Rondo now describes itself from your report.</b>{' '}
-          The forces, the Mozart instrumentation, the Saint-Saëns form and the
-          A–B–A–C–A–coda are all yours, read out of the research report. Two
-          things I left out on purpose: your clarinettist and the quartet are
-          named in the report and are not named here, because they are other
-          people and this is your site, not theirs — say the word and they go
-          in with a credit. And the report says the live recording was never
-          made, so the audio is labelled as a playback of the score rather
-          than as a performance.
-        </Todo>
-        <Todo>
-          <b><em>Dorian</em>, for baroque jazz combo, is a third composition</b>{' '}
-          I found with its own written commentary, and it is not up yet. Say
-          the word.
-        </Todo>
-      </div>
-    </section>
+    <Chapters
+      title="Composer and Performer"
+      subtitle="Voice, Strings, Woodwind: Ensemble and Solo"
+      chapters={chapters}
+    >
+      <Todo>
+        <b>Two pictures are still missing their files.</b> The clarinet quintet
+        stock image and the Daffodil Day photograph both came through in the
+        conversation but not as anything I could copy, so save them to{' '}
+        <code>public/photos/clarinet-quintet.jpg</code> and{' '}
+        <code>public/photos/daffodil-day.jpg</code> and they appear on their own.
+        If the clarinet picture is licensed for this, say so and I will add the
+        credit; if it is not, it should come down, and the disclosure on it does
+        not change that.
+      </Todo>
+      <Todo>
+        <b>Introduction and Rondo describes itself from your report.</b> The
+        forces, the Mozart instrumentation, the Saint-Saëns form and the
+        A–B–A–C–A–coda are all yours, read out of the research report. Your
+        clarinettist and the quartet are named in that report and are not named
+        here, because they are other people — say the word and they go in with a
+        credit. And the report says the live recording was never made, so the
+        audio is labelled a playback of the score rather than a performance.
+      </Todo>
+      <Todo>
+        <b><em>Dorian</em>, for baroque jazz combo, is a third composition</b> I
+        found with its own written commentary, and it is not up yet.
+      </Todo>
+    </Chapters>
   )
 }

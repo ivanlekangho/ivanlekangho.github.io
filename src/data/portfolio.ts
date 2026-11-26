@@ -82,12 +82,13 @@ export type Item = {
  * Stanford section room and in a bibliometric dataset, and filing those
  * three under "work, research, projects" hides exactly that.
  *
- * In the order Ivan wrote them in the subtitle.
+ * Health first, because the paid engineering is the strongest thing here
+ * and a reader meets it before anything else.
  */
 export const GROUPS: { id: Group; title: string; gloss: string }[] = [
-  { id: 'society', title: 'Society', gloss: 'Who the record leaves out, and who gets a say.' },
-  { id: 'education', title: 'Education', gloss: 'Teaching the thing itself.' },
   { id: 'health', title: 'Health', gloss: 'Engineering inside the places that treat people.' },
+  { id: 'education', title: 'Education', gloss: 'Teaching the thing itself.' },
+  { id: 'society', title: 'Society', gloss: 'Who the record leaves out, and who gets a say.' },
 ]
 
 export const ITEMS: Item[] = [
@@ -390,15 +391,15 @@ export const WORKS: Work[] = [
         work: '6 Tango Études',
         composer: 'Astor Piazzolla',
         movements: [
-          { title: 'IV. Lento meditativo', at: 459 }, /* 8:26 */
+          { title: 'IV. Lento meditativo', at: 461 }, /* 7:41 after the cut */
         ],
       },
       {
         work: 'Latin American Dances',
         composer: 'John Carmichael',
         movements: [
-          { title: 'II. Obsession — Habañera', at: 703 }, /* 12:30 */
-          { title: 'III. Bahama Rhumba', at: 865 },       /* 15:12 */
+          { title: 'II. Obsession — Habañera', at: 706 }, /* 11:46 after the cut */
+          { title: 'III. Bahama Rhumba', at: 867 },       /* 14:27 after the cut */
         ],
       },
     ],

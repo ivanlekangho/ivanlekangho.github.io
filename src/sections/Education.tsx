@@ -1,3 +1,4 @@
+import Chapters, { Fold, type Chapter } from '../components/Chapters'
 import Chips from '../components/Chips'
 import Todo from '../components/Todo'
 
@@ -73,36 +74,63 @@ function Rows({ items, className }: {
 }
 
 export default function Education() {
+  const chapters: Chapter[] = [
+    {
+      id: 'stanford',
+      label: 'Stanford',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Now</p>
+          <h2 className="chapter-head" data-reveal>Stanford University</h2>
+          <p className="edu-deg" data-reveal>B.S. Computer Science, B.S. Mathematics — to June 2028</p>
+
+          {/* Folds rather than a flat stack, because the three things under
+              a school answer three different questions and a reader almost
+              always wants one of them. Native <details name>, so the
+              browser does the one-at-a-time and find-in-page can still
+              reach what is closed. */}
+          <div className="items" data-reveal>
+            <Fold group="stanford" lead="Coursework" meta={`${COURSEWORK.length} courses`}>
+              <Chips items={COURSEWORK} label="Coursework" />
+            </Fold>
+            <Fold group="stanford" lead="What I run here" meta={`${STANFORD_CLUBS.length} roles`}>
+              <Rows items={STANFORD_CLUBS} />
+            </Fold>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'kings',
+      label: 'King’s College',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Before</p>
+          <h2 className="chapter-head" data-reveal>King’s College, Auckland</h2>
+          <p className="edu-deg" data-reveal>Cambridge International and NZQA — to 2024</p>
+
+          <div className="items" data-reveal>
+            <Fold group="kings" lead="What I ran" meta={`${KINGS_ROLES.length} roles`}>
+              <Rows items={KINGS_ROLES} />
+            </Fold>
+            <Fold group="kings" lead="Results and placings" meta={`${KINGS_HONOURS.length} entries`}>
+              <Rows items={KINGS_HONOURS} className="edu-honours" />
+            </Fold>
+          </div>
+        </>
+      ),
+    },
+  ]
+
   return (
-    <section id="education" className="band">
-      <div className="shell">
-        <p className="eyebrow">Education</p>
-        <h2 className="h-hero" data-reveal>Two schools</h2>
-
-        <div className="edu" data-reveal>
-          <h3 className="edu-org">Stanford University</h3>
-          <p className="edu-deg">B.S. Computer Science, B.S. Mathematics</p>
-          <p className="edu-when">to June 2028</p>
-          <Chips items={COURSEWORK} label="Coursework" />
-          <Rows items={STANFORD_CLUBS} />
-        </div>
-
-        <div className="edu" data-reveal>
-          <h3 className="edu-org">King’s College, Auckland</h3>
-          <p className="edu-deg">Cambridge International and NZQA</p>
-          <p className="edu-when">to 2024</p>
-          <Rows items={KINGS_ROLES} />
-          <Rows items={KINGS_HONOURS} className="edu-honours" />
-        </div>
-
-        <Todo>
-          The University of Sydney Chancellor’s Award was in your first brief but
-          not on your résumé, so it is off the site until you say where it
-          belongs. And there is nothing under Stanford but coursework and two
-          clubs — if there are results, grants or awards from the last two years,
-          this is where they go.
-        </Todo>
-      </div>
-    </section>
+    <Chapters title="Two schools" subtitle="Auckland, then Stanford" chapters={chapters}>
+      <Todo>
+        The University of Sydney Chancellor’s Award was in your first brief but
+        not on your résumé, so it is off the site until you say where it
+        belongs. And there is nothing under Stanford but coursework and two
+        clubs — if there are results, grants or awards from the last two years,
+        this is where they go.
+      </Todo>
+    </Chapters>
   )
 }
