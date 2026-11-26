@@ -291,14 +291,14 @@ export type Media = {
   /**
    * A silent picture to run against `src`.
    *
-   * Two files rather than one because no tool on this machine can make one
-   * that is both watchable and listenable inside GitHub's 100MB per-file
-   * limit: the only encoder available is quality-targeted with no bitrate
-   * control, so its usable settings give either 284MB at 480p or a 32MB
-   * file whose audio is 16kHz — telephone quality, which throws away
-   * everything a saxophone does above 8kHz. So the picture comes from the
-   * small one with its sound discarded, and the sound comes from a proper
-   * 44.1kHz extract. Both are cut from the same tape at the same offset.
+   * Nothing uses this now and it is kept because the reason is worth
+   * keeping: self-hosting a long film here meant splitting it, since the
+   * only encoder available is quality-targeted with no bitrate control and
+   * its usable settings gave either 284MB at 480p or a 32MB file whose
+   * audio was 16kHz. The picture came from the small one with its sound
+   * discarded and the sound from a proper 44.1kHz extract, kept in step by
+   * a loop. Both films are hosted now, which is the answer that did not
+   * need a trick.
    */
   film?: string
   /** Stop here rather than at the end of the file, where a recording
@@ -414,14 +414,14 @@ export const WORKS: Work[] = [
         ],
       },
     ],
-    /* Both files start 47 seconds into the camera's tape, where the music
+    /* The upload starts 47 seconds into the camera's tape, where the music
        starts; everything before it is the walk-on. Every figure in the
        programme above has had those 47 seconds taken off it, which is why
-       the first movement begins at zero. */
+       the first movement begins at zero and why these times are read
+       against the upload rather than against the tape. */
     media: {
       kind: 'video',
-      src: '/audio/journey-through-latin-america.m4a',
-      film: '/video/journey-through-latin-america.mp4',
+      youtube: 'kEUctVukl4s',
       label: 'The recital',
     },
     docs: [

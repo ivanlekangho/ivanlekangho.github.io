@@ -39,22 +39,33 @@ type Player = {
   seekTo: (s: number, allowSeekAhead: boolean) => void
   playVideo: () => void
   pauseVideo: () => void
+  getCurrentTime: () => number
   destroy: () => void
 }
 
 export type Seekable = { seek: (t: number) => void }
 
 export default function Youtube({
-  id, label, handle,
+  id, label, handle, onTime,
 }: {
   id: string
   label: string
   /** Handed in when something outside needs to seek this — the programme
    *  list, which jumps to a movement. */
   handle?: React.MutableRefObject<Seekable | null>
+  /**
+   * Where it has got to, a couple of times a second.
+   *
+   * A hosted player fires no timeupdate, so the only way the programme list
+   * can keep marking the movement actually sounding is to ask. Polled
+   * rather than subscribed, and only while it is playing — a poll that runs
+   * against a paused film is a timer burning for nothing.
+   */
+  onTime?: (t: number) => void
 }) {
   const host = useRef<HTMLDivElement>(null)
   const player = useRef<Player | null>(null)
+  const tick = useRef(0)
 
   useEffect(() => {
     let dead = false
@@ -70,6 +81,17 @@ export default function Youtube({
         host: 'https://www.youtube-nocookie.com',
         playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
         events: {
+          onStateChange: (e: { data: number }) => {
+            /* 1 is PLAYING. The API's own enum is not worth importing for
+               one number. */
+            window.clearInterval(tick.current)
+            if (e.data === 1 && onTime) {
+              tick.current = window.setInterval(() => {
+                const t = player.current?.getCurrentTime()
+                if (typeof t === 'number') onTime(t)
+              }, 400)
+            }
+          },
           onReady: () => {
             if (handle) {
               handle.current = {
@@ -85,10 +107,14 @@ export default function Youtube({
     })
     return () => {
       dead = true
+      window.clearInterval(tick.current)
       if (handle) handle.current = null
       player.current?.destroy()
       player.current = null
     }
+    /* onTime is a fresh closure on every render of the parent; depending on
+       it would tear the player down and rebuild it several times a second. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, handle])
 
   return (
