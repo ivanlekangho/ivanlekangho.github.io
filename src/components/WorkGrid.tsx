@@ -20,7 +20,9 @@ import type { Item } from '../data/portfolio'
  * left wherever the data put it, so a group always opens on its strongest
  * thing and the wide card never lands mid-row leaving a hole beside it.
  */
-export default function WorkGrid({ items, tight }: { items: Item[]; tight?: boolean }) {
+export default function WorkGrid({
+  items, tight, minimal,
+}: { items: Item[]; tight?: boolean; minimal?: boolean }) {
   const [open, setOpen] = useState<Item | null>(null)
   const ordered = [...items].sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
 
@@ -40,6 +42,7 @@ export default function WorkGrid({ items, tight }: { items: Item[]; tight?: bool
               stack={it.stack}
               metric={it.metric}
               featured={it.featured}
+              minimal={minimal}
               attachments={it.attachments}
               pending={!it.line}
               more={opens ? (it.cta ?? 'Read more') : it.href ? (it.cta ?? 'Visit') : undefined}

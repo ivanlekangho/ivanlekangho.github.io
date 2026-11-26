@@ -19,7 +19,7 @@
  * who administers it" is a disclosure surface for no benefit.
  */
 
-export type Group = 'work' | 'research' | 'projects'
+export type Group = 'health' | 'education' | 'society'
 
 /**
  * Something a reader can actually open. The signal is the point: a card
@@ -34,6 +34,9 @@ export type Attachment = {
   kind: 'pdf' | 'audio' | 'video' | 'score' | 'report' | 'repo' | 'excerpt' | 'link'
   label: string
   href?: string
+  /** What you are about to open — extent, mostly. A reader deciding whether
+   *  to click a score is deciding whether to look at eight pages or one. */
+  meta?: string
 }
 
 export type Item = {
@@ -50,7 +53,9 @@ export type Item = {
   title?: string
   /** The real, full title, where the card shows an abbreviation of it. */
   fullTitle?: string
-  group: Group
+  /* Optional, because the musical roles are rendered as one list and were
+     only ever carrying a group to satisfy this type. */
+  group?: Group
   /** The eyebrow — what kind of thing this is. */
   kind: string
   when?: string
@@ -70,24 +75,39 @@ export type Item = {
   exhibit?: 'authorship' | 'uyghur'
 }
 
+/**
+ * Three fields rather than three kinds of employment.
+ *
+ * It used to be Work, Research and Projects, which sorts by what a thing
+ * was to ME — a job, a paper, a weekend — and tells a reader nothing. These
+ * sort by who it was for, which is the only sorting that makes the set mean
+ * anything: the same question turns up in a cancer charity's database, in a
+ * Stanford section room and in a bibliometric dataset, and filing those
+ * three under "work, research, projects" hides exactly that.
+ *
+ * In the order Ivan wrote them in the subtitle.
+ */
 export const GROUPS: { id: Group; title: string; gloss: string }[] = [
-  { id: 'work', title: 'Work', gloss: 'Built for an organisation, paid or not.' },
-  { id: 'research', title: 'Research', gloss: 'Who the record leaves out, and how.' },
-  { id: 'projects', title: 'Projects', gloss: 'Built to find out whether I could.' },
+  { id: 'society', title: 'Society', gloss: 'Who the record leaves out, and who gets a say.' },
+  { id: 'education', title: 'Education', gloss: 'Teaching the thing itself.' },
+  { id: 'health', title: 'Health', gloss: 'Engineering inside the places that treat people.' },
 ]
 
 export const ITEMS: Item[] = [
-  /* ---------------------------------------------------------- work */
+  /* -------------------------------------------------------- health */
   {
     id: 'charity-db',
     org: 'Cancer Society of New Zealand',
-    group: 'work',
+    group: 'health',
     featured: true,
-    title: 'Rebuilding an undocumented patient database',
-    kind: 'Engineering',
+    title: 'Software and Data Engineer Intern for New Zealand’s largest cancer non-profit',
+    /* The job, rather than the first task in it. The database rebuild is
+       the lead bullet behind the tile; it was the title here and that
+       undersold a paid engineering internship as one piece of work. */
+    kind: 'Internship',
     when: 'Jun – Sep 2026',
     metric: { value: '95%', label: 'faster extraction' },
-    line: 'No documentation, no declared foreign keys. The schema came back out of the data.',
+    line: 'Rebuilt an undocumented patient database, then decided what the charity was allowed to keep.',
     stack: ['Python', 'MySQL'],
     bullets: [
       'Reverse-engineered the table relationships of a legacy case-management system from scratch — no documentation, no declared foreign keys — and redesigned the architecture around what the data actually was.',
@@ -99,7 +119,7 @@ export const ITEMS: Item[] = [
   {
     id: 'charity-governance',
     org: 'Cancer Society of New Zealand',
-    group: 'work',
+    group: 'health',
     title: 'Deciding what a charity may keep',
     kind: 'Data governance',
     when: '2026',
@@ -114,7 +134,7 @@ export const ITEMS: Item[] = [
   {
     id: 'charity-apis',
     org: 'Cancer Society of New Zealand',
-    group: 'work',
+    group: 'health',
     title: 'Two APIs replacing two forms',
     kind: 'Engineering',
     when: '2026',
@@ -129,7 +149,7 @@ export const ITEMS: Item[] = [
   {
     id: 'teaching',
     org: 'Stanford University',
-    group: 'work',
+    group: 'education',
     title: 'CS106A and CS106B',
     kind: 'Section leader',
     when: 'Mar 2026 – present',
@@ -144,7 +164,7 @@ export const ITEMS: Item[] = [
   {
     id: 'code4myanmar',
     org: 'Code4Myanmar',
-    group: 'work',
+    group: 'education',
     title: 'Volunteer Python instructor',
     kind: 'Teaching',
     line: 'Six weeks, remote, for college-aged students in Chin State.',
@@ -153,7 +173,7 @@ export const ITEMS: Item[] = [
   {
     id: 'pharmacy',
     org: 'Grafton Pharmacy',
-    group: 'work',
+    group: 'health',
     title: 'Four years behind the counter',
     kind: 'Service',
     when: '2020 – 2024',
@@ -165,10 +185,10 @@ export const ITEMS: Item[] = [
     ],
   },
 
-  /* ------------------------------------------------------ research */
+  /* ------------------------------------------------------- society */
   {
     id: 'authorship',
-    group: 'research',
+    group: 'society',
     featured: true,
     title: 'Authorship inequality in international collaboration',
     fullTitle: 'Authorship Inequality in International Scientific Collaboration',
@@ -187,7 +207,7 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'uyghur',
-    group: 'research',
+    group: 'society',
     title: 'The digital machinery of Uyghur oppression',
     fullTitle: 'Mandarin, Monitors, and Marginalization: The Digital Machinery of Uyghur Oppression',
     kind: 'Paper',
@@ -201,7 +221,7 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'gene-drives',
-    group: 'research',
+    group: 'society',
     title: 'Gene drives in New Zealand',
     kind: 'Paper',
     line: 'Liability once a drive crosses a border, and whether Māori get a decision.',
@@ -212,14 +232,13 @@ export const ITEMS: Item[] = [
       'Two legal gaps follow from that: who is liable once it has crossed one, and whether Māori get a decision rather than a consultation. Neither appears to be reached by the Gene Technology Bill.',
     ],
   },
-  { id: 'spog', org: 'SPOG lab', group: 'research', kind: 'Lab' },
-  { id: 'soyalab', org: 'SoyaLab', group: 'research', kind: 'Lab' },
+  { id: 'spog', org: 'SPOG lab', group: 'society', kind: 'Lab' },
+  { id: 'soyalab', org: 'SoyaLab', group: 'society', kind: 'Lab' },
 
-  /* ------------------------------------------------------ projects */
+  /* --------------------------------------------- society, continued */
   {
     id: 'flutterer',
-    group: 'projects',
-    featured: true,
+    group: 'society',
     title: 'Flutterer',
     kind: 'Full stack',
     when: 'Sep – Dec 2025',
@@ -253,7 +272,25 @@ export const byGroup = (g: Group) => ITEMS.filter((i) => i.group === g)
  * list and was never more than that.
  */
 
-export type Media = { src: string; kind: 'audio' | 'video'; label: string }
+export type Media = {
+  /** The master. Whatever drives the transport and makes the sound. */
+  src: string
+  kind: 'audio' | 'video'
+  label: string
+  /**
+   * A silent picture to run against `src`.
+   *
+   * Two files rather than one because no tool on this machine can make one
+   * that is both watchable and listenable inside GitHub's 100MB per-file
+   * limit: the only encoder available is quality-targeted with no bitrate
+   * control, so its usable settings give either 284MB at 480p or a 32MB
+   * file whose audio is 16kHz — telephone quality, which throws away
+   * everything a saxophone does above 8kHz. So the picture comes from the
+   * small one with its sound discarded, and the sound comes from a proper
+   * 44.1kHz extract. Both are cut from the same tape at the same offset.
+   */
+  film?: string
+}
 
 export type Work = {
   id: string
@@ -268,8 +305,18 @@ export type Work = {
   honour?: string
   /** Two sentences at most. The recording is the argument; this is a note. */
   note?: string
-  /** What is actually on the recording, where that is a programme of works. */
-  programme?: { work: string; composer: string; movements?: string[] }[]
+  /**
+   * What is actually on the recording. `at` is the movement's start in the
+   * FILE, not in the original tape — the recital's first 47 seconds (the
+   * walk-on and the tuning) are cut, so every figure Ivan read off the
+   * camera file has had 47 subtracted from it. Keep that in one place: if
+   * the cut ever changes, these all move together and nothing else does.
+   */
+  programme?: {
+    work: string
+    composer: string
+    movements?: { title: string; at: number }[]
+  }[]
   media?: Media
   photo?: { src: string; caption: string }
   docs?: Attachment[]
@@ -285,7 +332,10 @@ export const WORKS: Work[] = [
     where: 'Written for the King’s College TTBB choir',
     honour: 'Highly Commended, NZCF–SOUNZ Choral Composition Competition 2024',
     note: 'A setting of Heine’s “Wenn ich auf dem Lager liege”, written for my own school’s lower-voice choir and taken into their repertoire for the Big Sing Cadenza, where they took the top award. It leans on Clara Schumann’s “Liebst du um Schönheit” for its rocking ii–V–I and its “ah” bass line, and on Donald Patriquin for the polyphony from bar 29 and the rhythmic augmentation from bar 46.',
-    media: { src: '/audio/abendlied.mp3', kind: 'audio', label: 'Abendlied — recording' },
+    media: { src: '/audio/abendlied.m4a', kind: 'audio', label: 'Abendlied — recording' },
+    docs: [
+      { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf', meta: 'TTBB and piano · 8 pages' },
+    ],
     photo: {
       src: '/photos/cadenza.jpg',
       caption: 'The King’s College choirs at the Big Sing Cadenza, Auckland Town Hall',
@@ -300,20 +350,43 @@ export const WORKS: Work[] = [
     where: 'Cambridge A Level Music, extended performance',
     note: 'A recital built as one route rather than a set of pieces: French Brazil, an Argentine tango étude, then Havana and the Caribbean.',
     programme: [
-      { work: 'Scaramouche, Op. 165c', composer: 'Darius Milhaud', movements: ['II. Modéré', 'III. Brazileira'] },
-      { work: '6 Tango Études', composer: 'Astor Piazzolla', movements: ['IV. Lento meditativo'] },
-      { work: 'Latin American Dances', composer: 'John Carmichael', movements: ['II. Obsession — Habañera', 'III. Bahama Rhumba'] },
+      {
+        work: 'Scaramouche, Op. 165c',
+        composer: 'Darius Milhaud',
+        movements: [
+          { title: 'II. Modéré', at: 0 },          /* 0:47 on the tape */
+          { title: 'III. Brazileira', at: 243 },   /* 4:50 */
+        ],
+      },
+      {
+        work: '6 Tango Études',
+        composer: 'Astor Piazzolla',
+        movements: [
+          { title: 'IV. Lento meditativo', at: 459 }, /* 8:26 */
+        ],
+      },
+      {
+        work: 'Latin American Dances',
+        composer: 'John Carmichael',
+        movements: [
+          { title: 'II. Obsession — Habañera', at: 703 }, /* 12:30 */
+          { title: 'III. Bahama Rhumba', at: 865 },       /* 15:12 */
+        ],
+      },
     ],
-    /* The recording is audio and not the video, and that is a size
-       decision rather than an aesthetic one: the recital runs 17:34 and
-       the camera file is 1.19GB of 9Mbps 720p. Nothing compresses a
-       seventeen-minute video under GitHub's 100MB per-file ceiling at a
-       quality worth watching, so the soundtrack is here in full at 13MB
-       and the picture needs somewhere that hosts video. */
-    media: { src: '/audio/journey-through-latin-america.m4a', kind: 'audio', label: 'The recital' },
+    /* Both files start 47 seconds into the camera's tape, where the music
+       starts; everything before it is the walk-on. Every figure in the
+       programme above has had those 47 seconds taken off it, which is why
+       the first movement begins at zero. */
+    media: {
+      kind: 'video',
+      src: '/audio/journey-through-latin-america.m4a',
+      film: '/video/journey-through-latin-america.mp4',
+      label: 'The recital',
+    },
     docs: [
-      { kind: 'score', label: 'Scores', href: '/scores/journey-through-latin-america.pdf' },
-      { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf' },
+      { kind: 'score', label: 'Scores', href: '/scores/journey-through-latin-america.pdf', meta: 'The three works, as performed' },
+      { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf', meta: '11 pages' },
     ],
   },
   {
@@ -325,7 +398,7 @@ export const WORKS: Work[] = [
     where: 'Cambridge A Level Music, extended composition',
     media: { src: '/audio/introduction-and-rondo.mp3', kind: 'audio', label: 'Introduction and Rondo' },
     docs: [
-      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf' },
+      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf', meta: 'Clarinet quintet · 26 pages' },
     ],
   },
 ]
@@ -338,7 +411,6 @@ export const MUSIC: Item[] = [
   {
     id: 'mixedco',
     org: 'Mixed Company, Stanford',
-    group: 'work',
     featured: true,
     title: 'Musical Director',
     kind: 'A cappella',
@@ -350,7 +422,6 @@ export const MUSIC: Item[] = [
   },
   {
     id: 'ipq',
-    group: 'research',
     featured: true,
     title: 'The shape of a saxophone mouthpiece',
     fullTitle: 'How does the shape of an alto saxophone mouthpiece affect its sound?',
@@ -368,7 +439,6 @@ export const MUSIC: Item[] = [
   {
     id: 'nzssc',
     org: 'NZ Secondary Students’ Choir',
-    group: 'work',
     title: 'Soloist',
     kind: 'Choir',
     when: '2023 – 2024',
@@ -378,7 +448,6 @@ export const MUSIC: Item[] = [
   {
     id: 'kings-choirs',
     org: 'King’s College',
-    group: 'work',
     title: 'Kappella, and All the King’s Men',
     kind: 'Choir leader',
     when: '2020 – 2024',
@@ -387,7 +456,6 @@ export const MUSIC: Item[] = [
   {
     id: 'sax',
     org: 'Little Big Band',
-    group: 'work',
     title: 'Alto saxophone',
     kind: 'Grade 8, distinction',
     when: '2022',
@@ -396,7 +464,6 @@ export const MUSIC: Item[] = [
   {
     id: 'violin',
     org: 'King’s College Symphony Orchestra',
-    group: 'work',
     title: 'Violin',
     kind: 'Grade 6, distinction',
     when: '2020',

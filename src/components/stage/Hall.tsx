@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PIECE } from '../../data/phrase'
+import { goToPanel } from '../../lib/deck'
 import { useMode } from '../../lib/mode'
 import { usePlayback } from '../../lib/playback'
 import ModeRail from '../ModeRail'
@@ -28,7 +29,7 @@ import { screens } from './staging'
  * Scrolling walks the rail rather than the page (lib/hallScroll.ts); once the
  * lights are full up, the next scroll leaves the room.
  */
-export default function Hall({ onAbout }: { onAbout: () => void }) {
+export default function Hall() {
   const { pos } = useMode()
   const pb = usePlayback()
   const [sheet, setSheet] = useState(false)
@@ -51,8 +52,8 @@ export default function Hall({ onAbout }: { onAbout: () => void }) {
             It carries the quotation and its translation on the face, so a
             reader who never clicks has still been told the one thing that
             matters. */}
-        <button type="button" className="brand-about" aria-haspopup="dialog"
-          onClick={onAbout}>
+        <button type="button" className="brand-about"
+          onClick={() => goToPanel('about')}>
           <span className="brand-about-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
           <span className="brand-about-gloss">I am a stranger everywhere</span>
           <span className="brand-about-cue">About</span>

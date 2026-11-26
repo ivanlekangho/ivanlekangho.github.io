@@ -753,12 +753,14 @@ pre {
 .menu-link:focus-visible { outline: 2px solid var(--hero-red); outline-offset: -4px; }
 
 /* A phone has 375px of bar to divide between a name and five labels, and
-   the longest label is EDUCATION. Measured at these sizes the widest cell
-   needs 47px and gets 63px, so all five sit on one row unclipped — the same
-   arrangement as the hero's own bar, which is the point. */
+   the longest is now WORK/IMPACT at eleven characters. "Fits" is not the
+   test: at 0.52rem it measured 63px inside a 64px cell, which is true and
+   still looked wrong, because a label touching both hairlines reads as
+   broken even when it is whole. These sizes leave it about 4px of air each
+   side, which is the difference. */
 @media (max-width: 40rem) {
-  .menu-brand { padding-inline: 0.45rem; font-size: 0.78rem; }
-  .menu-link { padding: 0 1px; font-size: 0.52rem; letter-spacing: 0.02em; }
+  .menu-brand { padding-inline: 0.4rem; font-size: 0.74rem; }
+  .menu-link { padding: 0 1px; font-size: 0.47rem; letter-spacing: 0.015em; }
 }
 
 /* ============================================================
@@ -1888,25 +1890,23 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 }
 .work-where { margin: 0; font-size: var(--step--1); color: var(--ink-3); }
 .work-note { margin: 0; max-width: var(--measure); color: var(--ink-2); line-height: 1.6; }
-.work-docs { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 /* ---- the programme ------------------------------------------------
    A numbered list, because the order is the argument: the recital is one
    route through a continent, not a set of pieces. */
 .programme { list-style: none; margin: 0; padding: 0; display: grid; }
-.programme li {
-  display: grid; gap: 1px;
+.programme > li {
   padding: var(--space-3) 0;
   border-top: 1px solid var(--rule);
 }
-.programme li:last-child { border-bottom: 1px solid var(--rule); }
-.programme-work { font-size: var(--step-0); color: var(--ink); font-style: italic; }
+.programme > li:last-child { border-bottom: 1px solid var(--rule); }
+.programme-work { margin: 0; font-size: var(--step-0); color: var(--ink); font-style: italic; }
+.programme-by { margin: 1px 0 0; }
 .programme-by {
   font-family: var(--font-label); font-weight: var(--label-weight);
   font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink-3);
 }
-.programme-mvts { font-size: var(--step--1); color: var(--ink-2); }
 
 /* ---- the photograph ------------------------------------------------ */
 .work-photo { margin: 0; }
@@ -1919,18 +1919,14 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   font-size: var(--step--1); color: var(--ink-3); line-height: 1.45;
 }
 
-/* ---- the video, when there is one ---------------------------------- */
+/* ---- the picture above the bar -------------------------------------
+   A video and a photograph occupy the same slot and are the same shape in
+   it: the thing to look at, with the transport underneath. */
 .reel {
   display: block; width: 100%; height: auto; aspect-ratio: 16 / 9;
   background: var(--ink); border: 1px solid var(--rule);
+  border-bottom: 0; cursor: pointer;
 }
-.reel-missing {
-  display: grid; place-items: center; aspect-ratio: 16 / 9;
-  padding: var(--space-5); text-align: center;
-  border: 1px dashed var(--accent-soft);
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
-}
-.reel-missing p { margin: 0; color: var(--ink-2); font-size: var(--step--1); }
 
 /* ============================================================
    The player
@@ -2003,3 +1999,230 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   font-size: var(--step--1); color: var(--ink-2);
 }
 .player-bad a { color: var(--accent-deep); }
+
+
+/* ============================================================
+   The documents — controls, not footnotes
+
+   A score used to be a chip set at filename size under the prose. It is
+   the only piece of evidence on the block and the second question the
+   block asks, after "do you want to hear this", so it is sized like a
+   second question: the score filled in the red, anything that is not a
+   score outlined behind it.
+   ============================================================ */
+.docs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.doc-btn {
+  display: inline-flex; align-items: center; gap: 0.7em;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--accent); border-radius: var(--radius-lg);
+  background: none; color: var(--accent-deep);
+  font: inherit; cursor: pointer; text-align: left;
+  transition: background-color var(--dur-ui) var(--ease-out),
+              color var(--dur-ui) var(--ease-out),
+              transform 180ms var(--ease-spring);
+}
+.doc-btn-text { display: grid; gap: 1px; min-width: 0; }
+.doc-btn-label {
+  font-family: var(--font-label); font-weight: 500;
+  font-size: var(--step--1); letter-spacing: 0.1em; text-transform: uppercase;
+  white-space: nowrap;
+}
+/* The extent, in the button. "Score" is a promise; "Score · 8 pages" is a
+   decision a reader can actually make before they click. */
+.doc-btn-meta {
+  font-family: var(--font-label); font-size: 0.68rem;
+  letter-spacing: 0.02em; text-transform: none; opacity: 0.75;
+}
+.doc-btn .att-mark { width: 15px; height: 15px; flex: none; }
+
+.doc-btn:hover, .doc-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  transform: translateY(-1px); outline: none;
+}
+.doc-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* The score itself: filled, because it is the one you want pressed. */
+.doc-btn-lead {
+  background: var(--accent); color: #FFF; border-color: var(--accent);
+  padding: 0.7rem 1.1rem;
+}
+.doc-btn-lead .doc-btn-label { font-size: var(--step-0); letter-spacing: 0.08em; }
+.doc-btn-lead .att-mark { width: 17px; height: 17px; }
+.doc-btn-lead:hover, .doc-btn-lead:focus-visible {
+  background: var(--accent-deep); border-color: var(--accent-deep); color: #FFF;
+}
+
+/* ---- the document sheet -------------------------------------------
+   Wider than a reading sheet, because what is in it is a page of music
+   and a page of music does not reflow. */
+.sheet-wide { width: min(72rem, 100%); max-height: min(92vh, 60rem); }
+.doc-frame {
+  display: block; width: 100%; height: min(66vh, 44rem);
+  border: 1px solid var(--rule); background: var(--paper-2);
+  margin-bottom: var(--space-3);
+}
+.doc-escape { margin: 0; font-size: var(--step--1); color: var(--ink-3); }
+.doc-escape a { color: var(--accent-deep); }
+
+/* ============================================================
+   About — one line, at the size it deserves
+   ============================================================ */
+.about-quote { margin: 0 0 var(--space-6); }
+.about-line {
+  margin: 0;
+  /* The score's face, because it is a line of Schubert and the room at the
+     far right sets the same bar in the same type. */
+  font-family: var(--font-score);
+  font-size: clamp(2.1rem, 1.1rem + 4.4vw, 4.6rem);
+  font-weight: 400; line-height: 1.1; letter-spacing: -0.012em;
+  color: var(--ink); max-width: 18ch;
+}
+.about-source {
+  margin: var(--space-4) 0 0; max-width: 34rem;
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: 0.04em; color: var(--ink-3); line-height: 1.5;
+}
+.about-source cite { font-style: italic; }
+.about-text { display: grid; gap: var(--space-4); max-width: var(--measure); }
+.about-text p { margin: 0; color: var(--ink-2); line-height: 1.65; }
+.about-lede { font-size: var(--step-1); line-height: 1.45; }
+.about-lede em { color: var(--ink); font-style: italic; font-weight: 500; }
+
+/* A subtitle that is a list of things rather than a sentence about them:
+   tracked out and set in the label face, so it reads as a billing line
+   under the name and not as a paragraph that forgot its full stop. */
+.lede-list {
+  font-family: var(--font-label); font-weight: 500;
+  font-size: clamp(0.9rem, 0.82rem + 0.4vw, 1.12rem);
+  letter-spacing: 0.06em; color: var(--ink-2); max-width: none;
+}
+
+
+/* ---- the movements, as a way in ------------------------------------
+   Each is a button carrying its own start. The timestamp is set in the
+   mono face and tabular, so five of them form a column you can read down
+   rather than five numbers at five different widths. */
+.movements { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: 1px; }
+.mvt {
+  display: flex; align-items: baseline; gap: 0.75em;
+  width: 100%; padding: 0.3rem 0.4rem 0.3rem 0;
+  border: 0; border-radius: var(--radius-lg);
+  background: none; color: var(--ink-2); font: inherit;
+  font-size: var(--step--1); text-align: left; cursor: pointer;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.mvt-at {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  font-variant-numeric: tabular-nums; color: var(--ink-3);
+  flex: none; min-width: 3.1em;
+  transition: color 160ms var(--ease-out);
+}
+.mvt:hover, .mvt:focus-visible {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--ink); outline: none;
+}
+.mvt:hover .mvt-at, .mvt:focus-visible .mvt-at { color: var(--accent-deep); }
+.mvt:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The one sounding now. The programme doubles as the position indicator,
+   which is what a programme in your hand does while you sit in the room. */
+.mvt.is-live { color: var(--ink); font-weight: 500; }
+.mvt.is-live .mvt-at { color: var(--accent); }
+.mvt.is-live::before {
+  content: ''; position: absolute; left: 0;
+  width: 2px; height: 1.1em; background: var(--accent);
+  margin-left: -0.55rem;
+}
+.mvt { position: relative; }
+
+/* ---- the transport gains its skips ---------------------------------- */
+.player {
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
+.player:has(.player-full) { grid-template-columns: auto auto auto minmax(0, 1fr) auto auto; }
+/* The bar belongs to the picture above it when there is one. */
+.player-block .reel + .player { border-top: 0; }
+
+.player-jump {
+  position: relative;
+  display: grid; place-items: center;
+  width: 2.1rem; height: 2.1rem; padding: 0;
+  border: 0; border-radius: var(--radius-lg);
+  background: none; color: var(--ink-2); cursor: pointer;
+  transition: color var(--dur-ui) var(--ease-out), background-color var(--dur-ui) var(--ease-out);
+}
+.player-jump svg { width: 100%; height: 100%; }
+/* The number inside the arrow's loop, which is the convention every player
+   a reader has already used settles on. */
+.player-jump span {
+  position: absolute; top: 56%; left: 50%; transform: translate(-50%, -50%);
+  font-family: var(--font-mono); font-size: 0.5rem; line-height: 1;
+  font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.player-jump:hover, .player-jump:focus-visible {
+  color: var(--accent-deep); background: color-mix(in srgb, var(--accent) 9%, transparent);
+  outline: none;
+}
+.player-jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.player-full {
+  display: grid; place-items: center;
+  width: 1.9rem; height: 1.9rem; padding: 0;
+  border: 0; background: none; color: var(--ink-3); cursor: pointer;
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.player-full svg { width: 82%; height: 82%; }
+.player-full:hover, .player-full:focus-visible { color: var(--accent-deep); outline: none; }
+.player-full:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* On a phone the skips keep their size — they are thumb targets — and the
+   clock gives up its leading zero space instead. */
+@media (max-width: 30rem) {
+  .player { gap: var(--space-2); padding: var(--space-2); }
+  .player-clock { font-size: 0.66rem; }
+}
+
+
+/* ============================================================
+   Minimal tiles — the number, the name, and nothing else
+
+   Nine pieces of work on one panel. With a sentence on every tile that is
+   nine paragraphs of grey at one size, and the nine numbers — which are
+   the actual content, and the only part that differs tile to tile — have
+   to be hunted for inside it. Stripped back, the panel is nine numbers and
+   nine names, which is about four seconds of reading, and then the reader
+   chooses one and the sheet has everything.
+
+   The number grows because it is now carrying the tile on its own.
+   ============================================================ */
+.card-min {
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4);
+}
+.card-min .card-metric { margin-top: var(--space-1); }
+.card-min .card-metric b { font-size: var(--step-4); }
+.card-min.card-lead .card-metric b { font-size: var(--step-5); letter-spacing: -0.04em; }
+.card-min .card-title {
+  font-size: var(--step-0); font-weight: 400;
+  line-height: 1.3; letter-spacing: -0.012em;
+}
+.card-min.card-lead .card-title { font-size: var(--step-1); line-height: 1.22; }
+/* The name of the thing sits under the number with room around it, since
+   the sentence that used to separate them is gone. */
+.card-min .card-foot { margin-top: auto; padding-top: var(--space-3); }
+
+/* A tile with no number is not a hole: it still has an organisation and a
+   name, and on a minimal face those move up to carry it. */
+.card-min:not(:has(.card-metric)) .card-title { font-size: var(--step-1); }
+
+/* ---- the photograph's pending note -------------------------------- */
+.photo img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+}
+.photo-pending { text-transform: none; letter-spacing: 0.01em; color: var(--accent-deep); }
+
+/* The group's one-line gloss. Short on purpose — it is a label for a set,
+   not an introduction to it. */
+.group-gloss { margin: 0 0 var(--space-4); color: var(--ink-3); font-size: var(--step--1); }

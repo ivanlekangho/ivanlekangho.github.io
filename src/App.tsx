@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
-import AboutSheet from './components/AboutSheet'
 import Hero from './components/Hero'
 import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
 import { goToPanel, useDeck } from './lib/deck'
 import { useHallScroll } from './lib/hallScroll'
 import { useReveal } from './lib/reveal'
+import About from './sections/About'
 import Impact from './sections/Impact'
 import Creative from './sections/Creative'
 import Education from './sections/Education'
@@ -29,16 +29,18 @@ import Post from './pages/Post'
  * where it sits — the lights, the rail and the three readings are as they
  * were, and the wheel still walks them once you are in there.
  *
- * About is not a panel. It is a sheet, opened from either bar, because a
- * screen-sized page of biography between the work and the music is a wall
- * across the middle of the thing people came to look at.
+ * About is a panel of its own, between the schools and the address. In a
+ * page that scrolls down, a screen of biography in the middle is a wall
+ * across the thing people came to look at, which is why it spent a while as
+ * a sheet. Read sideways it costs nothing: it is one swipe, and anyone who
+ * does not want it passes it in the gesture they were already making.
  */
 
 /** Where the old URLs went. Nobody's bookmark breaks. */
 const MOVED: [string, string][] = [
   ['/recital', '/#creative'],
   ['/music', '/#creative'],
-  ['/about', '/'],
+  ['/about', '/#about'],
   ['/work', '/#impact'],
   ['/impact', '/#impact'],
   ['/projects', '/#impact'],
@@ -59,15 +61,16 @@ function MovedPost() {
   return <Navigate to={`/writing/${slug}`} replace />
 }
 
-function Home({ onAbout }: { onAbout: () => void }) {
+function Home() {
   return (
     <div className="deck">
-      <Hero onAbout={onAbout} />
+      <Hero />
       <Impact />
       <Creative />
       <Education />
+      <About />
       <Contact />
-      <Hall onAbout={onAbout} />
+      <Hall />
     </div>
   )
 }
@@ -109,7 +112,6 @@ function HashScroll() {
 export default function App() {
   const { pathname } = useLocation()
   const onHome = pathname === '/'
-  const [about, setAbout] = useState(false)
   const at = useDeck(onHome)
   useHallScroll(onHome)
   useReveal(pathname)
@@ -117,11 +119,11 @@ export default function App() {
   return (
     <>
       <a href="#impact" className="sr-only">Skip to content</a>
-      <Menu at={onHome ? at : 1} onHome={onHome} onAbout={() => setAbout(true)} />
+      <Menu at={onHome ? at : 1} onHome={onHome} />
       <HashScroll />
       <main id="main">
         <Routes>
-          <Route path="/" element={<Home onAbout={() => setAbout(true)} />} />
+          <Route path="/" element={<Home />} />
           <Route path="/writing/:slug" element={<Post />} />
           {MOVED.map(([from, to]) => (
             <Route key={from} path={from} element={<Navigate to={to} replace />} />
@@ -130,7 +132,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      {about && <AboutSheet onClose={() => setAbout(false)} />}
     </>
   )
 }

@@ -17,12 +17,13 @@ import { PANELS, SECTIONS, goToPanel } from '../lib/deck'
  * Five entries, and the hall is deliberately not one of them. It sits at
  * the far right as the thing the site arrives at, and an entry in the bar
  * would turn the end of the argument into a tab.
+ *
+ * Every entry now simply goes to a panel — About included, which used to be
+ * the one button here that opened a layer instead of travelling.
  */
 
 
-export default function Menu({
-  at, onHome, onAbout,
-}: { at: number; onHome: boolean; onAbout?: () => void }) {
+export default function Menu({ at, onHome }: { at: number; onHome: boolean }) {
   /* Hidden on the hero, which has the bar built into it. A post has no hero
      above it, so the bar is simply always there. */
   const shown = !onHome || at > 0
@@ -44,29 +45,22 @@ export default function Menu({
         )}
 
         <ul>
-          {SECTIONS.map((s) =>
-            s.id === null ? (
-              <li key={s.label}>
-                <button type="button" className="menu-link" onClick={onAbout}
-                  aria-haspopup="dialog">{s.label}</button>
-              </li>
-            ) : (
-              <li key={s.id}>
-                <a
-                  href={onHome ? `#${s.id}` : `/#${s.id}`}
-                  className={here === s.id ? 'menu-link is-here' : 'menu-link'}
-                  aria-current={here === s.id ? 'true' : undefined}
-                  onClick={(e) => {
-                    if (!onHome) return
-                    e.preventDefault()
-                    goToPanel(s.id)
-                  }}
-                >
-                  {s.label}
-                </a>
-              </li>
-            ),
-          )}
+          {SECTIONS.map((s) => (
+            <li key={s.id}>
+              <a
+                href={onHome ? `#${s.id}` : `/#${s.id}`}
+                className={here === s.id ? 'menu-link is-here' : 'menu-link'}
+                aria-current={here === s.id ? 'true' : undefined}
+                onClick={(e) => {
+                  if (!onHome) return
+                  e.preventDefault()
+                  goToPanel(s.id)
+                }}
+              >
+                {s.label}
+              </a>
+            </li>
+          ))}
         </ul>
       </nav>
     </header>

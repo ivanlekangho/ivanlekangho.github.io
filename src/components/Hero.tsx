@@ -30,22 +30,17 @@ import { SECTIONS, goToPanel } from '../lib/deck'
  * portrait that does not exist. It points right at the rest of the site
  * instead, which is where right now goes.
  */
-export default function Hero({ onAbout }: { onAbout: () => void }) {
+export default function Hero() {
   return (
     <section className="hero" id="hero" aria-label="Ivan Ho">
       {/* The bar and the name are one band, because together they are a
           third of the screen and the red is the other two. */}
       <div className="hero-top">
         <nav className="hero-nav" aria-label="Sections">
-          {SECTIONS.map((s) =>
-            s.id === null ? (
-              <button key={s.label} type="button" onClick={onAbout}
-                aria-haspopup="dialog">{s.label}</button>
-            ) : (
-              <a key={s.id} href={`#${s.id}`}
-                onClick={(e) => { e.preventDefault(); goToPanel(s.id) }}>{s.label}</a>
-            ),
-          )}
+          {SECTIONS.map((s) => (
+            <a key={s.id} href={`#${s.id}`}
+              onClick={(e) => { e.preventDefault(); goToPanel(s.id) }}>{s.label}</a>
+          ))}
         </nav>
         <p className="hero-name">Ivan Ho</p>
       </div>

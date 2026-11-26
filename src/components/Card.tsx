@@ -1,4 +1,5 @@
 import Chips from './Chips'
+import Mark from './Mark'
 import type { Attachment } from '../data/portfolio'
 
 /**
@@ -15,35 +16,15 @@ import type { Attachment } from '../data/portfolio'
  * Featured cards are twice as wide and set their metric twice as large.
  * The variation is the point: an even grid reads as a list, and a list is
  * what we were trying to get away from.
+ *
+ * `minimal` strips the face back to the number, the organisation and the
+ * name of the thing, and sends the sentence and the stack behind the
+ * click. On a panel of nine tiles that is the difference between a page
+ * you can take in and a page you have to read: the sentence was never the
+ * reason anyone clicked, and nine of them stacked up is a wall of grey
+ * that makes the nine numbers — the actual content — harder to find.
  */
 
-/** Drawn rather than imported, at 14px, on the current colour — one
- *  hairline vocabulary, and no icon font for six glyphs. */
-function Mark({ kind }: { kind: Attachment['kind'] }) {
-  const d = {
-    /* a sheet with a turned corner */
-    pdf: 'M4 1.5h5.5L12.5 4.5V14.5H4Z M9.5 1.5V4.5H12.5',
-    excerpt: 'M4 1.5h5.5L12.5 4.5V14.5H4Z M9.5 1.5V4.5H12.5',
-    report: 'M4 1.5h5.5L12.5 4.5V14.5H4Z M9.5 1.5V4.5H12.5 M6 9.5h4.5 M6 11.5h3',
-    /* a quaver */
-    score: 'M6.5 12.5V3.5L12 2V10',
-    audio: 'M6.5 12.5V3.5L12 2V10',
-    /* a frame with a play triangle */
-    video: 'M2.5 3.5h11v9h-11Z M7 6.5 10.5 8 7 9.5Z',
-    /* a branch */
-    repo: 'M5 2.5V13.5 M5 6.5H9a2 2 0 0 1 2 2v5',
-    link: 'M6.5 9.5 9.5 6.5 M6 4.5 8 2.5a3 3 0 0 1 4.2 4.2L10.5 8.5 M10 11.5 8 13.5a3 3 0 0 1-4.2-4.2L5.5 7.5',
-  }[kind]
-  const round = kind === 'score' || kind === 'audio'
-  return (
-    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" className="att-mark">
-      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.3"
-        strokeLinecap="round" strokeLinejoin="round" />
-      {round && <circle cx="4.6" cy="12.5" r="2.1" fill="currentColor" />}
-      {round && <circle cx="10.1" cy="10" r="2.1" fill="currentColor" />}
-    </svg>
-  )
-}
 
 /**
  * The attachment row — the signal that there is something to open here
@@ -77,7 +58,7 @@ export function Attachments({ items }: { items: Attachment[] }) {
 
 export default function Card({
   kind, when, org, title, line, stack, more, onOpen, href, tint, pending,
-  metric, featured, attachments,
+  metric, featured, attachments, minimal,
 }: {
   kind?: string
   when?: string
@@ -97,12 +78,17 @@ export default function Card({
   metric?: { value: string; label: string }
   featured?: boolean
   attachments?: Attachment[]
+  /** Face carries the number and the name only; the rest waits behind the
+   *  click. */
+  minimal?: boolean
   /** The label on the affordance. Its presence is what makes this a button. */
   more?: string
   onOpen?: () => void
   href?: string
 }) {
-  const cls = featured ? 'card card-lead' : 'card'
+  const cls = [
+    'card', featured ? 'card-lead' : '', minimal ? 'card-min' : '',
+  ].filter(Boolean).join(' ')
   const inside = (
     <>
       {(kind || when) && (
@@ -123,8 +109,8 @@ export default function Card({
           {title}
         </h4>
       )}
-      {line && <p className="card-line">{line}</p>}
-      {stack && stack.length > 0 && <Chips items={stack} label="Stack" />}
+      {line && !minimal && <p className="card-line">{line}</p>}
+      {stack && stack.length > 0 && !minimal && <Chips items={stack} label="Stack" />}
       {pending && <p className="card-pending">Needs a description</p>}
       <span className="card-foot">
         {attachments && attachments.length > 0 && <Attachments items={attachments} />}

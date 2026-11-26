@@ -16,11 +16,13 @@ import { useEffect, useRef, type ReactNode } from 'react'
  * costume, not a design.
  */
 export default function Sheet({
-  onClose, label, tone = 'panel', children,
+  onClose, label, tone = 'panel', wide = false, children,
 }: {
   onClose: () => void
   label: string
   tone?: 'paper' | 'panel'
+  /** A document sheet, which is mostly a page of music and wants the room. */
+  wide?: boolean
   children: ReactNode
 }) {
   const box = useRef<HTMLDivElement>(null)
@@ -43,7 +45,9 @@ export default function Sheet({
   return (
     <div className="sheet-layer">
       <div className="sheet-scrim" onClick={onClose} aria-hidden="true" />
-      <div className={tone === 'paper' ? 'sheet sheet-paper' : 'sheet sheet-panel'}
+      <div className={[
+        'sheet', tone === 'paper' ? 'sheet-paper' : 'sheet-panel', wide ? 'sheet-wide' : '',
+      ].filter(Boolean).join(' ')}
         role="dialog" aria-modal="true" aria-label={label}
         ref={box} tabIndex={-1} data-keeps-scroll>
         <button type="button" className="sheet-close" onClick={onClose} aria-label="Close">

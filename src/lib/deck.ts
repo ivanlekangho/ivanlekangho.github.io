@@ -42,18 +42,21 @@ import { useEffect, useState } from 'react'
  * effects keep running against state the new code cannot see. That cost an
  * hour of chasing a bug in this file that was never in this file.
  *
- * About has no id because it is not a panel. It opens a sheet.
+ * About has an id like the rest: it is a panel of its own now, not a sheet.
  */
 export const SECTIONS = [
-  { id: 'impact', label: 'Impact' },
+  /* Two words because the panel is both: the Cancer Society work and the
+     papers are the same question asked from a job and from a desk, and
+     "Impact" alone read as the charity half only. */
+  { id: 'impact', label: 'Work/Impact' },
   { id: 'creative', label: 'Creative' },
   { id: 'education', label: 'Education' },
-  { id: null, label: 'About' },
+  { id: 'about', label: 'About' },
   { id: 'contact', label: 'Contact' },
 ] as const
 
 /** Document order. The hall is last and deliberately has no entry in the bar. */
-export const PANELS = ['hero', 'impact', 'creative', 'education', 'contact', 'hall'] as const
+export const PANELS = ['hero', 'impact', 'creative', 'education', 'about', 'contact', 'hall'] as const
 export type PanelId = (typeof PANELS)[number]
 
 /** Events closer together than this belong to one gesture. */
