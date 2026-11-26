@@ -2360,25 +2360,6 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   position: relative;
 }
 
-/* The step arrows, above and below the dots. Sized and indented to line up
-   with the marks, so the rail reads top to bottom as one column: up, the
-   stops, down. */
-.rail-step {
-  display: grid; place-items: center;
-  width: 100%; height: 1.6rem; padding: 0;
-  margin-inline-start: 0;
-  border: 0; border-radius: var(--radius-lg);
-  background: none; color: var(--ink-3); cursor: pointer;
-  transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out);
-}
-.rail-step svg { width: 17px; height: 17px; }
-.rail-step:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  color: var(--accent-deep);
-}
-.rail-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.rail-step:disabled { opacity: 0.28; cursor: default; }
-@media (prefers-reduced-motion: reduce) { .rail-step { transition: none; } }
 /* A track behind the marks, so the rail reads as one object with positions
    on it rather than as three unrelated dots. */
 .rail-dots ul::before {
@@ -2449,10 +2430,50 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .rail-dots ul::before { display: none; }
   .dot { padding: 0.5rem 0.6rem; gap: 0.45rem; }
   .dot-label { font-size: 0.62rem; letter-spacing: 0.08em; }
-  /* The whole strip is one row on a phone, arrows included, so they sit at
-     its two ends rather than above and below it. */
-  .rail-dots { display: flex; align-items: center; gap: 0.1rem; }
-  .rail-step { width: 1.9rem; height: 2rem; flex: none; }
+}
+
+/* ---- next and previous, on the page --------------------------------
+   The plain control a reader already knows, where their hand already is.
+   It sat inside the rail's panel for a version, above and below the dots,
+   and there it read as part of the list of sections rather than as the
+   thing you press to get to the next one. The rail says where you are and
+   lets you jump anywhere; this says next.
+   ------------------------------------------------------------------- */
+.page-steps {
+  position: fixed; z-index: 60;
+  right: clamp(0.9rem, 2.2vw, 2.25rem);
+  bottom: clamp(1rem, 4vh, 2.5rem);
+  display: grid; gap: 0.5rem;
+}
+.page-step {
+  display: grid; place-items: center;
+  width: 2.9rem; height: 2.9rem; padding: 0;
+  border: 1px solid var(--rule); border-radius: 50%;
+  background: color-mix(in srgb, var(--hero-paper) 92%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--ink-2); cursor: pointer;
+  box-shadow: 0 14px 30px -18px rgb(32 36 47 / 0.5);
+  transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out),
+              border-color 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.page-step svg { width: 21px; height: 21px; }
+.page-step:hover:not(:disabled) {
+  background: var(--accent); border-color: var(--accent); color: #FFF;
+  transform: translateY(-2px);
+}
+.page-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.page-step:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .page-step { transition: none; }
+  .page-step:hover:not(:disabled) { transform: none; }
+}
+/* Clear of the rail, which is a strip along the bottom on a phone. */
+@media (max-width: 48rem) {
+  .page-steps {
+    bottom: 3.9rem; right: 0.6rem;
+    grid-auto-flow: column; gap: 0.4rem;
+  }
+  .page-step { width: 2.5rem; height: 2.5rem; }
 }
 
 /* The accordion that was here is gone with Education's folds: two patterns

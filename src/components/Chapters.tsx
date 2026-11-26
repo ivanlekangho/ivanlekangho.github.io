@@ -90,31 +90,6 @@ export default function Chapters({
       {/* The rail is fixed and outside the sheet, so it does not travel
           with the thing it is reporting on. */}
       <nav className="rail-dots" aria-label="Sections on this page">
-        {/* Up and down, either side of the dots.
-        
-            The dots say where you are and let you jump anywhere; the arrows
-            are for the reader who just wants the next thing and should not
-            have to read four labels to find out which one that is. Two ways
-            to the same place, which is right for the only control that moves
-            this page — and the arrows are the one a reader will find without
-            being told, because every page they have ever read has them.
-            
-            Disabled at the ends rather than hidden: a control that vanishes
-            at the top of the page is a control whose absence has to be
-            interpreted. */}
-        <button
-          type="button"
-          className="rail-step"
-          onClick={() => go(here - 1)}
-          disabled={here <= 0}
-          aria-label="Previous section"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 14.5 12 8.5 18 14.5" fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-
         <ul>
           {/* The title screen, as the first stop on the rail. Without it
               the rail began at the first chapter and had nothing to say
@@ -148,10 +123,38 @@ export default function Chapters({
             </li>
           ))}
         </ul>
+      </nav>
 
+
+      {/* Up and down, on the page rather than inside the rail.
+      
+          They were tucked into the rail's panel, above and below the dots,
+          where they read as part of the list of sections rather than as
+          the plain next-and-previous control a reader already knows. Out
+          here they are the thing you reach for without reading anything:
+          bottom right, where a reader's hand already is, and the rail is
+          left to do the job it is good at, which is saying where you are
+          and letting you jump.
+          
+          Disabled at the ends rather than hidden: a control that vanishes
+          at the top of the page is a control whose absence has to be
+          interpreted. */}
+      <nav className="page-steps" aria-label="Move between sections">
         <button
           type="button"
-          className="rail-step"
+          className="page-step"
+          onClick={() => go(here - 1)}
+          disabled={here <= 0}
+          aria-label="Previous section"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 14.5 12 8.5 18 14.5" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="page-step"
           onClick={() => go(here + 1)}
           disabled={here >= stops - 1}
           aria-label="Next section"
