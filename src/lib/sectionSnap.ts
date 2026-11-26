@@ -69,9 +69,6 @@ const HOLD_MAX_MS = 700
 const RISE = 1.2
 /** Ignore the shiver a trackpad emits when a finger merely rests on it. */
 const WAKE = 4
-/** How far off a marker a touch scroll has to settle before it is corrected. */
-const SLACK = 8
-
 /* ---- the charge -----------------------------------------------------
    What it takes to cross from one section to the next.
 
@@ -98,9 +95,11 @@ const SLACK = 8
    tail of one gesture from the start of the next.
 
    TOUCH_BUDGET is the same idea in the units a finger works in: how far
-   you dragged past the edge. */
+   you dragged past the edge. It is larger than the wheel's, because a
+   drag is a long gesture next to a notch — at 110 a half-screen pull
+   spent it without meaning to. */
 const BUDGET = 200
-const TOUCH_BUDGET = 110
+const TOUCH_BUDGET = 320
 /** Silence this long empties the budget. Long enough to survive the gaps
  *  in a slow, steady push: a trackpad held at a constant pressure emits
  *  events several tens of milliseconds apart, and at 180 the ring was
@@ -142,6 +141,11 @@ let lastMag = Infinity
 
 let charge = 0
 let chargeDir: 1 | -1 | 0 = 0
+/** Which budget this charge is being measured against. The wheel's and a
+ *  finger's are different sizes, and the ring has to be drawn against the
+ *  one actually in force — against the wheel's it read full at 62% of a
+ *  drag and then sat there, promising a move that was still 120px away. */
+let chargeBudget = BUDGET
 let decay = 0
 let drain = 0
 
@@ -158,7 +162,7 @@ let drain = 0
  */
 function showCharge() {
   const root = document.documentElement
-  root.style.setProperty('--push', (charge / BUDGET).toFixed(3))
+  root.style.setProperty('--push', Math.min(1, charge / chargeBudget).toFixed(3))
   if (chargeDir === 0) root.removeAttribute('data-push')
   else root.setAttribute('data-push', chargeDir > 0 ? 'down' : 'up')
 }
@@ -364,7 +368,6 @@ export function stopY(i: number): number | null {
 export function goToStop(i: number) {
   const y = stopY(i)
   if (y === null) return
-  anchorAt(i)
   face(i, y >= window.scrollY)
   glideTo(y)
 }
@@ -398,21 +401,19 @@ const nearest = (ys: number[], y: number) =>
  * section under the gesture is simply the section we are stopped on. The
  * index already knows which that is.
  */
+/** The body of the section on screen. Stop 0 is the title, which has none. */
+function activeScroller() {
+  return document.querySelectorAll<HTMLElement>('.chapter-scroll')[atStop - 1] ?? null
+}
+
 function roomBelow(dy: number) {
-  /* Stop 0 is the title screen, which has no scroller; stop i is the
-     i-th chapter. */
-  const el = document.querySelectorAll<HTMLElement>('.chapter-scroll')[atStop - 1]
+  const el = activeScroller()
   if (!el) return null
   const span = el.scrollHeight - el.clientHeight
   if (span <= 1) return null
   const left = dy > 0 ? span - el.scrollTop : el.scrollTop
   return { el, left: Math.max(0, left) }
 }
-
-/** Where a touch correction should return to. Set by whatever moved the
- *  page on purpose: the rail, the cue, a key. */
-let anchor = 0
-export const anchorAt = (i: number) => { anchor = i }
 
 /* ---- which stop we are on ------------------------------------------
    One source of truth, owned here because this file is the only thing
@@ -487,7 +488,6 @@ export function useSectionSnap(enabled = true) {
       const here = nearest(ys, window.scrollY)
       const next = here + dir
       if (next < 0 || next >= ys.length) return
-      anchorAt(next)
       face(next, dir > 0)
       glideTo(ys[next])
     }
@@ -508,6 +508,7 @@ export function useSectionSnap(enabled = true) {
       if (drain) { cancelAnimationFrame(drain); drain = 0 }
       /* A change of direction is a new gesture, not a continuation. */
       if (dir !== chargeDir) { charge = 0; chargeDir = dir }
+      chargeBudget = budget
       charge += amount
       window.clearTimeout(decay)
       decay = window.setTimeout(dropCharge, DECAY_MS)
@@ -619,22 +620,25 @@ export function useSectionSnap(enabled = true) {
       go(dir)
     }
 
-    /* Touch: let the platform scroll, then ease back to the section the
-       reader was on. `nearest` would advance them, which is the thing a
-       gesture no longer does. */
-    let idle = 0
-    let anchored = anchor
-    const correct = () => {
-      if (busy || document.documentElement.hasAttribute('data-sheet')) return
-      const ys = stops()
-      if (ys.length < 2) return
-      const y = ys[Math.min(anchored, ys.length - 1)]
-      if (Math.abs(y - window.scrollY) > SLACK) glideTo(y)
-    }
+    /* The settle-correction that used to live here is gone. It eased the
+       page back onto a stop after a native touch scroll had left it
+       between two — and with the document locked there is no native touch
+       scroll of the page to correct. */
     /* Touch spends the same budget, measured the way a finger measures:
-       how far you dragged past the edge, rather than how much delta the
-       wheel reported. The page is locked, so nothing rubber-bands under
-       the finger — the ring and the lean are the feedback instead. */
+       how far you dragged past the edge.
+
+       IT DOES NOT SCROLL THE SECTION ITSELF. The wheel path has to, because
+       the document is locked and a swallowed wheel event moves nothing —
+       but a finger dragging inside `.chapter-scroll` is scrolled by the
+       platform, with its own momentum, and adding `scrollTop +=` on top of
+       that moved the content twice for one drag. So touch only watches:
+       while the section still has somewhere to go the browser is in
+       charge, and the budget starts filling at the edge. The gesture is
+       continuous either way, which is the point.
+
+       The budget is larger here than on a wheel. A drag is a long gesture
+       next to a notch, and at 110 a half-screen pull spent it without
+       meaning to. */
     let lastY = 0
     const onTouchMove = (e: TouchEvent) => {
       if (document.documentElement.hasAttribute('data-sheet')) return
@@ -644,61 +648,49 @@ export function useSectionSnap(enabled = true) {
       lastY = t.clientY
       if (!dy) return
       lastInput = performance.now()
-      if (busy) return
-      const room = roomBelow(dy)
-      if (room && room.left > 0) {
-        const used = Math.min(Math.abs(dy), room.left)
-        room.el.scrollTop += Math.sign(dy) * used
-        const over = Math.abs(dy) - used
-        if (over > 0) push(Math.min(over, 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
-        else dropCharge(true)
-        return
+
+      if (busy) {
+        /* No tail to wait out: a finger that is still moving is a person,
+           and once the page has landed the next drag is theirs. The wheel
+           needs a rising-delta test for this; touch does not, because
+           momentum after a lift produces no touchmove at all. */
+        if (!arrived) return
+        window.clearTimeout(settle)
+        busy = false
+      }
+
+      const el = activeScroller()
+      if (el) {
+        const span = el.scrollHeight - el.clientHeight
+        const atEdge = dy > 0 ? el.scrollTop >= span - 1 : el.scrollTop <= 1
+        if (span > 1 && !atEdge) { dropCharge(true); return }
       }
       push(Math.min(Math.abs(dy), 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
     }
 
-    let touching = false
     const onTouchStart = (e: TouchEvent) => {
       lastY = e.touches[0]?.clientY ?? 0
       dropCharge(true)
-      touching = true
       halt()
-      /* Where the reader is NOW, so the correction returns them to it
-         rather than to whichever marker the fling happened to end up
-         nearest. */
-      anchored = anchor
     }
-    const onTouchEnd = () => {
-      touching = false
-      dropCharge()
-      window.clearTimeout(idle)
-      idle = window.setTimeout(correct, 220)
-    }
-    const onScroll = () => {
-      if (!touching) return
-      window.clearTimeout(idle)
-      idle = window.setTimeout(correct, 220)
-    }
+    const onTouchEnd = () => { dropCharge() }
 
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('keydown', onKey)
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
-    window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
       halt()
       dropCharge(true)
       root.style.removeProperty('--push')
       root.style.overflow = hadOverflow
-      window.clearTimeout(idle)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
-      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
     }
   }, [enabled])
