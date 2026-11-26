@@ -2315,7 +2315,15 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 
 /* ---- the photograph's pending note -------------------------------- */
 .photo img {
-  display: block; width: 100%; height: auto;
+  display: block;
+  /* Bounded on both axes, and whichever binds first wins — the same rule
+     the film frames use, and for the same reason. The Daffodil Day
+     photograph is 900x1200 upright: at `width: 100%` of a 44rem figure it
+     came out 704 by 939, a block taller than most of the screen sitting
+     under four cards. A landscape shot is still limited by the width. */
+  width: auto; height: auto;
+  max-width: 100%; max-height: min(30rem, 62svh);
+  margin-inline: auto;
   border: 1px solid var(--rule); border-radius: var(--radius-lg);
 }
 .photo-pending { text-transform: none; letter-spacing: 0.01em; color: var(--accent-deep); }

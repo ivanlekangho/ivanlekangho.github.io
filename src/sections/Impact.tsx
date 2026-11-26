@@ -70,7 +70,6 @@ export default function Impact() {
           <Photo
             src="/photos/daffodil-day.jpg"
             caption="Daffodil Day 2026: New Zealand’s largest fundraising campaign"
-            note="your photo did not arrive as a file, so drop it here"
           />
         )}
       </>
@@ -79,12 +78,6 @@ export default function Impact() {
 
   return (
     <Chapters title={<>Innovative Tech,<br />for <em>Good</em></>} chapters={chapters}>
-      <Todo>
-        <b>The Daffodil Day photograph needs its file.</b> It came through in
-        the conversation but not as something I could copy, so save it to{' '}
-        <code>public/photos/daffodil-day.jpg</code> and it appears on its own —
-        the slot in Health is already pointing at it.
-      </Todo>
       <Todo>
         <b>Two labs, two titles, no descriptions.</b> SPOG and SoyaLab are each
         a name and nothing else, and they are sitting under Society because

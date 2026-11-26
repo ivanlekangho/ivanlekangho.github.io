@@ -295,14 +295,12 @@ export default function Creative() {
       chapters={chapters}
     >
       <Todo>
-        <b>Two pictures are still missing their files.</b> The clarinet quintet
-        stock image and the Daffodil Day photograph both came through in the
-        conversation but not as anything I could copy, so save them to{' '}
-        <code>public/photos/clarinet-quintet.jpg</code> and{' '}
-        <code>public/photos/daffodil-day.jpg</code> and they appear on their own.
-        If the clarinet picture is licensed for this, say so and I will add the
-        credit; if it is not, it should come down, and the disclosure on it does
-        not change that.
+        <b>Is the clarinet quintet photograph licensed for this?</b> It is up,
+        with the disclosure on it saying it is a stock image of a quintet and
+        not this performance — but that disclosure is about honesty with a
+        reader, and it does nothing about whose picture it is. If it came from
+        a stock library, it needs the credit the licence asks for; if it was
+        lifted from a search, it should come down and the slot will show again.
       </Todo>
       <Todo>
         <b>Introduction and Rondo describes itself from your report.</b> The
