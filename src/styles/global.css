@@ -1272,14 +1272,22 @@ pre {
 }
 .hero-portrait {
   position: absolute; left: 50%; transform: translateX(-50%);
-  /* Framed to the photograph, which is a head-and-shoulders crop: the red
-     block is a 2.4:1 letterbox and the portrait is 0.77:1, so every extra
-     percent of height is paid for at the bottom of the frame. At 165% —
-     right for the wider three-quarter shot this replaced — the cut landed
-     on the collar. 150% keeps the whole head with a little air above it
-     and reaches the knot of the tie, which is as large as this crop goes
-     before it starts removing the man's chin. */
-  top: -21%; height: 150%; width: auto; max-width: none;
+  /* Framed to the photograph, and these two numbers are measured off its
+     alpha channel rather than chosen by eye.
+     
+     The file is 912x1179. The hair starts at 19.0% down it, and at 87.3%
+     the shoulders reach the left and right edges of the original frame and
+     are sliced off square — two hard vertical lines, which are the one
+     thing that must never enter the picture, because the portrait is
+     narrower than the red block on a wide screen and there is nothing out
+     there to hide them behind.
+     
+     So the window is 17.4% to 85.4%: a sliver of air above the head, and
+     stopping about 22 source pixels short of the slice, which is as much
+     shirt and tie as this photograph has to give. Height sets the span
+     (1/1.47 = 68% of the file) and top sets where it starts
+     (0.255/1.47 = 17.4%); they have to move together. */
+  top: -25.5%; height: 147%; width: auto; max-width: none;
   display: block;
 }
 .hero-next {
