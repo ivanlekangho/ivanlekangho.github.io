@@ -42,27 +42,16 @@ export default function Impact() {
 
   return (
     <Chapters title={<>Innovative Tech,<br />for <em>Good</em></>} chapters={chapters}>
-      <Todo>
-        <b>Two labs, two titles, no descriptions.</b> SPOG and SoyaLab are each
-        a name and nothing else, and they are sitting under Society because
-        that is where research went — if either is health or education work,
-        say so and it moves. For both: what it stands for, what the lab works
-        on, what your part in it is. And is either of them the Stanford Speech
-        and Cognitive Development Lab, so I can stop listing one lab twice
-        under two names?
-      </Todo>
+      {/* The notes that stood here are answered. Both labs are written up,
+          the Uyghur paper is published, Code For Myanmar has its dates, and
+          Flutterer is deliberately without a repo. What is left is one
+          document that genuinely does not exist yet, and the Gene drives
+          card says "coming soon" on its own button rather than needing a
+          note to me about it. */}
       <Todo>
         <b>Flutterer is in Society by elimination.</b> A social platform built
         to learn full-stack is not health and not education, so it went to the
         third field rather than getting a fourth of its own.
-      </Todo>
-      <Todo>
-        <b>Nothing here can be opened yet.</b> Every attachment slot on these
-        tiles is declared and empty, which is why the paperclips only appear
-        while you are running the site locally. Fill them and they go live on
-        their own: <code>public/papers/</code> for the three papers, a repo URL
-        for Flutterer, the Uyghur excerpt as text rather than a PDF.
-        Code4Myanmar still needs its dates.
       </Todo>
     </Chapters>
   )

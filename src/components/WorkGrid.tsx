@@ -40,7 +40,7 @@ export default function WorkGrid({
         data-reveal
       >
         {ordered.map((it) => {
-          const opens = Boolean(it.exhibit || it.bullets?.length)
+          const opens = Boolean(it.exhibit || it.bullets?.length || it.docs?.length)
           return (
             <Card
               key={it.id}
@@ -54,7 +54,6 @@ export default function WorkGrid({
               metrics={it.metrics}
               featured={it.featured}
               minimal={minimal}
-              attachments={it.attachments}
               pending={!it.line}
               more={opens ? (it.cta ?? 'Read more') : it.href ? (it.cta ?? 'Visit') : undefined}
               onOpen={opens ? () => setOpen(it) : undefined}

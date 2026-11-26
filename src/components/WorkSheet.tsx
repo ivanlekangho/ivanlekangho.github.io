@@ -1,6 +1,6 @@
 import Chips from './Chips'
 import Player from './Player'
-import Mark from './Mark'
+import Docs from './Docs'
 import Sheet from './Sheet'
 import { lift, plain } from '../lib/lift'
 import type { Item } from '../data/portfolio'
@@ -100,16 +100,19 @@ export default function WorkSheet({ item, onClose }: { item: Item; onClose: () =
         </figure>
       )}
 
-      {/* A button, not a line of monospace at the foot. The destination is
-          a thing to go and do — read the code, see the group — and it was
-          set as a URL in small type under the bullets, which reads as a
-          citation. It borrows the document buttons from Creative, so "Code
-          and data" here looks like "Research report" there. */}
-      {item.href && (
+      {/* The documents, as buttons, with a page-by-page preview behind
+          each local one — the same control Creative's scores and reports
+          use, so "Paper" here opens the way "Research report" does there. */}
+      {item.docs && item.docs.length > 0 && (
+        <div className="sheet-go">
+          <Docs docs={item.docs} title={plain(item.fullTitle ?? item.title ?? '')} />
+        </div>
+      )}
+
+      {item.href && !item.docs && (
         <p className="sheet-go">
           <a className="doc-btn doc-btn-lead" href={item.href}>
-            <Mark kind={item.attachments?.[0]?.kind ?? 'link'} />
-            <span className="doc-btn-label">{item.cta ?? item.attachments?.[0]?.label ?? 'Open'}</span>
+            <span className="doc-btn-label">{item.cta ?? 'Open'}</span>
           </a>
         </p>
       )}

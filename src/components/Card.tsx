@@ -59,7 +59,7 @@ export function Attachments({ items }: { items: Attachment[] }) {
 
 export default function Card({
   kind, when, org, title, line, stack, more, onOpen, href, tint, pending,
-  metric, metrics, featured, attachments, minimal,
+  metric, metrics, featured, minimal,
 }: {
   kind?: string
   when?: string
@@ -79,7 +79,6 @@ export default function Card({
   metric?: { value: string; label: string }
   metrics?: { value: string; label: string }[]
   featured?: boolean
-  attachments?: Attachment[]
   /** Face carries the number and the name only; the rest waits behind the
    *  click. */
   minimal?: boolean
@@ -132,8 +131,11 @@ export default function Card({
           opened it — "Needs a description" was live under SPOG lab and
           SoyaLab. A card with nothing to say says nothing instead. */}
       {pending && import.meta.env.DEV && <p className="card-pending">Needs a description</p>}
+      {/* No attachment row. The documents are buttons inside the sheet
+          now — on the card they were 10px chips under the title, which is
+          the smallest type on the card carrying the only piece of evidence
+          on it. See components/Docs. */}
       <span className="card-foot">
-        {attachments && attachments.length > 0 && <Attachments items={attachments} />}
         {more && <span className="card-more">{more}</span>}
       </span>
     </>

@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react'
-import DocSheet from '../components/DocSheet'
-import Mark from '../components/Mark'
 import Player from '../components/Player'
 import Youtube, { type Seekable } from '../components/Youtube'
 import WorkGrid from '../components/WorkGrid'
 import Chapters, { type Chapter } from '../components/Chapters'
+import Docs from '../components/Docs'
 import Terminal from '../components/tone/Terminal'
-import { KINGS_MUSIC, MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
+import { KINGS_MUSIC, MUSIC, WORKS, type Work } from '../data/portfolio'
 
 /**
  * Creative — two things you can hear, and one you can watch.
@@ -36,33 +35,6 @@ import { KINGS_MUSIC, MUSIC, WORKS, type Attachment, type Work } from '../data/p
  * the part that says what the player was thinking, and on this site that
  * is the half nobody else publishes.
  */
-function Docs({ docs, title }: { docs: Attachment[]; title: string }) {
-  const [open, setOpen] = useState<Attachment | null>(null)
-  const lead = (d: Attachment) => d.kind === 'score' || d.kind === 'report'
-  const scores = docs.filter(lead)
-  const rest = docs.filter((d) => !lead(d))
-  return (
-    <>
-      <ul className="docs">
-        {[...scores, ...rest].map((d) => (
-          <li key={d.label}>
-            <button
-              type="button"
-              className={lead(d) ? 'doc-btn doc-btn-lead' : 'doc-btn'}
-              onClick={() => setOpen(d)}
-              aria-haspopup="dialog"
-            >
-              <Mark kind={d.kind} />
-              <span className="doc-btn-label">{d.label}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {open && <DocSheet doc={open} title={title} onClose={() => setOpen(null)} />}
-    </>
-  )
-}
-
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 /**

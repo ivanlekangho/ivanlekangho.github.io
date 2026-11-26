@@ -23,11 +23,25 @@ import { useEffect } from 'react'
  * one gesture from the title screen came to rest at 400px, half way down
  * the hero, which is the thing the brief most wanted not to happen.
  *
- * WHAT THIS DOES INSTEAD. The page's own snapping is off. A wheel gesture
- * is intercepted and turned into exactly one move, to the next or previous
- * section, animated here. Because nothing else can move the page, a fling
- * cannot cross two sections, a gesture cannot land between them, and there
- * is no snap left to refuse a jump.
+ * WHAT THIS DOES INSTEAD. The page's own snapping is off, and a gesture no
+ * longer moves between sections AT ALL. Scrolling walks you through a
+ * section's own content and stops at its edge; the rail down the left is
+ * how you cross from one section to the next.
+ *
+ * That is Ivan's decision after living with the one-section-per-gesture
+ * version, and it is the honest end of this road. Every arrangement that
+ * let a gesture cross a boundary had the same problem in a different
+ * costume: the reader cannot tell, before they move, whether this gesture
+ * will scroll the paragraph in front of them or replace the whole screen.
+ * One gesture doing two jobs is the ambiguity, and no amount of tuning the
+ * threshold removes it. Separating them removes it: the wheel is for
+ * reading, the rail is for going.
+ *
+ * The cost is that the rail is now load-bearing, so it cannot be the
+ * hover-only decoration it was — it is labelled at all times, and it is
+ * present on a phone, where it used to be display:none. A navigation
+ * control that is the only way to move cannot be hidden on the device most
+ * people will read this on.
  *
  * WHAT IT DELIBERATELY DOES NOT TOUCH. A gesture whose target is a chapter
  * that can still scroll in that direction is let through untouched — that
@@ -190,10 +204,9 @@ export function stopY(i: number): number | null {
 export function goToStop(i: number) {
   const y = stopY(i)
   if (y === null) return
-  const ys = stops()
+  anchorAt(i)
   face(i, y >= window.scrollY)
   glideTo(y)
-  void ys
 }
 
 const nearest = (ys: number[], y: number) =>
@@ -209,6 +222,11 @@ function readingInside(target: EventTarget | null, dy: number) {
   return el.scrollTop < room - 1
 }
 
+/** Where a touch correction should return to. Set by whatever moved the
+ *  page on purpose: the rail, the cue, a key. */
+let anchor = 0
+export const anchorAt = (i: number) => { anchor = i }
+
 export function useSectionSnap(enabled = true) {
   useEffect(() => {
     if (!enabled) return
@@ -219,6 +237,7 @@ export function useSectionSnap(enabled = true) {
       const here = nearest(ys, window.scrollY)
       const next = here + dir
       if (next < 0 || next >= ys.length) return
+      anchorAt(next)
       face(next, dir > 0)
       glideTo(ys[next])
     }
@@ -230,9 +249,14 @@ export function useSectionSnap(enabled = true) {
       if (busy) { e.preventDefault(); return }
       const dy = e.deltaY
       if (Math.abs(dy) < WAKE) return
+      /* Inside a section with room left to scroll: this is reading, and it
+         is the one thing the wheel still does. */
       if (readingInside(e.target, dy)) return
+      /* At a section's edge the gesture stops here. It does NOT advance:
+         crossing between sections is the rail's job now. Swallowed rather
+         than left alone, because letting it through would scroll the page
+         off its section and leave the reader between two of them. */
       e.preventDefault()
-      go(dy > 0 ? 1 : -1)
     }
 
     const KEYS: Record<string, 1 | -1> = {
@@ -254,6 +278,11 @@ export function useSectionSnap(enabled = true) {
         glideTo(ys[i])
         return
       }
+      /* The keyboard KEEPS its section navigation, and that is deliberate
+         rather than an oversight. A reader on a keyboard has no rail to
+         point at without tabbing to it, and Page Down is unambiguous in a
+         way a wheel gesture is not: nobody presses it by accident while
+         reading a paragraph. */
       const dir = KEYS[e.key]
       if (!dir) return
       if (readingInside(t, dir)) return
@@ -263,18 +292,27 @@ export function useSectionSnap(enabled = true) {
       go(dir)
     }
 
-    /* Touch: let the platform scroll, then ease onto the nearest section.
-       `scrollend` where it exists, a quiet timer behind it for Safari. */
+    /* Touch: let the platform scroll, then ease back to the section the
+       reader was on. `nearest` would advance them, which is the thing a
+       gesture no longer does. */
     let idle = 0
+    let anchored = anchor
     const correct = () => {
       if (busy || document.documentElement.hasAttribute('data-sheet')) return
       const ys = stops()
       if (ys.length < 2) return
-      const i = nearest(ys, window.scrollY)
-      if (Math.abs(ys[i] - window.scrollY) > SLACK) glideTo(ys[i])
+      const y = ys[Math.min(anchored, ys.length - 1)]
+      if (Math.abs(y - window.scrollY) > SLACK) glideTo(y)
     }
     let touching = false
-    const onTouchStart = () => { touching = true; halt() }
+    const onTouchStart = () => {
+      touching = true
+      halt()
+      /* Where the reader is NOW, so the correction returns them to it
+         rather than to whichever marker the fling happened to end up
+         nearest. */
+      anchored = anchor
+    }
     const onTouchEnd = () => {
       touching = false
       window.clearTimeout(idle)

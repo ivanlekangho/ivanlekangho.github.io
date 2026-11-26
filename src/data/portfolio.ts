@@ -68,7 +68,13 @@ export type Item = {
   /** Leads its group, at twice the width. One per group. */
   featured?: boolean
   stack?: string[]
+  /** Declared-but-undelivered files, shown while developing only. */
   attachments?: Attachment[]
+  /** The documents behind the work, shown in the sheet as buttons with a
+   *  page-by-page preview behind each. These used to be `attachments`, a
+   *  row of 10px chips on the card, which put the only piece of evidence
+   *  at the smallest size on it. */
+  docs?: Attachment[]
   /** Says so, in the sheet, where there is more to come. Better than a
    *  bullet pretending to be content, and better than silence: a reader who
    *  opens a tile with one line behind it should be told it is early rather
@@ -218,15 +224,11 @@ export const ITEMS: Item[] = [
     /* No paper. There isn't one — the output is the analysis and the
        figures, so the card offers the code instead of promising a write-up
        that does not exist. */
-    attachments: [{
+    docs: [{
       kind: 'repo',
       label: 'Code and data',
       href: 'https://github.com/ivanlekangho/authorship-inequality',
     }],
-    /* The same destination on the card and at the foot of the sheet: a
-       reader who opened the sheet to read the bullets should not have to
-       close it again to reach the code. */
-    href: 'https://github.com/ivanlekangho/authorship-inequality',
     bullets: [
       'Uncovered a statistically significant **8.9% last-authorship deficit** for Global South researchers across **19 fields and 18 years**, a structural pattern of inequality in global scientific publishing. Global South researchers hold first authorship, the execution, above their expected rate while holding last authorship, the credit, below it.',
       'The deficit held in 18 of the 19 fields, in every citation quartile, and in every year, with no measurable improvement over time. A pattern that stable is structural, not incidental. Earth and Planetary Sciences is the single exception.',
@@ -242,7 +244,7 @@ export const ITEMS: Item[] = [
     kind: 'Paper',
     line: 'State media, platform design and language policy, read as one machine.',
     stack: ['Discourse analysis', 'Language policy'],
-    attachments: [{ kind: 'report', label: 'Paper', href: '/papers/uyghur-oppression.pdf' }],
+    docs: [{ kind: 'report', label: 'Paper', href: '/papers/uyghur-oppression.pdf' }],
     bullets: [
       'How Chinese state media, platform design and language policy combine to push Uyghur linguistic expression out of digital space: three mechanisms usually studied separately, read as one machine.',
     ],
@@ -254,7 +256,7 @@ export const ITEMS: Item[] = [
     kind: 'Paper',
     line: 'Liability once a drive crosses a border, and whether Māori get a decision.',
     stack: ['Biotechnology policy', 'Law'],
-    attachments: [{ kind: 'pdf', label: 'Paper' }],
+    docs: [{ kind: 'report', label: 'Paper' }],
     bullets: [
       'Gene drives are on the table for predator control in New Zealand, and a drive does not stop at a property line, a trial boundary or a border.',
       'Two legal gaps follow from that: who is liable once it has crossed one, and whether Māori get a decision rather than a consultation. Neither appears to be reached by the Gene Technology Bill.',
@@ -262,25 +264,23 @@ export const ITEMS: Item[] = [
   },
   {
     id: 'spog',
-    org: 'SPOG Lab, Stanford',
+    org: 'Speech and Cognitive Development Lab',
     group: 'society',
     title: 'Research Assistant',
-    fullTitle: 'Research Assistant, Speech and Cognitive Development Lab',
     kind: 'Lab',
     when: 'Jan 2026 – present',
     metric: { value: '20%', label: 'faster processing' },
     line: 'Preprocessing and annotation pipelines for validating speech recognition against real recordings.',
     stack: ['Python', 'ASR'],
     bullets: [
-      'Research Assistant in the Speech and Cognitive Development Lab.',
       'Built **IRB-compliant** Python preprocessing and annotation pipelines to accelerate ASR model validation against naturalistic speech recordings, increasing data processing efficiency by **20%**.',
     ],
   },
   {
     id: 'uzbeksafety',
-    org: 'uzbeksafety.ai',
+    org: 'Responsible AI for Uzbek Language',
     group: 'society',
-    title: 'Project Helper and UI/UX Designer',
+    title: 'Project Assistant and UI/UX',
     kind: 'AI safety',
     /* The project plan Ivan sent is a colleague's document, with her name on
        it, a stakeholder analysis and a budget in it. None of that is his to
@@ -290,7 +290,7 @@ export const ITEMS: Item[] = [
     line: 'Safety infrastructure for Uzbek, a language 34 million people speak and almost no safety benchmark covers.',
     stack: ['UI/UX', 'AI safety'],
     bullets: [
-      'Project helper on an effort to build the AI safety infrastructure Uzbek does not have: a taxonomy of harms, a benchmark, and a detection tool that can sit in front of a model as a safety layer.',
+      'Project assistant on an effort to build the AI safety infrastructure Uzbek does not have: a taxonomy of harms, a benchmark, and a detection tool that can sit in front of a model as a safety layer.',
       'Large language models are measurably less safe in low-resource languages, and the usual workaround of machine-translating an English benchmark loses the cultural and contextual nuance that decides whether something is harmful in the first place.',
       '**Designed the UI and UX** for the project’s data-collection site, where Uzbek speakers report the scams, abuse and culturally wrong model output they actually receive.',
     ],

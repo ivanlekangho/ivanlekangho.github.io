@@ -27,6 +27,10 @@ export const BOOKS: Record<string, Book> = {
   "/papers/journey-through-latin-america.pdf": {
     "slug": "papers/journey-through-latin-america",
     "pages": 11
+  },
+  "/papers/uyghur-oppression.pdf": {
+    "slug": "papers/uyghur-oppression",
+    "pages": 14
   }
 }
 
