@@ -1190,6 +1190,12 @@ html[data-in-hall] { scroll-snap-type: none; }
   scroll-margin-top: -3.5rem;
 }
 
+/* The bar and the name: one third of the window, exactly. */
+.hero-top {
+  flex: none; height: 33.333svh;
+  display: flex; flex-direction: column;
+}
+
 .hero-nav {
   display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--hero-ink);
@@ -1197,9 +1203,9 @@ html[data-in-hall] { scroll-snap-type: none; }
 }
 .hero-nav a {
   display: flex; align-items: center; justify-content: center;
-  /* 5.9% of the panel width in the design, floored so it stays tappable. */
-  min-height: max(3rem, 5.9vw);
-  padding: 0 var(--space-3);
+  /* Kept small so the name gets most of the third; floored for touch. */
+  min-height: clamp(2.75rem, 6svh, 3.75rem);
+  padding: 0 var(--space-2);
   border-right: 1px solid var(--hero-ink);
   font-family: var(--font-label); font-weight: 500;
   font-size: clamp(0.62rem, 1.17vw, 0.8rem);
@@ -1214,14 +1220,20 @@ html[data-in-hall] { scroll-snap-type: none; }
 }
 
 .hero-name {
-  margin: 0; flex: none;
+  margin: 0;
+  /* Fills what the bar leaves of the third, and is centred in it. */
+  flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
   /* max-width: none against the global prose measure every p inherits —
-     34rem was wrapping "Ivan Ho" onto two lines and pushing the hero three
-     hundred pixels past the window. Measured: the string is 3.28em wide in
-     Geist Light, so 25vw fills about 82% of the screen on one line, with
-     enough headroom that a fallback face cannot overflow it. */
+     34rem wrapped "Ivan Ho" onto two lines and pushed the hero three
+     hundred pixels past the window.
+
+     Sized by the SMALLER of height and width. Height is what actually
+     binds now: a third of a 900px window leaves about 240px for the name,
+     so 24svh. The 24vw term only takes over on a window far taller than it
+     is wide, where it stops the name running off the sides — measured, the
+     string is 3.28em in Geist Light, so 24vw is about 79% of the width. */
   max-width: none; white-space: nowrap;
-  font-weight: 300; font-size: clamp(2.4rem, 25vw, 28rem);
+  font-weight: 300; font-size: min(24vw, 24svh);
   line-height: 1.06; letter-spacing: -0.012em;
   text-align: center; color: var(--hero-ink);
 }
@@ -1229,14 +1241,15 @@ html[data-in-hall] { scroll-snap-type: none; }
 /* The red, and the portrait that overruns it on both edges. */
 .hero-shot {
   position: relative; flex: 1 1 auto;
-  min-height: max(18rem, 40vh);
   background: var(--hero-red);
   overflow: hidden;
 }
 .hero-portrait {
   position: absolute; left: 50%; transform: translateX(-50%);
-  /* 733 tall in a 547.75 block, starting 93.52 above it. */
-  top: -17.1%; height: 133.8%; width: auto; max-width: none;
+  /* Larger than the file's 133.8%, because the red block is two thirds of
+     the screen here rather than the 58% of a near-square frame, and at the
+     file's ratio the figure sat small in the middle of all that red. */
+  top: -28%; height: 165%; width: auto; max-width: none;
   display: block;
 }
 .hero-next {
@@ -1254,11 +1267,17 @@ html[data-in-hall] { scroll-snap-type: none; }
 
 /* On a phone the name at 21.3vw is unreadably small, and the nav's four
    cells stop fitting one row. Both get their own floor. */
+/* The phone keeps all four across. Two rows of two cost twice the height,
+   and the bar is coming out of the same third the name has to live in. */
 @media (max-width: 40rem) {
-  .hero-nav { grid-template-columns: repeat(2, 1fr); }
-  .hero-nav a:nth-child(2) { border-right: 0; }
-  .hero-nav a:nth-child(-n + 2) { border-bottom: 1px solid var(--hero-ink); }
-  .hero-name { font-size: clamp(2.2rem, 23vw, 5rem); }
+  .hero-nav a {
+    min-height: 2.75rem; padding: 0 2px;
+    font-size: clamp(0.5rem, 2.1vw, 0.62rem); letter-spacing: 0.04em;
+  }
+  /* Sized by width here, not height. Two thirds of a tall narrow screen is
+     still 539px, and 165% of that is nearly twice the width of the phone —
+     a face cropped at both ears rather than a figure standing in red. */
+  .hero-portrait { height: auto; width: 124%; top: -7%; }
 }
 
 /* ============================================================

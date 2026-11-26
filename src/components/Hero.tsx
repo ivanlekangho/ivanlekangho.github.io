@@ -5,11 +5,16 @@
  * positioning into the proportions the design is actually made of, so it
  * holds at any width:
  *
- *   nav           5.9% of the panel's width in height
- *   the name      21.3% of the width, Light
- *   the red       58.3% of the width in height
- *   the portrait  133.8% of the red block's height, centred, pulled up 17.1%
- *   the arrow     in a column 12.4% wide on the right
+ *   the bar + the name   one third of the screen, together
+ *   the red              the other two thirds
+ *   the portrait         165% of the red block's height, centred, pulled up
+ *   the arrow            in a column 12.4% wide on the right
+ *
+ * The thirds are Ivan's, not the Figma file's: his frame is nearly square
+ * and a browser window is not, so holding the file's own ratios put the
+ * name over half the screen on a 16:9 display. The name is therefore sized
+ * off the height of its slot and only capped by the width, rather than the
+ * other way round — it is as large as a third of the screen allows.
  *
  * The portrait's own centre line in the design sits at exactly 50% of the
  * panel, so it is centred here rather than offset — the 200px left edge in
@@ -28,14 +33,17 @@ export default function Hero() {
 
   return (
     <section className="hero" aria-label="Ivan Ho">
-      <nav className="hero-nav" aria-label="Sections">
-        <a href="#impact">Impact</a>
-        <a href="#music">Creative</a>
-        <a href="#education">Education</a>
-        <a href="#contact">Contact</a>
-      </nav>
-
-      <p className="hero-name">Ivan Ho</p>
+      {/* The bar and the name are one band, because together they are a
+          third of the screen and the red is the other two. */}
+      <div className="hero-top">
+        <nav className="hero-nav" aria-label="Sections">
+          <a href="#impact">Impact</a>
+          <a href="#music">Creative</a>
+          <a href="#education">Education</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <p className="hero-name">Ivan Ho</p>
+      </div>
 
       <div className="hero-shot">
         <img src="/ivan-ho.png" alt="Ivan Ho" className="hero-portrait" />
