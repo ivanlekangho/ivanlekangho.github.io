@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useActiveChapter, useAtTop, useBarHeight, useHandoff, useStack } from '../lib/chapters'
-import { goToStop, useSectionSnap } from '../lib/sectionSnap'
+import { useBarHeight, useHandoff, useStack } from '../lib/chapters'
+import { goToStop, useSectionSnap, useStopIndex } from '../lib/sectionSnap'
 import { PAGES } from '../lib/pages'
 
 /**
@@ -72,9 +72,13 @@ export default function Chapters({
   useBarHeight()
   useHandoff()
   useStack()
-  const active = useActiveChapter(chapters.map((c) => c.id))
-  const atTop = useAtTop()
   useSectionSnap()
+  /* One number, from the one place that can move the page. The rail, the
+     arrows and the hero's own state all read it, so they cannot disagree
+     about where the reader is — which they could when the dots came from
+     an IntersectionObserver and the arrows from a scroll listener. */
+  const here = useStopIndex()
+  const atTop = here === 0
 
   /* The title screen's dot is labelled with the page's own name in the bar
      — Work/Impact, Education — taken from the same list the bar draws
@@ -94,13 +98,7 @@ export default function Chapters({
      title screen and stop i+1 is chapter i. */
   const go = (i: number) => goToStop(i)
 
-  /* Which stop the reader is on, as an index into the rail: 0 is the title
-     screen and i+1 is chapter i. The arrows need it to know when they have
-     run out of page, and the alternative — reading it back off the DOM —
-     would be a second source of truth for something the dots already
-     know. */
   const stops = (page ? 1 : 0) + chapters.length
-  const here = atTop ? 0 : Math.max(0, chapters.findIndex((c) => c.id === active) + 1)
 
   return (
     <>
@@ -130,9 +128,9 @@ export default function Chapters({
             <li key={c.id}>
               <button
                 type="button"
-                className={!atTop && active === c.id ? 'dot is-here' : 'dot'}
+                className={here === i + 1 ? 'dot is-here' : 'dot'}
                 onClick={() => go(i + 1)}
-                aria-current={!atTop && active === c.id ? 'true' : undefined}
+                aria-current={here === i + 1 ? 'true' : undefined}
               >
                 <span className="dot-mark" aria-hidden="true" />
                 <span className="dot-label">{c.label}</span>
@@ -153,15 +151,19 @@ export default function Chapters({
           left to do the job it is good at, which is saying where you are
           and letting you jump.
           
-          Disabled at the ends rather than hidden: a control that vanishes
-          at the top of the page is a control whose absence has to be
-          interpreted. */}
+          Absent at the ends rather than disabled. The argument for a
+          greyed-out control is that its absence has to be interpreted —
+          but that holds where a reader might wonder WHY it is unavailable,
+          and these two are the title screen and the last section, where
+          there is nothing above or below and nothing to wonder about. A
+          faded arrow pointing off the top of the first page is just a
+          smudge. */}
       <nav className="page-steps" aria-label="Move between sections">
+        {here > 0 && (
         <button
           type="button"
-          className="page-step"
+          className="page-step page-step-up"
           onClick={() => go(here - 1)}
-          disabled={here <= 0}
           aria-label="Previous section"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -170,11 +172,12 @@ export default function Chapters({
           </svg>
           <Ring />
         </button>
+        )}
+        {here < stops - 1 && (
         <button
           type="button"
-          className="page-step"
+          className="page-step page-step-down"
           onClick={() => go(here + 1)}
-          disabled={here >= stops - 1}
           aria-label="Next section"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -183,6 +186,7 @@ export default function Chapters({
           </svg>
           <Ring />
         </button>
+        )}
       </nav>
 
       {/* The snap positions live on these, not on the cards.

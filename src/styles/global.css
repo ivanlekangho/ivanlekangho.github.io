@@ -2477,20 +2477,22 @@ html[data-push='up'] { --lean: calc(var(--push, 0) * 9px); }
               border-color 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
 /* Clear of the bar at the top, clear of the edge at the bottom. */
-.page-step:first-of-type { top: calc(var(--bar-h) + clamp(0.6rem, 2.2vh, 1.5rem)); }
-.page-step:last-of-type { bottom: clamp(0.9rem, 3.2vh, 2.1rem); }
+/* By class, not by position: either arrow can be the only one in the nav
+   now, so `:first-of-type` and `:last-of-type` would both match it. */
+.page-step-up { top: calc(var(--bar-h) + clamp(0.6rem, 2.2vh, 1.5rem)); }
+.page-step-down { bottom: clamp(0.9rem, 3.2vh, 2.1rem); }
 .page-step svg { width: 21px; height: 21px; }
 .page-step:hover:not(:disabled) {
   background: var(--accent); border-color: var(--accent); color: #FFF;
 }
-.page-step:first-of-type:hover:not(:disabled) { transform: translateX(-50%) translateY(-2px); }
-.page-step:last-of-type:hover:not(:disabled) { transform: translateX(-50%) translateY(2px); }
+.page-step-up:hover:not(:disabled) { transform: translateX(-50%) translateY(-2px); }
+.page-step-down:hover:not(:disabled) { transform: translateX(-50%) translateY(2px); }
 .page-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .page-step:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   .page-step { transition: none; }
-  .page-step:first-of-type:hover:not(:disabled),
-  .page-step:last-of-type:hover:not(:disabled) { transform: translateX(-50%); }
+  .page-step-up:hover:not(:disabled),
+  .page-step-down:hover:not(:disabled) { transform: translateX(-50%); }
 }
 
 /* How full the push is, drawn round the arrow it is pushing towards.
@@ -2513,13 +2515,13 @@ html[data-push='up'] { --lean: calc(var(--push, 0) * 9px); }
   opacity: 0;
 }
 /* Only on the arrow for the direction being pushed. */
-html[data-push='down'] .page-step:last-of-type .page-step-ring circle,
-html[data-push='up'] .page-step:first-of-type .page-step-ring circle { opacity: 1; }
+html[data-push='down'] .page-step-down .page-step-ring circle,
+html[data-push='up'] .page-step-up .page-step-ring circle { opacity: 1; }
 @media (max-width: 48rem) {
   .page-step { width: 2.5rem; height: 2.5rem; }
   /* The rail is a strip along the bottom on a phone, so the down arrow
      sits above it rather than under it. */
-  .page-step:last-of-type { bottom: 4rem; }
+  .page-step-down { bottom: 4rem; }
 }
 
 /* The accordion that was here is gone with Education's folds: two patterns

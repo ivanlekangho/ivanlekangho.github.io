@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 /**
  * The three measurements the chaptered page runs on.
@@ -139,95 +139,16 @@ export function useStack(enabled = true) {
   }, [enabled])
 }
 
-/**
- * Which chapter is being read, for the rail.
+/* `useActiveChapter` and `useAtTop` were removed here.
  *
- * The band is the middle of the screen rather than the whole of it: with a
- * full-height root margin two neighbouring chapters are both "in view" at
- * every moment between them, and the dot flickers between the two. A
- * narrow band in the middle has exactly one answer almost all the time,
- * and the `ids` order breaks the tie when it does not.
+ * They were two indirect ways of working out which section the reader was
+ * on — an IntersectionObserver and a scroll listener — and between them
+ * they drove the rail, the arrows and the hero's state. Two mechanisms for
+ * one fact is one too many, and the scroll listener had a latch in it:
+ * throttled through requestAnimationFrame behind an `if (!raf)` guard, a
+ * single frame that never arrived left it permanently deaf, with the page
+ * resting at 2532 and the title dot still lit.
+ *
+ * lib/sectionSnap owns the answer now, because it is the only thing that
+ * can move the page: see `useStopIndex`.
  */
-export function useActiveChapter(ids: string[]) {
-  const [active, setActive] = useState(ids[0] ?? null)
-
-  useEffect(() => {
-    if (typeof IntersectionObserver !== 'function') return
-    const els = ids
-      .map((id) => document.getElementById(id))
-      .filter(Boolean) as HTMLElement[]
-    if (!els.length) return
-
-    const live = new Set<string>()
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) live.add(e.target.id)
-          else live.delete(e.target.id)
-        }
-        const here = ids.filter((id) => live.has(id))
-        if (here.length) setActive(here[here.length - 1])
-      },
-      { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
-    )
-    els.forEach((el) => io.observe(el))
-    return () => io.disconnect()
-    /* join, not the array: a fresh array every render would rebuild the
-       observer on every render. */
-  }, [ids.join(',')])
-
-  return active
-}
-
-/**
- * Whether the reader is still on the page's title screen.
- *
- * The rail has a dot for the title screen now, and it needs to know when
- * it is the one lit. `useActiveChapter` cannot answer this: it reports the
- * chapter in the middle band of the window, and on the title screen there
- * is no such chapter, so it holds whatever it last said — which is why the
- * first chapter's dot was lit while the title was still filling the
- * screen.
- *
- * Measured against the hero's own height, which is the distance the sheet
- * travels to cover it — one screen less the bar, read off the element so
- * it is exact at every width. Halfway is the crossing: the point where the
- * sheet, and not the title, is the thing being looked at.
- *
- * NOT the first chapter's `offsetTop`, which is what this measured first
- * and which is always 0: the chapters are sticky inside a `position:
- * relative` sheet, so the sheet is their offsetParent and the first one
- * sits at the top of it. That made the crossing a negative number and the
- * title dot was never lit at all.
- *
- * Not an IntersectionObserver on the hero. The hero is sticky and stays
- * pinned behind the sheet for the whole page, so it never stops
- * intersecting and an observer on it would answer "yes" at the bottom of
- * Society.
- */
-export function useAtTop() {
-  const [atTop, setAtTop] = useState(true)
-
-  useEffect(() => {
-    let raf = 0
-    const measure = () => {
-      raf = 0
-      const hero = document.querySelector<HTMLElement>('.chapters-hero')
-      if (!hero) return
-      const span = hero.getBoundingClientRect().height
-      if (span <= 0) return
-      setAtTop(window.scrollY < span / 2)
-    }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure) }
-    measure()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-    }
-  }, [])
-
-  return atTop
-}

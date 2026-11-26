@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * The section snap, driven here instead of by CSS.
@@ -217,6 +217,9 @@ export function glideTo(to: number, onDone?: () => void) {
   const from = window.scrollY
   const dist = to - from
 
+  /* Whatever happens next, the index follows the page. */
+  const land = () => setStop(nearest(stops(), window.scrollY))
+
   const release = () => {
     const wait = () => {
       if (performance.now() - lastInput > QUIET_MS) { busy = false; return }
@@ -228,6 +231,7 @@ export function glideTo(to: number, onDone?: () => void) {
   if (Math.abs(dist) < 1 || quiet()) {
     window.scrollTo(0, to)
     busy = true
+    land()
     onDone?.()
     release()
     return
@@ -257,6 +261,7 @@ export function glideTo(to: number, onDone?: () => void) {
     if (raf) cancelAnimationFrame(raf)
     window.scrollTo(0, to)
     raf = 0
+    land()
     onDone?.()
     release()
   }
@@ -334,13 +339,24 @@ const nearest = (ys: number[], y: number) =>
   ys.reduce((best, _, i) => (Math.abs(ys[i] - y) < Math.abs(ys[best] - y) ? i : best), 0)
 
 /** The chapter body under this event, if it can still scroll that way. */
-function readingInside(target: EventTarget | null, dy: number) {
+/**
+ * How far the section under this gesture can still scroll that way.
+ *
+ * Returns the scroller and the pixels left in it, so a gesture can be
+ * SPLIT rather than classified. The old version answered yes-or-no —
+ * "is this reading?" — and that is what made reading and pushing two
+ * separate gestures: a reader had to scroll to the end of a section,
+ * stop, and start again to build any charge. One motion now does both,
+ * because the part of a flick that runs off the end of the content is
+ * handed straight to the budget.
+ */
+function roomBelow(target: EventTarget | null, dy: number) {
   const el = target instanceof Element ? target.closest('.chapter-scroll') : null
-  if (!el) return false
-  const room = el.scrollHeight - el.clientHeight
-  if (room <= 1) return false
-  if (dy < 0) return el.scrollTop > 1
-  return el.scrollTop < room - 1
+  if (!el) return null
+  const span = el.scrollHeight - el.clientHeight
+  if (span <= 1) return null
+  const left = dy > 0 ? span - el.scrollTop : el.scrollTop
+  return { el, left: Math.max(0, left) }
 }
 
 /** Where a touch correction should return to. Set by whatever moved the
@@ -348,9 +364,49 @@ function readingInside(target: EventTarget | null, dy: number) {
 let anchor = 0
 export const anchorAt = (i: number) => { anchor = i }
 
+/* ---- which stop we are on ------------------------------------------
+   One source of truth, owned here because this file is the only thing
+   that can move the page.
+
+   The rail and the arrows used to work this out for themselves, from
+   `useAtTop` (a scroll listener) and `useActiveChapter` (an
+   IntersectionObserver). Two mechanisms, both indirect, and the first of
+   them had a latch: it throttled through requestAnimationFrame behind an
+   `if (!raf)` guard, so one frame that never arrived left it permanently
+   deaf. Measured: the page resting at 2532 with the title dot still lit,
+   and a synthetic scroll event not waking it.
+
+   Nothing infers position now. The page moves in exactly one place, and
+   that place says where it landed. */
+let atStop = 0
+const watchers = new Set<(i: number) => void>()
+
+function setStop(i: number) {
+  if (i === atStop) return
+  atStop = i
+  watchers.forEach((fn) => fn(i))
+}
+
+/** The index of the stop the page is resting on. 0 is the title screen. */
+export function useStopIndex() {
+  const [i, setI] = useState(atStop)
+  useEffect(() => {
+    /* The page may have moved between module load and this mount. */
+    setI(atStop)
+    watchers.add(setI)
+    return () => { watchers.delete(setI) }
+  }, [])
+  return i
+}
+
 export function useSectionSnap(enabled = true) {
   useEffect(() => {
     if (!enabled) return
+    /* A fresh page starts at its title; a resize can move the stops
+       without the page having moved. */
+    setStop(nearest(stops(), window.scrollY))
+    const onResize = () => setStop(nearest(stops(), window.scrollY))
+    window.addEventListener('resize', onResize)
 
     /* THE DOCUMENT IS LOCKED, and this is what finally makes "you cannot
        scroll between sections" true rather than mostly true.
@@ -388,6 +444,14 @@ export function useSectionSnap(enabled = true) {
 
     /** Add to the budget, and spend it if it is full. */
     const push = (amount: number, dir: 1 | -1, budget: number) => {
+      /* Nothing that way. Pushing down on the last section used to go on
+         filling a budget that `go` would then decline to spend, which left
+         a half-drawn ring sitting on screen promising a move that could
+         never happen — and promising it next to a down arrow that is not
+         even rendered there any more. */
+      const ys = stops()
+      const next = nearest(ys, window.scrollY) + dir
+      if (next < 0 || next >= ys.length) { dropCharge(true); return }
       /* Pushing again catches the budget before it has finished draining,
          so a reader who pauses and resumes picks up where they were
          instead of starting over. */
@@ -423,9 +487,24 @@ export function useSectionSnap(enabled = true) {
         }
         return
       }
-      /* Inside a section with room left to scroll: this is reading, and
-         reading is untouched. */
-      if (readingInside(e.target, dy)) { dropCharge(true); return }
+      /* One motion, split between the two things it can do.
+      
+         The section takes as much of this event as it still has room for
+         and the remainder goes into the budget, so a flick that runs off
+         the end of the content carries straight on into the ring without
+         the reader having to stop and start again. The whole gesture is
+         continuous; it is only the budget that makes the last part of it
+         cost something. */
+      const room = roomBelow(e.target, dy)
+      if (room && room.left > 0) {
+        const used = Math.min(Math.abs(dy), room.left)
+        room.el.scrollTop += Math.sign(dy) * used
+        const over = Math.abs(dy) - used
+        e.preventDefault()
+        if (over > 0) push(over, dy > 0 ? 1 : -1, BUDGET)
+        else dropCharge(true)
+        return
+      }
       /* At the edge. The page cannot move on its own — the document is
          locked — so this is swallowed either way; what it does instead is
          fill the budget. */
@@ -467,7 +546,8 @@ export function useSectionSnap(enabled = true) {
          reading a paragraph. */
       const dir = KEYS[e.key]
       if (!dir) return
-      if (readingInside(t, dir)) return
+      const kroom = roomBelow(t, dir)
+      if (kroom && kroom.left > 0) return
       lastInput = performance.now()
       if (busy) { e.preventDefault(); return }
       e.preventDefault()
@@ -500,7 +580,15 @@ export function useSectionSnap(enabled = true) {
       if (!dy) return
       lastInput = performance.now()
       if (busy) return
-      if (readingInside(e.target, dy)) { dropCharge(true); return }
+      const room = roomBelow(e.target, dy)
+      if (room && room.left > 0) {
+        const used = Math.min(Math.abs(dy), room.left)
+        room.el.scrollTop += Math.sign(dy) * used
+        const over = Math.abs(dy) - used
+        if (over > 0) push(Math.min(over, 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
+        else dropCharge(true)
+        return
+      }
       push(Math.min(Math.abs(dy), 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
     }
 
@@ -546,6 +634,7 @@ export function useSectionSnap(enabled = true) {
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
     }
   }, [enabled])
 }
