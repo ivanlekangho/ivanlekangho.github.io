@@ -114,7 +114,7 @@ export const ITEMS: Item[] = [
     org: 'Cancer Society of New Zealand',
     group: 'health',
     featured: true,
-    title: 'Software and Data Engineer Intern for New Zealand’s largest cancer non-profit',
+    title: '**Software and Data Engineer Intern** for New Zealand’s largest cancer non-profit',
     /* One internship, not three tiles.
     
        The database rebuild, the donor governance and the two APIs were

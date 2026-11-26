@@ -1,6 +1,8 @@
 import Chips from './Chips'
 import Player from './Player'
+import Mark from './Mark'
 import Sheet from './Sheet'
+import { lift, plain } from '../lib/lift'
 import type { Item } from '../data/portfolio'
 
 /**
@@ -21,48 +23,34 @@ import type { Item } from '../data/portfolio'
  * describes. The real one is here now, pulled out of the notebook's own
  * output at full resolution.
  *
- * ONE figure, not the five from the poster. This is the one that
- * corroborates rather than restates: nineteen disciplines, every one of
- * them pointing the same way, with the non-significant markers greyed so
- * the figure does its own robustness check in public. The headline numbers
- * are already in the bullets; a chart that repeats them earns nothing.
+ * ONE figure, not the five from the poster, and it is the map: Ivan's
+ * choice over the field plot I argued for. It answers the question the card
+ * is actually about — which countries do the work and which get the credit
+ * — in a form nobody needs a legend lesson to read, and the whole point of
+ * the paper is that the pattern is geographic.
  */
 function AuthorshipExhibit() {
   return (
     <figure className="sheet-figure">
       <img
-        src="/figures/authorship-by-field.png"
-        alt="Dumbbell plot of 19 academic disciplines. For each, an open circle marks the Global South last-authorship deficit, from −16.6% in Chemistry to +0.5% in Earth and Planetary Sciences, and a filled circle marks the first-authorship surplus, from +2.4% to +18.0%. Every discipline except Earth and Planetary Sciences shows a significant deficit."
-        width={1270}
-        height={1455}
+        src="/figures/authorship-by-country.png"
+        alt="World map shading each country by its mean Global South last-authorship deficit. Latin America, Africa, the Middle East, South Asia and South-East Asia are red, meaning researchers there are under-represented in last authorship relative to their share of the team. North America, Europe and Australia are blue or unshaded."
+        width={2570}
+        height={1595}
       />
       <figcaption>
-        Last-authorship deficit and first-authorship surplus, by discipline.
-        Open circles are the credit, filled circles the execution; bars are
-        95% confidence intervals and grey markers are not significant at
-        p&nbsp;&lt;&nbsp;0.05.
+        Mean last-authorship deficit per country. Red is a country whose
+        researchers are under-represented among last authors relative to
+        their share of the team; blue is over-represented. Grey is
+        insufficient data.
       </figcaption>
     </figure>
   )
 }
 
-/**
- * The phrase a skimming reader should catch, marked `**like this**`.
- *
- * A sheet of eight bullets is read by scanning first and reading second,
- * and the scan should land on the figures that made the tile worth opening
- * and on the job that earned them. Split on the markers rather than
- * reaching for a Markdown dependency: this is one rule, used in one place,
- * and a parser for it would be more code than the rule.
- */
-function lift(text: string) {
-  return text.split('**').map((part, i) =>
-    i % 2 ? <b key={i} className="bullet-lift">{part}</b> : part)
-}
-
 export default function WorkSheet({ item, onClose }: { item: Item; onClose: () => void }) {
   return (
-    <Sheet onClose={onClose} label={item.fullTitle ?? item.title ?? item.org ?? 'Detail'}>
+    <Sheet onClose={onClose} label={plain(item.fullTitle ?? item.title ?? item.org ?? 'Detail')}>
       {/* The date in brackets rather than behind a third dash: "Cancer
           Society of New Zealand — Internship — Jun – Sep 2026" put an
           em dash between every pair of a three-part line, and the last one
@@ -71,7 +59,7 @@ export default function WorkSheet({ item, onClose }: { item: Item; onClose: () =
         {[item.org, item.kind].filter(Boolean).join(' — ')}
         {item.when && <span className="sheet-when"> ({item.when})</span>}
       </p>
-      <h2 className="sheet-title">{item.fullTitle ?? item.title ?? item.org}</h2>
+      <h2 className="sheet-title">{lift(item.fullTitle ?? item.title ?? item.org ?? '')}</h2>
       {item.stack && item.stack.length > 0 && <Chips items={item.stack} label="Stack" />}
 
       {item.exhibit === 'authorship' && <AuthorshipExhibit />}
@@ -112,8 +100,18 @@ export default function WorkSheet({ item, onClose }: { item: Item; onClose: () =
         </figure>
       )}
 
+      {/* A button, not a line of monospace at the foot. The destination is
+          a thing to go and do — read the code, see the group — and it was
+          set as a URL in small type under the bullets, which reads as a
+          citation. It borrows the document buttons from Creative, so "Code
+          and data" here looks like "Research report" there. */}
       {item.href && (
-        <p className="sheet-link"><a href={item.href}>{item.href.replace(/^https?:\/\//, '')}</a></p>
+        <p className="sheet-go">
+          <a className="doc-btn doc-btn-lead" href={item.href}>
+            <Mark kind={item.attachments?.[0]?.kind ?? 'link'} />
+            <span className="doc-btn-label">{item.cta ?? item.attachments?.[0]?.label ?? 'Open'}</span>
+          </a>
+        </p>
       )}
     </Sheet>
   )

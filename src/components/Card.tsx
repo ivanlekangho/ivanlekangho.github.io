@@ -1,4 +1,5 @@
 import Chips from './Chips'
+import { lift } from '../lib/lift'
 import Mark from './Mark'
 import type { Attachment } from '../data/portfolio'
 
@@ -121,7 +122,7 @@ export default function Card({
       )}
       {title && (
         <h4 className="card-title" style={tint ? { color: `var(--${tint}-deep)` } : undefined}>
-          {title}
+          {lift(title)}
         </h4>
       )}
       {line && !minimal && <p className="card-line">{line}</p>}

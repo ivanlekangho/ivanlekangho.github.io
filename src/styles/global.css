@@ -1245,6 +1245,10 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   text-transform: uppercase; color: var(--ink-3);
 }
 
+/* The way onward from a sheet. */
+.sheet-go { margin: var(--space-5) 0 0; }
+.sheet-go .doc-btn { text-decoration: none; }
+
 .sheet-link { margin: var(--space-4) 0 0; font-family: var(--font-mono); font-size: var(--step--1); }
 
 /* ---- the layer an overlay lives in ---------------------------------
