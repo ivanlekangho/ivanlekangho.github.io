@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * An overlay, and the five things every overlay on this site has to get
@@ -14,6 +15,15 @@ import { useEffect, useRef, type ReactNode } from 'react'
  * like the rest of the page, and is for everything that is not a score — a
  * paper on authorship inequality laid out on simulated parchment would be a
  * costume, not a design.
+ *
+ * It renders into <body> through a portal, and that is not tidiness. A
+ * sheet is opened from inside a chapter, and the chapters carry a
+ * transform so they can recede as the next one covers them — and ANY
+ * transform, `scale(1)` included, makes an element the containing block for
+ * every `position: fixed` descendant. Left in place, this layer sized
+ * itself to the chapter instead of to the window: measured at 1440x1790 on
+ * a 1440x900 screen, with its top edge 56px down. A portal is the fix that
+ * does not require the rest of the page to avoid transforms for ever.
  */
 export default function Sheet({
   onClose, label, tone = 'panel', wide = false, children,
@@ -42,7 +52,7 @@ export default function Sheet({
     }
   }, [onClose])
 
-  return (
+  return createPortal(
     <div className="sheet-layer">
       <div className="sheet-scrim" onClick={onClose} aria-hidden="true" />
       <div className={[
@@ -58,6 +68,7 @@ export default function Sheet({
         </button>
         <div className="sheet-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

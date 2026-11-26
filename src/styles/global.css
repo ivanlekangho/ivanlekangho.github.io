@@ -2434,30 +2434,70 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   /* Two lines on purpose, so the leading has to be set: the default on a
      label-face paragraph is tuned for one line and reads as two unrelated
      labels stacked. */
-  margin: 0; max-width: 42ch; line-height: 1.5;
+  /* Two lines, and the first of them carries the instruments, so it is set
+     a shade larger — enough to lead, not enough to become a second
+     heading. `em`, so it tracks the clamp above rather than needing its
+     own. */
+  margin: 0; max-width: 42ch; line-height: 1.45;
+  display: grid; gap: 0.18em; justify-items: center;
   font-family: var(--font-label); font-weight: 500;
   font-size: clamp(0.9rem, 0.82rem + 0.4vw, 1.12rem);
   letter-spacing: 0.06em; color: var(--ink-2);
 }
 
+.chapters-sub .sub-lead { font-size: 1.16em; }
+
 .chapters-sheet {
   position: relative; z-index: 1;
-  border-radius: var(--sheet-round) var(--sheet-round) 0 0;
-  background: var(--hero-paper);
-  /* The edge of the card. A hairline alone read as a seam in one surface;
-     the shadow above it is what makes the sheet sit ON the hero. */
-  box-shadow: 0 -2px 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
-              0 -30px 70px -40px rgb(32 36 47 / 0.55);
+  /* The card edge moved onto each chapter, because every one of them is a
+     card now and the first one's top is the sheet's top anyway. Leaving it
+     here as well drew the rounded corner twice, a few pixels apart. */
+  background: transparent;
 }
 
+/* ---- the stack ------------------------------------------------------
+   The handoff the hero gets, every chapter gets.
+
+   Each chapter sticks under the bar and the next one comes up over it with
+   its own rounded top and its own shadow, so the whole page is one gesture
+   repeated rather than a nice opening followed by a list. Each needs an
+   opaque ground, or the chapter underneath reads through the one on top of
+   it.
+
+   The receding is a scroll-driven animation rather than a transition,
+   because what it has to follow is scroll position and not elapsed time —
+   `view()` gives each chapter its own timeline measured against the
+   scrollport, which is exactly the quantity wanted, and it runs off the
+   compositor without a single line of JavaScript. Where it is unsupported
+   the stack still stacks; the covered chapter simply does not dim, which
+   is a quieter version of the same page rather than a broken one. */
 .chapter {
+  position: sticky;
+  top: var(--bar-h);
   min-height: calc(100svh - var(--bar-h));
   scroll-snap-align: start;
   display: flex; flex-direction: column; justify-content: center;
   padding-block: clamp(3rem, 8vh, 6rem);
+  background: var(--hero-paper);
+  border-radius: var(--sheet-round) var(--sheet-round) 0 0;
+  box-shadow: 0 -2px 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
+              0 -30px 70px -40px rgb(32 36 47 / 0.55);
 }
-.chapter + .chapter { border-top: 1px solid var(--rule); }
-.chapters-foot { padding-block: clamp(2.5rem, 7vh, 5rem); border-top: 1px solid var(--rule); }
+.chapters-foot {
+  position: sticky; top: var(--bar-h);
+  padding-block: clamp(2.5rem, 7vh, 5rem);
+  background: var(--hero-paper);
+  border-radius: var(--sheet-round) var(--sheet-round) 0 0;
+  box-shadow: 0 -2px 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
+              0 -30px 70px -40px rgb(32 36 47 / 0.55);
+}
+
+/* The recede. --cover is set per card by lib/chapters.ts; see the note
+   there for why this is not a scroll-driven CSS animation. */
+.chapter, .chapters-foot {
+  transform: scale(calc(1 - 0.045 * var(--cover, 0)));
+  opacity: calc(1 - 0.72 * var(--cover, 0));
+}
 
 /* ---- the rail ------------------------------------------------------
    One dot per chapter, down the left, outside the sheet so it does not
@@ -2537,6 +2577,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    static things, and the content simply present. */
 @media (prefers-reduced-motion: reduce) {
   .chapters-hero { transform: none; opacity: 1; }
+  .chapter { animation: none; transform: none; opacity: 1; }
   html { scroll-snap-type: none; }
 }
 
@@ -2565,124 +2606,134 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 /* ============================================================
    The book — a score as the printed thing
 
-   Shut, it is the title page alone with the weight of paper under it.
-   Clicking turns the cover about its left edge, in perspective, and the
-   document opens into a spread.
+   Shut, the cover alone with the weight of paper under it. Click, and it
+   folds: a two-faced leaf — page 1 on the front, page 2 on the back —
+   turning about the spine through 180° to land as the left-hand page,
+   which is what a front cover actually does.
 
-   The turn is one transform on one element. That is the only way it reads
-   as paper: anything built out of two halves and a crossfade looks like
-   two halves and a crossfade, and at this size a reader can see the
-   difference immediately.
+   The stage is always two pages wide and the spine is its middle. Shut,
+   the whole stage is shifted half a page left so the cover sits centred on
+   screen; open, the shift goes. Without that the cover appears to lurch
+   sideways as it turns, because the spine of a shut book is at the cover's
+   edge and the spine of an open one is in the middle of the view.
    ============================================================ */
-:root { --leaf-turn: 760ms; }
+:root { --leaf-turn: 900ms; --leaf-ease: cubic-bezier(0.42, 0.04, 0.2, 1); }
 
 .book { display: grid; justify-items: center; gap: var(--space-4); }
 
-/* ---- shut ---------------------------------------------------------- */
-.book-cover {
-  /* The depth the rotation happens in. Without a perspective the leaf
-     scales rather than turns, which reads as a card shrinking. */
-  perspective: 2200px;
-  display: grid; justify-items: center; gap: var(--space-3);
-  padding: 0; border: 0; background: none; cursor: pointer;
+.book-stage {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1fr;
+  width: min(52rem, 100%);
+  /* The depth the fold happens in. Without a perspective the leaf scales
+     rather than turns, which reads as a card shrinking. */
+  perspective: 2600px;
+  transform: translateX(var(--shift, 0));
+  transition: transform var(--leaf-turn) var(--leaf-ease);
 }
+/* Half a page right of centre is where a shut cover belongs. */
+.book.is-shut .book-stage, .book.is-closing .book-stage { --shift: -25%; }
+
+.book-half { display: block; position: relative; background: #FFF; }
+.book-half img { display: block; width: 100%; height: auto; }
+.book-half:first-child {
+  /* The gutter shadow falls on the inner edge of each page. */
+  box-shadow: inset -14px 0 22px -18px rgb(32 36 47 / 0.75);
+}
+.book-half:last-child { box-shadow: inset 14px 0 22px -18px rgb(32 36 47 / 0.75); }
+/* Shut, the left half has nothing to show yet; it must not peep out beside
+   the cover. */
+.book.is-shut .book-half:first-child { opacity: 0; }
+
+/* ---- the leaf ------------------------------------------------------ */
 .book-leaf {
-  display: block;
+  position: absolute; inset: 0 0 0 50%;
   transform-origin: left center;
   transform-style: preserve-3d;
-  transition: transform var(--leaf-turn) cubic-bezier(0.45, 0.05, 0.3, 1),
-              opacity var(--leaf-turn) linear;
-  /* Paper, stacked. Three shadows: the sheet's own edge, the leaves under
-     it, and the shadow it casts on the table. */
+  transform: rotateY(0deg);
+  transition: transform var(--leaf-turn) var(--leaf-ease);
+}
+.book.is-opening .book-leaf, .book.is-open .book-leaf { transform: rotateY(-180deg); }
+
+.leaf-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  background: #FFF;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hero-ink) 12%, transparent);
+}
+.leaf-face img { display: block; width: 100%; height: auto; }
+/* The reverse of the sheet, which is page 2, turned so it reads the right
+   way round once the leaf has gone over. */
+.leaf-back { transform: rotateY(180deg); }
+
+/* Paper, stacked — only while the book is shut, because once it is open the
+   leaves are the spread and no longer a block. */
+.book.is-shut .book-leaf, .book.is-closing .book-leaf {
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--hero-ink) 12%, transparent),
     4px 4px 0 -1px #FFF, 5px 5px 0 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
     8px 8px 0 -1px #FFF, 9px 9px 0 0 color-mix(in srgb, var(--hero-ink) 8%, transparent),
     0 26px 50px -24px rgb(32 36 47 / 0.5);
 }
-.book-leaf img {
-  display: block; width: auto; height: auto;
-  max-width: min(26rem, 72vw); max-height: min(58vh, 34rem);
-  background: #FFF;
-}
-.book-cover:hover .book-leaf { transform: rotateY(-7deg); }
-.book-cover:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
-
-/* The turn itself. Past 90deg the reader is looking at the back of the
-   sheet, which is blank paper, so it fades out as it goes rather than
-   showing a mirrored score. */
-.book.is-turning .book-leaf {
-  transform: rotateY(-168deg);
-  opacity: 0;
-}
-.book.is-turning .book-cover { pointer-events: none; }
-
-.book-hint {
-  font-family: var(--font-label); font-size: 0.68rem;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
-  transition: color var(--dur-ui) var(--ease-out);
-}
-.book-cover:hover .book-hint { color: var(--accent-deep); }
-
-/* ---- open ---------------------------------------------------------- */
-.book-spread {
-  display: grid; grid-template-columns: 1fr 1fr;
-  /* The gutter. Two sheets bound together meet; they do not float apart. */
-  gap: 0;
-  animation: book-open 420ms var(--ease-out) both;
+.book.is-open .book-stage {
   box-shadow: 0 26px 60px -30px rgb(32 36 47 / 0.5);
 }
-@keyframes book-open {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: none; }
-}
-.book-page {
-  display: block; width: 100%; height: auto;
-  background: #FFF;
-  border: 1px solid color-mix(in srgb, var(--hero-ink) 12%, transparent);
-}
-.book-page:first-child {
-  /* The shadow in the gutter falls on the inner edge of each page. */
-  box-shadow: inset -14px 0 22px -18px rgb(32 36 47 / 0.75);
-}
-.book-page:last-child { box-shadow: inset 14px 0 22px -18px rgb(32 36 47 / 0.75); }
-.book-page.is-blank { background: #FFF; aspect-ratio: 1 / 1.414; }
 
-.book-controls {
-  display: flex; align-items: center; gap: var(--space-5);
+/* Shut, the whole cover is the control. */
+.book-open {
+  position: absolute; inset: 0 0 0 50%; z-index: 2;
+  border: 0; background: none; cursor: pointer;
 }
-.book-controls button {
-  padding: 0.5rem 0.9rem;
+.book-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+.book.is-shut .book-stage:hover .book-leaf { transform: rotateY(-7deg); }
+
+/* ---- paging -------------------------------------------------------- */
+.book-nav { display: flex; align-items: center; gap: var(--space-4); }
+.book-arrow {
+  display: grid; place-items: center;
+  width: 2.2rem; height: 2.2rem; padding: 0;
   border: 1px solid var(--rule); border-radius: var(--radius-lg);
   background: none; color: var(--ink-2); cursor: pointer;
-  font-family: var(--font-label); font-weight: 500;
-  font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase;
   transition: border-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
 }
-.book-controls button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-deep); }
-.book-controls button:disabled { opacity: 0.35; cursor: default; }
-.book-controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.book-arrow svg { width: 60%; height: 60%; }
+.book-arrow:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-deep); }
+.book-arrow:disabled { opacity: 0.3; cursor: default; }
+.book-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .book-folio {
-  margin: 0; min-width: 9ch; text-align: center;
+  margin: 0; min-width: 10ch; text-align: center;
   font-family: var(--font-mono); font-size: 0.72rem;
   font-variant-numeric: tabular-nums; color: var(--ink-3);
 }
 
 .book-preload { position: absolute; width: 0; height: 0; overflow: hidden; }
 .book-bare { margin: 0; font-size: var(--step--1); color: var(--ink-2); }
-.book-bare a { color: var(--accent-deep); }
+.book-bare code { font-size: 0.9em; }
+
+/* One button, and it opens rather than saves. */
+.doc-get { margin: var(--space-2) 0 0; }
+.doc-get a {
+  display: inline-block; padding: 0.55rem 1.1rem;
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+  color: var(--ink-2); text-decoration: none;
+  font-family: var(--font-label); font-weight: 500;
+  font-size: var(--step--1); letter-spacing: 0.1em; text-transform: uppercase;
+  transition: border-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
+}
+.doc-get a:hover, .doc-get a:focus-visible { border-color: var(--accent); color: var(--accent-deep); }
 
 /* One page at a time where two will not fit. A spread on a phone is two
    postage stamps. */
 @media (max-width: 46rem) {
-  .book-spread { grid-template-columns: 1fr; }
-  .book-page:last-child { display: none; }
-  .book-page:first-child { box-shadow: none; }
+  .book-stage { grid-template-columns: 1fr; width: min(26rem, 100%); }
+  .book.is-shut .book-stage, .book.is-closing .book-stage { --shift: 0; }
+  .book-half:last-child { display: none; }
+  .book-half:first-child { box-shadow: none; }
+  .book-leaf, .book-open { inset: 0; }
 }
 
 /* Anyone who asked for less motion gets the book open, not the turning of
    it. */
 @media (prefers-reduced-motion: reduce) {
-  .book-leaf, .book-spread { transition: none; animation: none; }
-  .book-cover:hover .book-leaf { transform: none; }
+  .book-leaf, .book-stage { transition: none; }
+  .book.is-shut .book-stage:hover .book-leaf { transform: none; }
 }

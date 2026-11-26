@@ -19,10 +19,10 @@ import type { Attachment } from '../data/portfolio'
  * cannot be made to look like the thing it is showing. A score is a
  * printed object and now it opens like one.
  *
- * The PDF has not gone anywhere. The line under the book offers it, which
- * covers everything the viewer was good at — searching it, printing it,
- * reading it on a device where a two-page spread is too small — and covers
- * the case where the page images have not been rendered.
+ * The PDF has not gone anywhere: the button under the book opens it in a
+ * tab of its own, which covers everything the viewer was good at —
+ * searching, printing, reading it on something a spread will not fit on —
+ * and lets a reader save it from there if they want it.
  */
 export default function DocSheet({
   doc, title, onClose,
@@ -34,11 +34,13 @@ export default function DocSheet({
 
       {doc.href && <Book href={doc.href} label={`${title} — ${doc.label}`} />}
 
-      <p className="doc-escape">
-        <a href={doc.href} target="_blank" rel="noreferrer">Open the PDF</a>
-        {' · '}
-        <a href={doc.href} download>download it</a> — for searching, printing,
-        or reading on something a spread will not fit on.
+      {/* One button, and it opens the file rather than saving it: a reader
+          who wants it on disk can save it from there, and a reader who only
+          wanted to search or print it never has to put a file on their
+          machine at all. Two links — "open" beside "download" — made them
+          choose between the same thing twice. */}
+      <p className="doc-get">
+        <a href={doc.href} target="_blank" rel="noreferrer">Download</a>
       </p>
     </Sheet>
   )

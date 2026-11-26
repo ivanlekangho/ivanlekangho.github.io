@@ -83,6 +83,63 @@ export function useHandoff(enabled = true) {
 }
 
 /**
+ * How far each chapter has been covered by the next one, 0 to 1.
+ *
+ * The chapters are sticky and stack: each pins under the bar and the next
+ * comes up over it. This is the same handoff the hero gets, so the covered
+ * one can shrink and fade exactly as the hero does.
+ *
+ * It is JavaScript and not `animation-timeline: view()`, which is what it
+ * was written as first and which does not work here: a view timeline
+ * measures the subject's own progress across the scrollport, and a sticky
+ * box pinned under the bar has no progress to measure — it is not moving.
+ * Measured, the animation simply never left 0% while the stack stacked
+ * correctly around it. What actually governs the recede is the NEXT
+ * chapter's position, so that is what this reads.
+ *
+ * One listener for the whole page, one rAF, and the values land on custom
+ * properties rather than in React state, because they change on every
+ * scroll frame and only CSS reads them.
+ */
+export function useStack(enabled = true) {
+  useEffect(() => {
+    if (!enabled) return
+    const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const cards = [...document.querySelectorAll<HTMLElement>('.chapter, .chapters-foot')]
+    if (!cards.length) return
+    if (quiet) {
+      cards.forEach((c) => c.style.setProperty('--cover', '0'))
+      return
+    }
+    let raf = 0
+    const measure = () => {
+      raf = 0
+      const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 0
+      const span = window.innerHeight - bar
+      cards.forEach((card, i) => {
+        const next = cards[i + 1]
+        if (!next || span <= 0) { card.style.setProperty('--cover', '0'); return }
+        /* 0 when the next card's top is a full screen below the bar line,
+           1 when it has reached it and the cover is complete. */
+        const gap = next.getBoundingClientRect().top - bar
+        const p = Math.min(1, Math.max(0, 1 - gap / span))
+        card.style.setProperty('--cover', p.toFixed(4))
+      })
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure) }
+    measure()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      cards.forEach((c) => c.style.removeProperty('--cover'))
+    }
+  }, [enabled])
+}
+
+/**
  * Which chapter is being read, for the rail.
  *
  * The band is the middle of the screen rather than the whole of it: with a

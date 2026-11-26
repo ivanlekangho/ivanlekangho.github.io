@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { useActiveChapter, useBarHeight, useHandoff } from '../lib/chapters'
+import { useActiveChapter, useBarHeight, useHandoff, useStack } from '../lib/chapters'
 
 /**
  * The shape every page of this site has.
@@ -49,6 +49,7 @@ export default function Chapters({
 }) {
   useBarHeight()
   useHandoff()
+  useStack()
   const active = useActiveChapter(chapters.map((c) => c.id))
 
   const go = (id: string) => {

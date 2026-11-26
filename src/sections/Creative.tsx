@@ -291,7 +291,12 @@ export default function Creative() {
          ensemble. "Alone" rather than "solo" for the same reason: the line
          beside it is a plural noun, and "solo" next to "ensembles" is an
          adjective doing a noun's job. */
-      subtitle={<>For voice, strings, woodwind and piano<br />in ensemble and alone</>}
+      subtitle={
+        <>
+          <span className="sub-lead">for Voice, Strings, Woodwind, and Piano</span>
+          <span>in Ensemble and Solo</span>
+        </>
+      }
       chapters={chapters}
     >
       <Todo>
