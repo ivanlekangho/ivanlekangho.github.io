@@ -87,12 +87,18 @@ export default function Contact() {
               language, and the characters themselves are the evidence of
               that — they carried "simplified" and "traditional" labels
               until the characters were left to say it. */}
-          <ul className="tongues" data-reveal>
+          {/* The SAME grid as Reach Me above, by using the same classes
+              rather than a second set tuned to look similar. The table had
+              its own `.tongues` layout capped at 34rem, so it sat short and
+              left while the links beside it ran the full width, and the
+              three columns did not line up with the three above them. One
+              list markup, one set of columns, both tables aligned. */}
+          <ul className="index" data-reveal>
             {TONGUES.map((t) => (
-              <li key={t.lang} className="tongue">
-                <span className="tongue-own" lang={t.lang}>{t.own}</span>
-                <span className="tongue-name">{t.name}</span>
-                <span className="tongue-level">{t.level}</span>
+              <li key={t.lang} className="index-row">
+                <span className="index-main tongue-own" lang={t.lang}>{t.own}</span>
+                <span className="index-sub">{t.name}</span>
+                <span className="index-meta">{t.level}</span>
               </li>
             ))}
           </ul>

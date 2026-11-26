@@ -231,6 +231,29 @@ export function useSectionSnap(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
+    /* THE DOCUMENT IS LOCKED, and this is what finally makes "you cannot
+       scroll between sections" true rather than mostly true.
+       
+       Swallowing the wheel was never enough. A page with a 4000px document
+       and a visible scrollbar can be moved half a dozen other ways: drag
+       the scrollbar, press an arrow key or Home or End, middle-click and
+       autoscroll, drag with a touchscreen, use a trackpad's momentum tail.
+       Each one needed its own handler and the list never ended.
+       
+       `overflow: hidden` on the scrolling element ends all of them at
+       once, and — measured — leaves the two things that have to keep
+       working untouched: `window.scrollTo` still moves the page exactly
+       (verified landing on 878 to the pixel), and the chapters are still
+       `position: sticky` against it, so the stack still stacks. The
+       scrollbar goes with it, which is honest: there is nothing for a
+       reader to drag any more.
+       
+       Scoped to this hook, so it applies only to chaptered pages. The post
+       pages are prose and must scroll like prose. */
+    const root = document.documentElement
+    const hadOverflow = root.style.overflow
+    root.style.overflow = 'hidden'
+
     const go = (dir: 1 | -1) => {
       const ys = stops()
       if (ys.length < 2) return
@@ -332,6 +355,7 @@ export function useSectionSnap(enabled = true) {
 
     return () => {
       halt()
+      root.style.overflow = hadOverflow
       window.clearTimeout(idle)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKey)

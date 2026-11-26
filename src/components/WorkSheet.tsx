@@ -38,13 +38,7 @@ function AuthorshipExhibit() {
         width={2570}
         height={1595}
       />
-      <figcaption>
-        Mean last-authorship deficit per country. Red is a country whose
-        researchers are under-represented among last authors relative to
-        their share of the team; blue is over-represented. Grey is
-        insufficient data.
-      </figcaption>
-    </figure>
+</figure>
   )
 }
 

@@ -950,6 +950,37 @@ pre {
 .cards-stack { grid-template-columns: minmax(0, 1fr); }
 .cards-stack .card-lead { grid-column: 1 / -1; }
 
+/* Laid out as a row rather than a column, which is what lets the King's
+   College tiles below reach the first screen. Stacked as columns the two
+   of them were 293px each, 586 of an 844px section, and everything under
+   them was past the fold — in a section you can no longer scroll into by
+   gesture, below the fold is most of the way to invisible. The figure
+   moves to the right and the text runs down the left, and a card that was
+   293 tall is about 150. */
+@media (min-width: 40rem) {
+  .cards-stack .card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-6);
+  }
+  .cards-stack .card > * { grid-column: 1; }
+  .cards-stack .card > .card-metric {
+    grid-column: 2;
+    /* `span 6`, not `1 / -1`. With no explicit rows declared, line -1 is
+       the end of the EXPLICIT grid, which is line 1 — so `1 / -1` quietly
+       means "row 1 only" and the figure sat in the first row with the text
+       stacked beneath it, exactly as before. Spanning a count reaches into
+       the implicit rows, which is where the card's other lines live. */
+    grid-row: 1 / span 6;
+    align-self: center; margin: 0;
+  }
+  /* And smaller. At `--step-4` the figure was 84px tall on its own, which
+     set the height of the whole card no matter what the text did. */
+  .cards-stack .card-lead .card-metric b { font-size: var(--step-3); }
+  .cards-stack .card-metric span { max-width: 12rem; }
+}
+
 .card {
   position: relative; display: flex; flex-direction: column;
   gap: var(--space-2); margin: 0;
@@ -2703,60 +2734,15 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 }
 
 /* ---- what he actually speaks ----------------------------------------
-   The cloud is hidden from a screen reader, because twenty-eight phrases
-   read in a row is noise. This is the part that is read, so it carries the
-   substance: each language in its own name, then in English, then how well.
+   The cloud is hidden from a screen reader, because twenty-seven phrases
+   read in a row is noise. This is the part that is read.
 
-   A table rather than a sentence, because "fluent in Mandarin and Hakka,
-   B2 French, learning Māori and German" is a line a reader skims and a
-   table is one they scan — and because the two Chinese rows differ in
-   script as well as language, which is a thing you can only show by
-   setting 普通话 and 客家話 next to each other and labelling the scripts.
-   A list and not a <table>: there is no second axis here, only six rows of
-   the same three facts, and a grid states that without claiming a grid's
-   semantics. */
-.tongues {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; max-width: 34rem;
-}
-.tongue {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-4);
-  padding-block: var(--space-3);
-  border-bottom: 1px solid var(--rule);
-}
-/* Han glyphs sit on a taller body than Latin ones, so a shared baseline is
-   what keeps 普通话 and "Mandarin Chinese" reading as one line rather than
-   as two things at two heights. */
-.tongue-own, .tongue-name, .tongue-level { align-self: baseline; }
-/* The rule above the first row as well, so the six read as one block with
-   edges rather than as five separators and a loose top line. */
-.tongue:first-child { border-top: 1px solid var(--rule); }
-
-/* The language as it names itself. The largest thing in the row, because
-   it is the thing the row is about. */
-.tongue-own { font-size: var(--step-1); line-height: 1.15; color: var(--ink); }
+   It uses `.index`, the same list Reach Me uses, so the two tables on this
+   page share one set of columns and one width. Only two things are its
+   own: the Han face for the Chinese rows, and a size on the first column,
+   because a language's own name for itself is the subject of the row. */
+.tongue-own { font-size: var(--step-1); line-height: 1.15; }
 .tongue-own:lang(zh-Hans), .tongue-own:lang(zh-Hant) { font-family: var(--font-han); }
-/* The script labels that sat under the Chinese rows are gone; the
-   characters say it. Every row is one line now, so the three columns align
-   on a shared baseline — which they could not while two rows were two lines
-   tall and the four single-line rows floated against them. */
-.tongue-name { font-size: 1rem; color: var(--ink-2); line-height: 1.15; }
-.tongue-level {
-  justify-self: end; text-align: right; white-space: nowrap;
-  font-family: var(--font-label); font-weight: 500;
-  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--ink-3);
-}
-/* Narrow: the level drops under the English name rather than squeezing
-   three columns into a phone. */
-@media (max-width: 30rem) {
-  .tongue { grid-template-columns: minmax(0, 1fr) auto; }
-  .tongue-level { grid-column: 2; grid-row: 1; }
-  .tongue-name  { grid-column: 1 / -1; }
-}
 
 /* ---- a hosted film -------------------------------------------------
    Their player, in our frame. 16:9 is theirs to assume, not ours to
