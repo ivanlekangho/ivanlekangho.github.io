@@ -35,8 +35,15 @@ if (routes.length < 2) {
 
 copyFileSync(index, join(root, 'dist', '404.html'))
 for (const route of routes) {
-  const out = join(root, 'dist', route.slice(1), 'index.html')
-  mkdirSync(dirname(out), { recursive: true })
-  copyFileSync(index, out)
+  const name = route.slice(1)
+  /* Both spellings, because a directory alone makes GitHub Pages answer
+     /impact with a 301 to /impact/ — so the address bar gained a trailing
+     slash on some pages and not others depending on how you arrived.
+     `impact.html` is served for /impact directly; the directory still
+     answers /impact/. Neither redirects, and both are the same app. */
+  copyFileSync(index, join(root, 'dist', `${name}.html`))
+  const dir = join(root, 'dist', name, 'index.html')
+  mkdirSync(dirname(dir), { recursive: true })
+  copyFileSync(index, dir)
 }
 console.log('routes: %s + 404.html', routes.join(' '))

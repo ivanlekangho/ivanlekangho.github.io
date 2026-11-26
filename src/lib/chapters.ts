@@ -105,7 +105,7 @@ export function useStack(enabled = true) {
   useEffect(() => {
     if (!enabled) return
     const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const cards = [...document.querySelectorAll<HTMLElement>('.chapter, .chapters-foot')]
+    const cards = [...document.querySelectorAll<HTMLElement>('.chapter')]
     if (!cards.length) return
     if (quiet) {
       cards.forEach((c) => c.style.setProperty('--cover', '0'))

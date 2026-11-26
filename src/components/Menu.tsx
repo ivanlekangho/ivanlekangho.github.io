@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { PAGES } from '../lib/pages'
+import { scrollToTop } from '../lib/scroll'
 
 /**
  * The bar.
@@ -26,7 +27,7 @@ export default function Menu({ open }: { open: boolean }) {
   const same = (to: string) => (e: React.MouseEvent) => {
     if (pathname !== to) return
     e.preventDefault()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollToTop(true)
   }
 
   return (

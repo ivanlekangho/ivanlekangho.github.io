@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Brand from './components/Brand'
 import Menu from './components/Menu'
+import { scrollToTop } from './lib/scroll'
 import { useReveal } from './lib/reveal'
 import About from './sections/About'
 import Impact from './sections/Impact'
@@ -94,13 +95,16 @@ function Hashes() {
  * `instant`, not smooth: arriving at a page should put you at its top, not
  * fly you there past content you did not ask to see. The html rule says
  * smooth, which is right for a click on a dot and wrong for a navigation.
+ *
+ * It goes through lib/scroll because a bare `scrollTo` does not work on
+ * these pages: mandatory snapping refuses the jump. See the note there.
  */
 function ToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
   }, [])
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [pathname])
+  useEffect(() => { scrollToTop() }, [pathname])
   return null
 }
 

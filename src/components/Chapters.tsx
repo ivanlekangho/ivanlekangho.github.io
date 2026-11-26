@@ -1,5 +1,6 @@
-import { type ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { useActiveChapter, useBarHeight, useHandoff, useStack } from '../lib/chapters'
+import { scrollToSection } from '../lib/scroll'
 
 /**
  * The shape every page of this site has.
@@ -54,9 +55,10 @@ export default function Chapters({
   useStack()
   const active = useActiveChapter(chapters.map((c) => c.id))
 
-  const go = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  /* Not scrollIntoView: mandatory snapping refuses a programmatic jump, so
+     every dot and the cue under the hero simply did nothing. See
+     lib/scroll. */
+  const go = (id: string) => scrollToSection(id)
 
   return (
     <>
@@ -80,6 +82,20 @@ export default function Chapters({
         </ul>
       </nav>
 
+      {/* The snap positions live on these, not on the cards.
+          
+          A snap area that is `position: sticky` is a snap area the browser
+          cannot place: stacked cards all resolve to the same pinned
+          rectangle, so "the nearest snap position" stops meaning anything
+          and Chrome answers with the end of the document. That is the
+          scroll running away to the bottom and refusing to come back.
+          Measured: scrollTo(0) from 4220px landed at 4220 with mandatory
+          snap on, and at 0 exactly with it off.
+          
+          A zero-height marker in normal flow has an unambiguous position,
+          and sits exactly where its card's top edge belongs. */}
+      <div className="snap-at" aria-hidden="true" />
+
       <header className="chapters-hero">
         {backdrop}
         <h1 className="chapters-title">{title}</h1>
@@ -99,22 +115,33 @@ export default function Chapters({
       </header>
 
       <div className="chapters-sheet">
-        {chapters.map((c) => (
-          <section key={c.id} id={c.id} className="chapter" aria-label={c.label}>
+        {chapters.map((c, i) => (
+          <Fragment key={c.id}>
+          <div className="snap-at" aria-hidden="true" />
+          <section id={c.id} className="chapter" aria-label={c.label}>
             {/* The card is exactly one screen and does not scroll; what
                 scrolls is this, inside it. See the note in the stylesheet:
                 it is the only way a stacked card can hold more than a
                 screen of content and still be read. */}
             <div className="chapter-scroll">
-              <div className="shell">{c.body}</div>
+              <div className="shell">
+                {c.body}
+                {/* The page's notes ride at the foot of its last section
+                    rather than in a screen of their own. As their own card
+                    they were a fourth full-height sticky panel with no snap
+                    marker, and under mandatory snapping anything past the
+                    last snap position cannot be reached at all: the scroll
+                    stopped at 2532 of a possible 3376. In production the
+                    notes render nothing, so that card was a blank screen
+                    you could not even scroll to. Here they are simply the
+                    end of the last section, and the last snap position is
+                    the end of the page. */}
+                {i === chapters.length - 1 && children}
+              </div>
             </div>
           </section>
+          </Fragment>
         ))}
-        {children && (
-          <div className="chapters-foot">
-            <div className="chapter-scroll"><div className="shell">{children}</div></div>
-          </div>
-        )}
       </div>
     </>
   )

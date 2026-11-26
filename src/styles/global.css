@@ -391,7 +391,14 @@ pre {
      to the part of the bar that actually holds labels. */
   padding-left: var(--brand-w);
   transition: padding-left var(--brand-dur) var(--ease-brand);
+  /* The bar reserves the name's room with a padding, and that padding is
+     part of THIS element's box — sitting at z-index 80 over the name's 70.
+     So every click on "Ivan Ho" landed on the header and did nothing.
+     Measured with elementFromPoint at the middle of the name: HEADER.menu.
+     The bar itself is not a target; only its labels are. */
+  pointer-events: none;
 }
+.menu-inner { pointer-events: auto; }
 /* On the front page the name is below, at display size, so the bar has the
    full width and the labels run edge to edge. */
 .menu.is-open { padding-left: 0; }
@@ -1050,30 +1057,12 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   letter-spacing: var(--label-tracking); text-transform: uppercase;
 }
 
-/* ---- groups ------------------------------------------------------ */
-/* Impact holds three groups and five screens of cards, so the section
-   cannot be one panel. Each group is its own snap target instead, which
-   is what makes "it snaps" true of the longest section rather than only
-   of the short ones. */
-.group {
-  min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always;
-  display: flex; flex-direction: column; justify-content: safe center;
-  margin-bottom: var(--space-6);
-}
-.group-gloss {
-  margin: 0 0 var(--space-4); max-width: 40ch;
-  color: var(--ink-3); font-size: var(--step--1);
-}
-
-/* ---- education --------------------------------------------------- */
-/* Each school is its own screen. Together they are two and a half, and
-   the snap would otherwise land on "Education" and then on nothing until
-   Contact. */
-.edu {
-  min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always;
-  display: flex; flex-direction: column; justify-content: safe center;
-  margin-bottom: var(--space-7);
-}
+/* `.group` and `.edu` were full-screen snap targets from the arrangement
+   before the chapters, and nothing renders either any more. They are
+   removed rather than left to rot because they were SNAP TARGETS: a stale
+   `min-height: 100svh; scroll-snap-align: start` that ever matched again
+   would put phantom snap positions in a page whose snapping is now the
+   business of one marker element. */
 .edu-org {
   margin: 0 0 var(--space-1);
   font-family: var(--font-display); font-weight: 600;
@@ -1883,11 +1872,26 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    ============================================================ */
 :root { --handoff: 0; --sheet-round: clamp(1rem, 2.4vw, 1.75rem); }
 
+/* Where a section starts, for the snapping — and nothing else.
+   
+   The cards themselves are `position: sticky` so they can stack, and a
+   sticky snap area is one the browser cannot place: stacked cards all
+   resolve to the same pinned rectangle, "nearest snap position" stops
+   meaning anything, and Chrome answers with the end of the document. These
+   are zero-height, in normal flow, one immediately before each card, so
+   each has exactly one unambiguous position and it is the position its
+   card's top edge belongs at. */
+.snap-at {
+  height: 0;
+  scroll-snap-align: start;
+  /* One section per gesture: a hard flick crosses one marker, not three. */
+  scroll-snap-stop: always;
+}
+
 .chapters-hero {
   position: sticky; top: var(--bar-h);
   /* One screen, less the bar. Both of these read the measured value. */
   height: calc(100svh - var(--bar-h));
-  scroll-snap-align: start;
   display: grid; place-content: center; justify-items: center;
   gap: var(--space-4);
   padding: var(--space-6) var(--gutter);
@@ -2028,31 +2032,20 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
      feel different from. */
   height: calc(100svh - var(--bar-h));
   overflow: hidden;
-  scroll-snap-align: start;
-  /* One section per gesture. Without it a flick crosses two or three, which
-     is the other half of "between sections should feel different". */
-  scroll-snap-stop: always;
   display: flex; flex-direction: column;
   background: var(--hero-paper);
   border-radius: var(--sheet-round) var(--sheet-round) 0 0;
   box-shadow: 0 -2px 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
               0 -30px 70px -40px rgb(32 36 47 / 0.55);
 }
-.chapters-foot {
-  position: sticky; top: var(--bar-h);
-  height: calc(100svh - var(--bar-h));
-  overflow: hidden;
-  scroll-snap-align: start;
-  display: flex; flex-direction: column;
-  background: var(--hero-paper);
-  border-radius: var(--sheet-round) var(--sheet-round) 0 0;
-  box-shadow: 0 -2px 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
-              0 -30px 70px -40px rgb(32 36 47 / 0.55);
-}
+/* `.chapters-foot` is gone: the notes live at the foot of the last section
+   now. As its own card it was a full-height sticky panel with no snap
+   marker, and nothing past the final snap position is reachable under
+   mandatory snapping. */
 
 /* The recede. --cover is set per card by lib/chapters.ts; see the note
    there for why this is not a scroll-driven CSS animation. */
-.chapter, .chapters-foot {
+.chapter {
   transform: scale(calc(1 - 0.045 * var(--cover, 0)));
   opacity: calc(1 - 0.72 * var(--cover, 0));
 }
@@ -2138,7 +2131,7 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 }
 .chapter .eyebrow { margin-bottom: var(--space-2); color: var(--accent); }
 /* A chapter's own notes sit after the last one, not inside it. */
-.chapters-foot .todo + .todo { margin-top: var(--space-4); }
+.chapter .todo + .todo { margin-top: var(--space-4); }
 
 
 /* A stack of folds inside a chapter. */
