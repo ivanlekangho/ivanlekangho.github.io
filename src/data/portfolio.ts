@@ -376,10 +376,6 @@ export const WORKS: Work[] = [
     docs: [
       { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf' },
     ],
-    photo: {
-      src: '/photos/cadenza.jpg',
-      caption: 'The King’s College choirs at the Big Sing Cadenza, Auckland Town Hall',
-    },
   },
   {
     id: 'latin-america',
