@@ -43,34 +43,39 @@ export function useReveal(key?: string) {
           io.unobserve(e.target)
         }
       },
-      /* A little before the element's top edge arrives, so the motion has
-         finished by the time it is properly in the reading area rather
-         than animating under the reader's eye. */
-      { rootMargin: '0px 0px -12% 0px', threshold: 0 },
+      /* A little before the element's leading edge arrives, so the motion
+         has finished by the time it is properly in the reading area rather
+         than animating under the reader's eye. Inset on two sides now, not
+         one: the page reads left to right, so things arrive from the right
+         as well as from below. */
+      { rootMargin: '0px -8% -12% 0px', threshold: 0 },
     )
 
     /**
-     * Anything already overhead is simply here.
+     * Anything already behind the reader is simply here.
      *
      * This is a sweep and not a branch inside the observer, because the
      * observer cannot see this case at all: an IntersectionObserver
-     * notifies on threshold crossings, and an element that goes from below
-     * the window to above it inside one frame reads as ratio 0 both times.
-     * No crossing, no callback, and the element sits at opacity 0 above the
-     * reader for as long as the page is open. One hard flick down this page
-     * left Impact's heading and lede permanently invisible that way.
+     * notifies on threshold crossings, and an element that goes from
+     * outside the window on one side to outside it on the other inside a
+     * single frame reads as ratio 0 both times. No crossing, no callback,
+     * and the element sits at opacity 0 behind the reader for as long as
+     * the page is open. One hard flick left Impact's heading and lede
+     * permanently invisible that way.
      *
-     * So: on every scroll, and on mount, anything whose bottom edge is past
-     * the top of the window gets marked arrived. It covers the fast flick,
-     * a deep link into the middle of the page, and a reload that restored
-     * the scroll position — all three are the same thing, an element with
-     * no arrival left to make.
+     * Both axes, because both happen. A panel that holds more than a
+     * screen is still flicked down past its own content; and the deck
+     * itself moves sideways, so a reader who lands on #contact and then
+     * walks back leftward meets two panels whose contents were never on
+     * screen to cross anything. Past the top edge OR past the left edge is
+     * the same fact — an element with no arrival left to make.
      */
     let queued = false
     const sweep = () => {
       queued = false
       for (const el of document.querySelectorAll('[data-reveal]:not(.is-in)')) {
-        if (el.getBoundingClientRect().bottom >= 0) continue
+        const r = el.getBoundingClientRect()
+        if (r.bottom >= 0 && r.right >= 0) continue
         el.classList.add('is-in')
         io.unobserve(el)
       }
@@ -83,9 +88,17 @@ export function useReveal(key?: string) {
 
     for (const el of document.querySelectorAll('[data-reveal]:not(.is-in)')) io.observe(el)
     sweep()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    /* Capture on the document, not a listener on the window. A scroll
+       event does not bubble, so a window listener hears the document
+       scrolling and nothing else — and the thing that scrolls now is the
+       deck, and inside it a panel. Capture reaches the document on the way
+       down to any of them. */
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
 
-    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
+    return () => {
+      io.disconnect()
+      document.removeEventListener('scroll', onScroll, { capture: true })
+    }
     /* Keyed on the route: without a dependency array this rebuilt the
        observer after every single render of the app. */
   }, [key])

@@ -24,7 +24,7 @@ export default function Contact() {
         <p className="colophon">
           Built from scratch. Vite, React, TypeScript, plain CSS. The notation, the
           hall and the Steinway are hand-written SVG — no template, no CSS
-          framework, no animation library. Cabinet Grotesk and Commit Mono.
+          framework, no animation library. Geist and Commit Mono.
           {' '}<a href="https://github.com/ivanlekangho/ivanlekangho.github.io">Source</a>.
         </p>
       </div>

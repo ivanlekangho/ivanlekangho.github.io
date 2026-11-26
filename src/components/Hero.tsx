@@ -1,3 +1,5 @@
+import { SECTIONS, goToPanel } from '../lib/deck'
+
 /**
  * The first screen — Ivan Ho, in red.
  *
@@ -20,39 +22,39 @@
  * panel, so it is centred here rather than offset — the 200px left edge in
  * the Figma file is that, expressed the other way round.
  *
- * This screen is deliberately outside the lighting board. Everything below
- * it is lit by three interpolated keyframes; this is a flat light panel
- * with one red, and it does not change as the rail moves. It is the only
- * part of the site that does not.
+ * The bar is the same list the menu bar uses, so the two cannot drift: this
+ * one is drawn into the picture, that one is fixed above the panels, and
+ * they are one bar as far as a reader is concerned.
+ *
+ * The arrow was a slider control in the design, pointing right at a second
+ * portrait that does not exist. It points right at the rest of the site
+ * instead, which is where right now goes.
  */
-export default function Hero() {
-  const toRoom = () => {
-    const hall = document.querySelector('.hall')
-    hall?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
+export default function Hero({ onAbout }: { onAbout: () => void }) {
   return (
-    <section className="hero" aria-label="Ivan Ho">
+    <section className="hero" id="hero" aria-label="Ivan Ho">
       {/* The bar and the name are one band, because together they are a
           third of the screen and the red is the other two. */}
       <div className="hero-top">
         <nav className="hero-nav" aria-label="Sections">
-          <a href="#impact">Impact</a>
-          <a href="#music">Creative</a>
-          <a href="#education">Education</a>
-          <a href="#contact">Contact</a>
+          {SECTIONS.map((s) =>
+            s.id === null ? (
+              <button key={s.label} type="button" onClick={onAbout}
+                aria-haspopup="dialog">{s.label}</button>
+            ) : (
+              <a key={s.id} href={`#${s.id}`}
+                onClick={(e) => { e.preventDefault(); goToPanel(s.id) }}>{s.label}</a>
+            ),
+          )}
         </nav>
         <p className="hero-name">Ivan Ho</p>
       </div>
 
       <div className="hero-shot">
         <img src="/ivan-ho.png" alt="Ivan Ho" className="hero-portrait" />
-        {/* The design draws a slider arrow here. There is one portrait, so
-            rather than leave a control that slides nothing, it carries you
-            to the room below — which is the only place this screen goes. */}
-        <button type="button" className="hero-next" onClick={toRoom}>
+        <button type="button" className="hero-next" onClick={() => goToPanel('impact')}>
           <img src="/hero-arrow.svg" alt="" aria-hidden="true" />
-          <span className="sr-only">To the recital room</span>
+          <span className="sr-only">On to the work</span>
         </button>
       </div>
     </section>

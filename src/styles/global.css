@@ -71,10 +71,23 @@ pre {
    ============================================================ */
 .hall {
   position: relative; overflow: hidden;
-  /* A definite height, not a minimum: the terminal's scrollback would
-     otherwise push the room taller than the screen, and the page can't be
-     scrolled while the hall has the wheel. */
-  height: 100vh; height: 100dvh;
+  /* The panel's full height and no more. The terminal's scrollback would
+     otherwise push the room taller than the screen, and the room spends
+     the wheel on the rail rather than on scrolling. */
+  height: 100%;
+  border-left: 1px solid var(--hero-ink);
+  /* Clear of the bar, which is fixed over every panel including this one.
+     Without this the bar sat on top of the room's own credit line — the
+     course strip at 27–59px, under a bar occupying 0–57px.
+
+     The bar stays rather than hiding here, even though the room is a
+     picture and the original hall hid it. The room is the LAST panel now:
+     a reader who arrives at the end of the site, or lands on it from a
+     bookmark, has to be able to see the way back. The stage drawing is
+     absolutely positioned against this padding box, so it starts below the
+     bar too — which is right, since there is no sense drawing a room
+     behind an opaque strip of paper. */
+  padding-top: 3.5rem;
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   /* carries the hall colour above the stage wherever the drawing doesn't
      reach the top of the viewport (phones, very tall windows) */
@@ -677,190 +690,206 @@ pre {
 .rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
 
 /* ============================================================
-   The menu bar — arrives once the hall is behind you
+   The bar — the hero's own, kept
+
+   This is not a second navigation that resembles the first. It is the bar
+   drawn across the hero's top third, in the same hand and at the same
+   height, so that moving right reads as the page sliding out from under a
+   fixed bar rather than as one bar being swapped for another. Hairline
+   boxes, uppercase, ruled to the edges of the window — no container, no
+   blur, no floating pill, because the hero has none of those either.
+
+   It is hidden on the hero itself, where the picture is already drawing
+   it. Hidden rather than absent: the About control has to stay in the
+   document for the hero's own About entry to have something to open.
    ============================================================ */
 .menu {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--rule);
-  transform: translateY(-105%);
+  background: var(--hero-paper);
+  border-bottom: 1px solid var(--hero-ink);
+  transform: translateY(-101%);
   transition: transform 420ms var(--ease);
 }
 .menu.is-shown { transform: none; }
 .menu-inner {
-  max-width: var(--max-w); margin-inline: auto;
-  padding: 0 var(--gutter);
   height: 3.5rem;
-  display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
 }
 .menu-brand {
-  font: inherit; background: none; border: 0; padding: 0; cursor: pointer;
-  font-family: var(--font-display); font-weight: 500; font-size: var(--step-0);
-  letter-spacing: -0.02em; color: var(--ink); text-decoration: none;
-  display: flex; align-items: baseline; gap: var(--space-3); white-space: nowrap;
+  display: flex; align-items: center;
+  padding-inline: clamp(0.9rem, 3.5vw, 2rem);
+  border: 0; border-right: 1px solid var(--hero-ink);
+  background: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 400;
+  font-size: var(--step-0); letter-spacing: -0.02em;
+  color: var(--hero-ink); text-decoration: none; white-space: nowrap;
+  transition: background-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
 }
-.menu-brand span {
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: 0.68rem; letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--ink-3);
-}
-.menu-brand:hover { color: var(--accent); }
+.menu-brand:hover { background: var(--hero-ink); color: var(--hero-paper); }
 .menu-inner ul {
   list-style: none; margin: 0; padding: 0;
-  display: flex; gap: clamp(0.75rem, 2.5vw, 2rem);
-  overflow-x: auto; scrollbar-width: none;
+  /* Equal columns, so the bar is a ruled grid and not a row of words of
+     different lengths. `minmax(0, 1fr)` and not `1fr`: a long label in an
+     auto-sized track makes its own column wider and knocks the rules out
+     of true. */
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
 }
-.menu-inner ul::-webkit-scrollbar { display: none; }
-.menu-inner a {
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
-  text-transform: uppercase; white-space: nowrap;
-  color: var(--ink-3); text-decoration: none;
-  padding: 2px 0; border-bottom: 1px solid transparent;
-  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+.menu-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%; padding: 0 var(--space-2);
+  border: 0; border-left: 1px solid var(--hero-ink);
+  background: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(0.56rem, 1.02vw, 0.74rem);
+  letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  color: var(--hero-ink); text-decoration: none;
+  transition: background-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
 }
-.menu-inner a:hover { color: var(--ink); }
-.menu-inner a.is-here { color: var(--accent); border-bottom-color: var(--accent); }
+.menu-link:hover, .menu-link:focus-visible {
+  background: var(--hero-ink); color: var(--hero-paper); outline: none;
+}
+.menu-link.is-here { background: var(--hero-red); color: #FFF; }
+.menu-link:focus-visible { outline: 2px solid var(--hero-red); outline-offset: -4px; }
+
+/* A phone has 375px of bar to divide between a name and five labels, and
+   the longest label is EDUCATION. Measured at these sizes the widest cell
+   needs 47px and gets 63px, so all five sit on one row unclipped — the same
+   arrangement as the hero's own bar, which is the point. */
+@media (max-width: 40rem) {
+  .menu-brand { padding-inline: 0.45rem; font-size: 0.78rem; }
+  .menu-link { padding: 0 1px; font-size: 0.52rem; letter-spacing: 0.02em; }
+}
 
 /* ============================================================
-   The bands below the hall
+   The deck — six panels in a row
 
-   Headings hang in a left margin beside the material they introduce, and
-   the material runs in one measured column. No centred stacks, no card
-   grids, no rounded boxes — the structure is made of hairlines.
+   The site reads left to right. Each panel is exactly one screen wide and
+   snaps; the wheel, the arrow keys and the bar move between them, and a
+   panel holding more than a screen scrolls down inside itself. The logic
+   for which of those two a gesture means lives in lib/deck.ts.
+
+   Mandatory snapping is safe here in a way it never was vertically. The
+   objection to it before was that a panel taller than the window fights
+   the reader the whole way down and can strand content out of reach — but
+   that was snapping on the same axis the long content ran along. The long
+   axis is now INSIDE a panel and has no snap on it at all, while the axis
+   that snaps carries nothing but six equal screens. The two cannot
+   collide, so the deck gets the landing that proximity could only
+   approximate.
+
+   svh, not vh: on a phone vh is the height with the URL bar hidden, so a
+   100vh panel is taller than the screen until you scroll.
    ============================================================ */
-/* ---- panels -------------------------------------------------------
-   Every section is at least a screen tall and snaps to the top of the
-   window. `proximity` rather than `mandatory`: three of these sections
-   hold more than a screen of content, and mandatory snapping on a panel
-   taller than the viewport fights the reader the whole way down it and
-   can strand content out of reach entirely. Proximity snaps when you let
-   go near an edge and leaves you alone in the middle of a long one,
-   which is the behaviour people actually mean by "it snaps".
+.deck {
+  display: flex;
+  height: 100svh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  /* The deck is the end of the line for a sideways gesture: without this,
+     a swipe past the last panel hands the leftover scroll to the browser
+     and triggers back-navigation on a trackpad. */
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.deck::-webkit-scrollbar { display: none; }
 
-   svh, not vh: on a phone, vh is the height with the URL bar hidden, so
-   a 100vh panel is taller than the screen until you scroll.
-
-   `safe center` centres the content of a short panel and quietly stops
-   centring on a panel taller than the window — plain `center` would push
-   the top of a long one above the scroll origin where it cannot be
-   reached. */
-.band {
-  min-height: 100svh;
+.deck > * {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
   scroll-snap-align: start;
   /* Stop at every panel, not merely at one of them. Mandatory snapping
      only guarantees the scroll comes to REST on a snap position — it is
-     free to fly over several on the way, and it did: one hard flick from
-     the top landed at 4311px having passed Work and Research without
-     either ever being half on screen. `always` makes each gesture hand
-     back at the next panel down. A panel taller than the window still
-     scrolls through normally, because an oversized snap area lets the
-     scroll rest anywhere that keeps it covering the window. */
+     free to fly over several on the way, and it did. */
   scroll-snap-stop: always;
-  display: flex; flex-direction: column; justify-content: safe center;
-  padding-block: clamp(3.5rem, 8vh, 6.5rem);
-  border-top: 1px solid var(--rule);
-  /* No scroll-margin here. The container's scroll-padding-top already
-     insets the snapport by the height of the menu; setting both made
-     every snap land 112px low — the section's top sitting half a bar
-     below the bar, which is what "the snap doesn't work" looked like. */
-  /* The slab edge. A hairline alone made seven sections read as one long
-     document; a shadow above each one makes them read as stacked. */
-  box-shadow: 0 -26px 64px -34px rgb(0 0 0 / 0.6);
 }
-/* ---- a colour per section ----------------------------------------
-   Each band takes one of the four tone families as its accent, so the
-   metric on a card, the rules, the eyebrow and the hover state all shift
-   together and a section is identifiable before a word of it is read.
-   Alternating one grey two percent lighter did not do that.
 
-   The families are the ones the Mandarin tones already use, so this
-   introduces no new hue to the site — it spends the palette that was
-   sitting in a folded table. The wash is four percent: enough to feel
-   the ground change under you, not enough to stripe. */
-.band { --tone: var(--t0-mid); }
-#about     { --tone: var(--t3-mid); }
-#impact    { --tone: var(--t1-mid); }
-#music     { --tone: var(--t2-mid); }
-#education { --tone: var(--t4-mid); }
-#contact   { --tone: var(--t0-mid); }
-
+/* ---- the four panels of work --------------------------------------
+   Vertical scrolling belongs to the panel, not to the page. `safe center`
+   centres the content of a short panel and quietly stops centring on one
+   taller than the window — plain `center` would push the top of a long
+   panel above its own scroll origin, where it cannot be reached. */
 .band {
-  --accent: var(--tone);
-  --accent-deep: var(--tone);
-  /* Mixed toward transparent rather than toward --bg: --bg is rewritten
-     on every frame of a rail drag, and mixing against it made five
-     bands' worth of colour recompute sixty times a second for sections
-     nobody was looking at. */
-  --accent-soft: color-mix(in srgb, var(--tone) 72%, transparent);
-  background:
-    linear-gradient(to bottom,
-      color-mix(in srgb, var(--tone) 6%, transparent),
-      color-mix(in srgb, var(--tone) 2%, transparent) 42%,
-      transparent);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  display: flex; flex-direction: column; justify-content: safe center;
+  /* Clear of the bar, which is fixed over the top of every panel. */
+  padding-top: calc(3.5rem + clamp(2rem, 6vh, 4.5rem));
+  padding-bottom: clamp(3rem, 8vh, 6rem);
+  border-left: 1px solid var(--hero-ink);
 }
 .band > .shell { width: 100%; }
+.band-last { padding-bottom: clamp(3rem, 8vh, 6rem); }
 
-.band-last { padding-bottom: clamp(5rem, 12vh, 9rem); }
+/* ---- the light the work is read in ---------------------------------
+   These four panels are not lit by the lighting board. The board exists to
+   walk a room from candlelight to a workshop over three readings of one
+   phrase, and the room is at the far right where it belongs; the work in
+   between is read on paper, in the hero's two colours and no others.
 
-/* A section that contains its own panels is not itself a panel. Impact
-   held three groups and Education two schools, and all of them were snap
-   targets at once — the browser had a candidate at the section's top and
-   another 1,200px later, and picked between them unpredictably. Only the
-   leaves snap now. */
-.band:has(.group), .band:has(.edu) { scroll-snap-align: none; }
-
-html {
-  /* Mandatory, so a section lands rather than drifts. The one thing this
-     needs is an exception for the hall, below.
-
-     Worth recording how the hall exception was found, because it looked
-     like a snap bug and was not: a mandatory container must always rest
-     on a snap position, and the hall starts at document top, so its
-     position computes to -56px once scroll-padding insets the snapport.
-     -56 does not exist. Without a position of its own at zero the browser
-     takes the next valid one and throws the page down to About on load —
-     the centrepiece skipped, and the wheel hijack dead with it, since the
-     room only owns the wheel while scrollY is 0. */
-  /* Proximity, not mandatory — and this is forced by the hall rather than
-     chosen. Mandatory insists the scroll always REST on a snap position,
-     and the room insists on holding the page still while it spends the
-     wheel on the rail. Two owners, one scroll position.
-
-     That conflict was invisible while the hall was the first thing in the
-     document, because scroll zero is a place snap cannot drag you away
-     from. Second in the document, behind the hero, it bites: the reader
-     gets pinned in the room with no way down to the work, and a downward
-     gesture can throw the page upward.
-
-     Proximity snaps when you let go near an edge and otherwise keeps its
-     hands off, which is the only one of the two that can share a page with
-     a scroll-hijacked region. `scroll-snap-stop: always` still stops a
-     flick flying over panels. */
-  scroll-snap-type: y proximity;
-  scroll-padding-top: 3.5rem;
+   Which is why this is a block of literals rather than mixes. Every value
+   the lighting board writes onto <html> is answered here with a fixed one,
+   so a panel's ground does not recompute sixty times a second while
+   somebody is dragging a rail six screens away. The page below is the same
+   paper and the same red at every stop of the room.
+   ------------------------------------------------------------------- */
+.band {
+  --ink:   #20242F;
+  --ink-2: #4E5464;
+  --ink-3: #868C9B;
+  --rule:  #CFD2D9;
+  --staff: #6E7382;
+  --accent:      var(--hero-red);
+  --accent-deep: #A52323;
+  --accent-soft: #D98585;
+  --accent-wash: color-mix(in srgb, var(--hero-red) 8%, transparent);
+  --bg:      var(--hero-paper);
+  --paper:   var(--hero-paper);
+  --paper-2: #FFFFFF;
+  --wash:    #E4E6EA;
+  --panel:        #FFFFFF;
+  --panel-ink:    #20242F;
+  --panel-ink-2:  #4E5464;
+  --panel-rule:   #D9DCE1;
+  --panel-accent: var(--hero-red);
+  --tone: var(--hero-red);
+  /* Type, fixed. The hall shifts weight and tracking as the lights move,
+     because there the typography is part of the reading. Out here it is
+     the same page throughout and must not twitch when the room changes. */
+  --display-weight: 300;
+  --display-tracking: -0.022em;
+  --display-leading: 1.04;
+  --font-label: var(--font-display);
+  --label-weight: 500;
+  --label-tracking: 0.14em;
+  background: var(--hero-paper);
+  color: var(--ink);
 }
-/* The hall is the one place mandatory must not reach. It starts at
-   document top, so its snap position computes to -56px once the padding
-   above insets the snapport — a position that does not exist — and the
-   room only owns the wheel while scrollY is 0. Giving it a snap position
-   of its own at exactly zero keeps the first screen reachable. */
-/* The hall is the second screen now, so it snaps like any other panel —
-   the negative margin that kept it reachable at document top belongs to
-   the hero. */
-.hall { scroll-snap-align: start; scroll-snap-stop: always; }
+
+/* A panel is the scroll container now, so snapping inside it is not a
+   thing that exists — the rules that stopped Impact's three groups and
+   Education's two schools from competing as snap targets are gone with
+   the axis they were defending. */
+
 /* Snapping is involuntary motion, so anyone who asked for less of it gets
-   an ordinary scroll. */
+   a deck they scroll by hand. */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-snap-type: none; }
+  .deck { scroll-snap-type: none; }
 }
-/* A sheet is a scroll container of its own; the page must not be
-   snapping underneath it. */
-html[data-sheet] { scroll-snap-type: none; }
-/* And neither may it snap while the room has the wheel — see the note in
-   lib/hallScroll.ts. Two systems, one scroll position. */
-html[data-in-hall] { scroll-snap-type: none; }
+/* A sheet is a scroll container of its own over the top of everything, and
+   the deck must not move underneath it. It must also not be told so with
+   `overflow: hidden`, which was the first thing tried here and is a trap:
+   taking the overflow off a scrolled container resets its scroll offset to
+   zero and does not put it back. Opening About from Contact threw the
+   reader to the hero and left them there when they closed it.
+
+   Nothing is needed instead. The deck only moves because deck.ts moves it,
+   and every one of its handlers already stands down while a sheet is up. */
+
 .shell { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--gutter); }
 
 @media (min-width: 64rem) {
@@ -1018,7 +1047,7 @@ html[data-in-hall] { scroll-snap-type: none; }
   position: fixed; inset: 0; z-index: 70;
   display: grid; place-items: center; padding: clamp(0.75rem, 3vw, 2.5rem);
 }
-.sheet-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.68); }
+.sheet-scrim { position: absolute; inset: 0; background: rgb(32 36 47 / 0.62); }
 /* ============================================================
    Folds — a heading that holds a table shut
    ============================================================ */
@@ -1151,20 +1180,6 @@ html[data-in-hall] { scroll-snap-type: none; }
 .brand-about:focus-visible .brand-about-cue { color: var(--accent); }
 .brand-about:hover .brand-about-cue::after { transform: translateX(3px); }
 
-/* The same entry in the bar, so About is reachable once the hall is
-   behind you. It is a button, not an anchor, because there is nowhere
-   to scroll to. */
-.menu-about {
-  font: inherit;
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
-  text-transform: uppercase; white-space: nowrap;
-  color: var(--ink-3); background: none; border: 0; cursor: pointer;
-  padding: 2px 0; border-bottom: 1px solid transparent;
-  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
-}
-.menu-about:hover { color: var(--ink); }
-
 /* A lede inside a sheet, where .lede's own colour and measure do not apply. */
 .sheet-lede { font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); }
 .sheet-lede em { color: var(--ink); font-style: italic; }
@@ -1197,16 +1212,21 @@ html[data-in-hall] { scroll-snap-type: none; }
 }
 
 .hero-nav {
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  /* Five now: About went in between Education and Contact. minmax(0,1fr)
+     rather than 1fr so a long label cannot widen its own column and put
+     the rules out of true. */
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   border-bottom: 1px solid var(--hero-ink);
   flex: none;
 }
-.hero-nav a {
+.hero-nav a, .hero-nav button {
   display: flex; align-items: center; justify-content: center;
   /* Kept small so the name gets most of the third; floored for touch. */
   min-height: clamp(2.75rem, 6svh, 3.75rem);
   padding: 0 var(--space-2);
-  border-right: 1px solid var(--hero-ink);
+  border: 0; border-right: 1px solid var(--hero-ink);
+  /* About is a button among four links and must not look like one. */
+  background: none; cursor: pointer;
   font-family: var(--font-label); font-weight: 500;
   font-size: clamp(0.62rem, 1.17vw, 0.8rem);
   letter-spacing: 0.08em; text-transform: uppercase;
@@ -1214,9 +1234,13 @@ html[data-in-hall] { scroll-snap-type: none; }
   transition: background-color var(--dur-ui) var(--ease-out),
               color var(--dur-ui) var(--ease-out);
 }
-.hero-nav a:last-child { border-right: 0; }
-.hero-nav a:hover, .hero-nav a:focus-visible {
-  background: var(--hero-ink); color: var(--hero-paper);
+.hero-nav > :last-child { border-right: 0; }
+.hero-nav a:hover, .hero-nav a:focus-visible,
+.hero-nav button:hover, .hero-nav button:focus-visible {
+  background: var(--hero-ink); color: var(--hero-paper); outline: none;
+}
+.hero-nav a:focus-visible, .hero-nav button:focus-visible {
+  outline: 2px solid var(--hero-red); outline-offset: -4px;
 }
 
 .hero-name {
@@ -1246,10 +1270,14 @@ html[data-in-hall] { scroll-snap-type: none; }
 }
 .hero-portrait {
   position: absolute; left: 50%; transform: translateX(-50%);
-  /* Larger than the file's 133.8%, because the red block is two thirds of
-     the screen here rather than the 58% of a near-square frame, and at the
-     file's ratio the figure sat small in the middle of all that red. */
-  top: -28%; height: 165%; width: auto; max-width: none;
+  /* Framed to the photograph, which is a head-and-shoulders crop: the red
+     block is a 2.4:1 letterbox and the portrait is 0.77:1, so every extra
+     percent of height is paid for at the bottom of the frame. At 165% —
+     right for the wider three-quarter shot this replaced — the cut landed
+     on the collar. 150% keeps the whole head with a little air above it
+     and reaches the knot of the tie, which is as large as this crop goes
+     before it starts removing the man's chin. */
+  top: -21%; height: 150%; width: auto; max-width: none;
   display: block;
 }
 .hero-next {
@@ -1270,7 +1298,7 @@ html[data-in-hall] { scroll-snap-type: none; }
 /* The phone keeps all four across. Two rows of two cost twice the height,
    and the bar is coming out of the same third the name has to live in. */
 @media (max-width: 40rem) {
-  .hero-nav a {
+  .hero-nav a, .hero-nav button {
     min-height: 2.75rem; padding: 0 2px;
     font-size: clamp(0.5rem, 2.1vw, 0.62rem); letter-spacing: 0.04em;
   }
@@ -1319,7 +1347,7 @@ html[data-in-hall] { scroll-snap-type: none; }
      --ink on every frame of a rail drag, and mixing from it made two
      dozen off-screen cards recompute their ground sixty times a second
      for a difference nobody can see. Every stop on this site is dark. */
-  background: rgb(255 255 255 / 0.028);
+  background: var(--paper-2);
   text-align: left; font: inherit; color: inherit;
   /* The one place this site uses a soft easing rather than a linear one:
      a card under a pointer should feel like an object being picked up. */
@@ -1338,9 +1366,11 @@ html[data-in-hall] { scroll-snap-type: none; }
 button.card, a.card { cursor: pointer; }
 a.card { text-decoration: none; }
 button.card:hover, button.card:focus-visible, a.card:hover, a.card:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-  box-shadow: 0 14px 34px -18px rgb(0 0 0 / 0.55);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--paper-2));
+  /* Ink rather than black. A black shadow on light paper reads as grime;
+     the same shadow mixed from the text colour reads as a lift. */
+  box-shadow: 0 14px 30px -20px rgb(32 36 47 / 0.5);
   transform: translateY(-3px);
 }
 button.card:focus-visible, a.card:focus-visible {
@@ -1560,17 +1590,23 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    own light, because a paper on authorship inequality laid out on simulated
    parchment would be a costume rather than a design. */
 .sheet-panel {
-  background: var(--panel);
-  border: 1px solid color-mix(in srgb, var(--panel-rule) 90%, transparent);
-  box-shadow: 0 44px 110px rgb(0 0 0 / 0.55);
+  /* A sheet is paper laid on the page, and since the page is now paper
+     too it is a shade whiter than the panel it covers rather than a
+     different material. Fixed, not drawn from the lighting board: a sheet
+     opened from the work must not change colour when the room's rail
+     moves behind it. */
+  background: #FFFFFF;
+  border: 1px solid #D9DCE1;
+  box-shadow: 0 44px 110px rgb(32 36 47 / 0.45);
   animation: sheet-rise 300ms var(--ease) both;
-  --ink: var(--panel-ink);
-  --ink-2: var(--panel-ink-2);
-  --ink-3: color-mix(in srgb, var(--panel-ink-2) 70%, var(--panel));
-  --rule: var(--panel-rule);
-  --accent: var(--panel-accent);
-  --accent-deep: var(--panel-accent);
-  --accent-soft: color-mix(in srgb, var(--panel-accent) 72%, var(--panel));
+  --ink: #20242F;
+  --ink-2: #4E5464;
+  --ink-3: #868C9B;
+  --rule: #D9DCE1;
+  --paper-2: #FBFBFC;
+  --accent: var(--hero-red);
+  --accent-deep: #A52323;
+  --accent-soft: #D98585;
 }
 @keyframes sheet-rise {
   from { opacity: 0; transform: translateY(14px) scale(0.99); }
@@ -1789,37 +1825,15 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .rail-stop:last-child  { transform: translateX(-90%); }
   .rail-stop-num { display: none; }
 
-  .menu-inner { height: 3.1rem; gap: var(--space-3); padding-inline: var(--space-4); }
-  .menu-brand span { display: none; }
-  .menu-inner a { font-size: 0.64rem; letter-spacing: 0.06em; }
-  /* Seven sections do not fit a phone's bar, and the list has always
-     scrolled — but with the scrollbar hidden, nothing said so, and the last
-     two sections were simply missing as far as a reader could tell. The
-     fade is the scrollbar: it only appears on the side there is more on, so
-     it goes when you reach the end. */
-  .menu-inner ul {
-    gap: var(--space-3);
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
-  }
-  /* Scroll-driven, so the fade is on the right until you scroll, then on
-     both sides, then on the left — the two ends and the middle. */
-  @supports (animation-timeline: scroll()) {
-    .menu-inner ul {
-      animation: menu-fade linear both;
-      animation-timeline: scroll(self inline);
-    }
-    @keyframes menu-fade {
-      from {
-        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
-        mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
-      }
-      to {
-        -webkit-mask-image: linear-gradient(to right, transparent, #000 1.6rem);
-        mask-image: linear-gradient(to right, transparent, #000 1.6rem);
-      }
-    }
-  }
+  /* The bar's own narrow-screen rules live with the bar, up where it is
+     defined. What used to be here belonged to the bar this one replaced —
+     a height that disagreed with the top padding every panel reserves for
+     it, a `.menu-brand span` that no longer exists, a `.menu-inner a` font
+     size, and a scroll-driven fade mask for a seven-item list that
+     overflowed. None of them had a target any more except that font size,
+     which still had one: `.menu-inner a` outranks `.menu-link` on
+     specificity whatever the order, so it quietly beat both of the bar's
+     real rules and left three of five labels overlapping on a phone. */
 
   .h-hero { font-size: var(--step-4); }
   .sheet { max-height: 92vh; }
@@ -1827,3 +1841,165 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .sheet-title { font-size: var(--step-3); }
   .chips li { font-size: 0.68rem; padding: 2px 7px; }
 }
+
+
+/* ============================================================
+   Creative — the two things on this site you can experience
+
+   A recording on the page is the only item in the portfolio that is the
+   work rather than a description of it, so it is laid out as the subject
+   and the paperwork is set beside it in small type. Two columns where
+   there is room: the sound on the left, the facts on the right.
+   ============================================================ */
+.works { display: grid; gap: clamp(2rem, 5vh, 3.25rem); margin-bottom: var(--space-7); }
+
+.work { margin: 0; padding-top: var(--space-5); border-top: 1px solid var(--rule); }
+.work:first-child { padding-top: 0; border-top: 0; }
+
+.work-head { margin-bottom: var(--space-4); }
+.work-kind {
+  display: flex; gap: var(--space-3); margin: 0 0 var(--space-2);
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.work-kind > span:first-child { color: var(--accent); }
+.work-when { color: var(--ink-3); }
+.work-title {
+  margin: 0; max-width: 24ch;
+  font-size: var(--step-3); font-weight: 400;
+  letter-spacing: -0.024em; line-height: 1.08; color: var(--ink);
+}
+.work-scoring {
+  margin: var(--space-2) 0 0;
+  font-size: var(--step--1); color: var(--ink-2); letter-spacing: 0.01em;
+}
+
+.work-body { display: grid; gap: var(--space-5); align-items: start; }
+@media (min-width: 56rem) {
+  .work-body { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-7); }
+}
+.work-media { display: grid; gap: var(--space-4); min-width: 0; }
+.work-aside { display: grid; gap: var(--space-3); min-width: 0; }
+
+.work-honour {
+  margin: 0; padding-left: var(--space-3);
+  border-left: 2px solid var(--accent);
+  font-size: var(--step-0); color: var(--ink); line-height: 1.4;
+}
+.work-where { margin: 0; font-size: var(--step--1); color: var(--ink-3); }
+.work-note { margin: 0; max-width: var(--measure); color: var(--ink-2); line-height: 1.6; }
+.work-docs { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* ---- the programme ------------------------------------------------
+   A numbered list, because the order is the argument: the recital is one
+   route through a continent, not a set of pieces. */
+.programme { list-style: none; margin: 0; padding: 0; display: grid; }
+.programme li {
+  display: grid; gap: 1px;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--rule);
+}
+.programme li:last-child { border-bottom: 1px solid var(--rule); }
+.programme-work { font-size: var(--step-0); color: var(--ink); font-style: italic; }
+.programme-by {
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.programme-mvts { font-size: var(--step--1); color: var(--ink-2); }
+
+/* ---- the photograph ------------------------------------------------ */
+.work-photo { margin: 0; }
+.work-photo img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+}
+.work-photo figcaption {
+  margin-top: var(--space-2);
+  font-size: var(--step--1); color: var(--ink-3); line-height: 1.45;
+}
+
+/* ---- the video, when there is one ---------------------------------- */
+.reel {
+  display: block; width: 100%; height: auto; aspect-ratio: 16 / 9;
+  background: var(--ink); border: 1px solid var(--rule);
+}
+.reel-missing {
+  display: grid; place-items: center; aspect-ratio: 16 / 9;
+  padding: var(--space-5); text-align: center;
+  border: 1px dashed var(--accent-soft);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.reel-missing p { margin: 0; color: var(--ink-2); font-size: var(--step--1); }
+
+/* ============================================================
+   The player
+
+   Three controls on one line: a square to press, a bar to drag, and the
+   clock. The square is the only solid red on the panel, which is the whole
+   reason the panel can afford to be this quiet everywhere else.
+   ============================================================ */
+.player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+.player-go {
+  display: grid; place-items: center;
+  width: clamp(2.6rem, 6vw, 3.25rem); aspect-ratio: 1;
+  padding: 0; border: 0; border-radius: var(--radius-lg);
+  background: var(--accent); color: #FFF; cursor: pointer;
+  transition: background-color var(--dur-ui) var(--ease-out),
+              transform 180ms var(--ease-spring);
+}
+.player-go svg { width: 46%; height: 46%; fill: currentColor; }
+/* The play triangle is optically off-centre in its own box — a glyph with
+   a flat left edge and a point on the right reads as sitting left of where
+   it is. Nudged, and only while it is a triangle. */
+.player-go:not(.is-playing) svg { transform: translateX(6%); }
+.player-go:hover { background: var(--accent-deep); transform: scale(1.04); }
+.player-go:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.player-seek {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 22px; margin: 0;
+  background: none; cursor: pointer;
+}
+.player-seek:disabled { cursor: default; opacity: 0.5; }
+.player-seek::-webkit-slider-runnable-track {
+  height: 2px; background: var(--rule);
+}
+.player-seek::-moz-range-track { height: 2px; background: var(--rule); }
+.player-seek::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; margin-top: -5.5px;
+  border: 0; border-radius: 50%; background: var(--accent);
+  transition: transform 160ms var(--ease-out);
+}
+.player-seek::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border: 0; border-radius: 50%; background: var(--accent);
+}
+.player-seek:hover::-webkit-slider-thumb { transform: scale(1.25); }
+.player-seek:focus-visible { outline: none; }
+.player-seek:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.player-clock {
+  margin: 0; display: flex; gap: 0.4em;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--ink-3); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.player-clock-sep { opacity: 0.5; }
+.player-bad {
+  margin: 0; padding: var(--space-3);
+  border: 1px dashed var(--accent-soft);
+  font-size: var(--step--1); color: var(--ink-2);
+}
+.player-bad a { color: var(--accent-deep); }

@@ -4,33 +4,40 @@ import AboutSheet from './components/AboutSheet'
 import Hero from './components/Hero'
 import Menu from './components/Menu'
 import Hall from './components/stage/Hall'
+import { goToPanel, useDeck } from './lib/deck'
 import { useHallScroll } from './lib/hallScroll'
 import { useReveal } from './lib/reveal'
 import Impact from './sections/Impact'
-import Music from './sections/Music'
+import Creative from './sections/Creative'
 import Education from './sections/Education'
 import Contact from './sections/Contact'
 import Post from './pages/Post'
 
 /**
- * One page.
+ * One page, read sideways.
  *
- * The hall is the first screen and the wheel walks its three readings;
- * past the last one the page scrolls normally through everything else, and
- * the menu bar arrives as soon as the hall is behind you. Sections are
- * anchors on that page rather than routes, because the thing a reader
- * wants after the hall is the explanation of it, not a destination to go
- * and find.
+ * Six panels in a row, each exactly one screen: the name, then the work,
+ * then the music, the schools, the address, and the recital room at the far
+ * end. The wheel, the arrow keys and the bar across the top all move between
+ * them; a panel holding more than a screen still scrolls down inside itself.
+ * lib/deck.ts is where that is decided.
  *
- * The URLs that used to open panels still work: they land on the matching
- * anchor, so nobody's bookmark breaks.
+ * The hall used to be the first thing anybody met and is now the last.
+ * That is a real demotion and it is the right one: the room is an argument
+ * about one phrase of Schubert read three ways, and it is a much better
+ * thing to arrive at than to be stopped by. Nothing about it changed except
+ * where it sits — the lights, the rail and the three readings are as they
+ * were, and the wheel still walks them once you are in there.
+ *
+ * About is not a panel. It is a sheet, opened from either bar, because a
+ * screen-sized page of biography between the work and the music is a wall
+ * across the middle of the thing people came to look at.
  */
 
-/** Where the old panel URLs went. */
+/** Where the old URLs went. Nobody's bookmark breaks. */
 const MOVED: [string, string][] = [
-  ['/recital', '/#music'],
-  /* About is a sheet in the hall now, not a section, so its old URL lands
-     at the top of the page where the doorway is. */
+  ['/recital', '/#creative'],
+  ['/music', '/#creative'],
   ['/about', '/'],
   ['/work', '/#impact'],
   ['/impact', '/#impact'],
@@ -38,12 +45,14 @@ const MOVED: [string, string][] = [
   ['/skills', '/#education'],
   ['/education', '/#education'],
   ['/now', '/'],
-  /* The writing section is gone; its two papers are cards under Impact. */
   ['/writing', '/#impact'],
   ['/how-i-think', '/'],
   ['/log', '/#impact'],
   ['/contact', '/#contact'],
 ]
+
+/** Hashes that named a section before it was renamed. */
+const ALIAS: Record<string, string> = { music: 'creative', recital: 'creative', work: 'impact' }
 
 function MovedPost() {
   const { slug } = useParams()
@@ -52,33 +61,41 @@ function MovedPost() {
 
 function Home({ onAbout }: { onAbout: () => void }) {
   return (
-    <>
-      <Hero />
-      <Hall onAbout={onAbout} />
+    <div className="deck">
+      <Hero onAbout={onAbout} />
       <Impact />
-      <Music />
+      <Creative />
       <Education />
       <Contact />
-    </>
+      <Hall onAbout={onAbout} />
+    </div>
   )
 }
 
 /**
- * React Router owns the path but not the fragment, so arriving at /#work
- * from outside — or from a redirect — needs the scroll done by hand. One
- * frame later, because the section has to exist first.
+ * React Router owns the path but not the fragment, so arriving at /#impact
+ * from outside — or from a redirect — needs the move done by hand. It goes
+ * through the deck rather than through scrollIntoView: a panel is a column
+ * in a horizontal scroller, and asking the browser to bring it into view
+ * will often scroll the nearest ancestor instead and leave the deck between
+ * two panels.
  */
 function HashScroll() {
   const { pathname, hash, key } = useLocation()
   useEffect(() => {
     if (!hash) return
-    const id = decodeURIComponent(hash.slice(1))
-    /* The section may not be laid out yet on a first load or a redirect —
-       web fonts alone move everything — so this keeps asking for a few
-       frames rather than scrolling once into the wrong place. */
+    const raw = decodeURIComponent(hash.slice(1))
+    const id = ALIAS[raw] ?? raw
+    /* The panel may not be laid out yet on a first load or a redirect — web
+       fonts alone move everything — so this keeps asking for a few frames
+       rather than moving once to the wrong place. */
     let raf = 0
     let tries = 0
     const go = () => {
+      /* No animation on the first attempt: arriving at a URL should put you
+         where the URL says, not slide you there from the hero. */
+      if (goToPanel(id, tries === 0 ? 'auto' : 'smooth')) return
+      /* A post is an ordinary vertical document with ordinary anchors. */
       const el = document.getElementById(id)
       if (el) { el.scrollIntoView({ behavior: 'smooth' }); return }
       if (tries++ < 30) raf = requestAnimationFrame(go)
@@ -93,13 +110,14 @@ export default function App() {
   const { pathname } = useLocation()
   const onHome = pathname === '/'
   const [about, setAbout] = useState(false)
+  const at = useDeck(onHome)
   useHallScroll(onHome)
   useReveal(pathname)
 
   return (
     <>
       <a href="#impact" className="sr-only">Skip to content</a>
-      <Menu onAbout={() => setAbout(true)} />
+      <Menu at={onHome ? at : 1} onHome={onHome} onAbout={() => setAbout(true)} />
       <HashScroll />
       <main id="main">
         <Routes>

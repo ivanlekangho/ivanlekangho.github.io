@@ -31,7 +31,7 @@ export type Group = 'work' | 'research' | 'projects'
  * the promise of a PDF is worth less than no PDF at all.
  */
 export type Attachment = {
-  kind: 'pdf' | 'audio' | 'score' | 'repo' | 'excerpt' | 'link'
+  kind: 'pdf' | 'audio' | 'video' | 'score' | 'report' | 'repo' | 'excerpt' | 'link'
   label: string
   href?: string
 }
@@ -239,9 +239,100 @@ export const byGroup = (g: Group) => ITEMS.filter((i) => i.group === g)
 /* ------------------------------------------------------------------ */
 
 /**
- * Music. The three Ivan wants weight on — the directorship, the
- * composition, the research — are the three marked `featured`, so the
- * emphasis is in the layout rather than in an adjective.
+ * Creative — and in it, two things carried differently from everything else
+ * on this site.
+ *
+ * A composition and a performance are not claims about work; they ARE the
+ * work, and they are the only items in the portfolio a reader can
+ * experience directly rather than read a summary of. So they do not go in
+ * cards that open sheets. They go on the page at full size with the audio
+ * and the video on them, and the scores beside as evidence — the thing
+ * first, the paperwork second.
+ *
+ * Everything else musical is a role in an ensemble, which is a line in a
+ * list and was never more than that.
+ */
+
+export type Media = { src: string; kind: 'audio' | 'video'; label: string }
+
+export type Work = {
+  id: string
+  title: string
+  /** Scoring, instrument, forces — what it is written for or played on. */
+  scoring: string
+  kind: 'Composition' | 'Performance'
+  when: string
+  /** Who performed it, or what it was submitted to. */
+  where?: string
+  /** The one line of recognition worth the space. */
+  honour?: string
+  /** Two sentences at most. The recording is the argument; this is a note. */
+  note?: string
+  /** What is actually on the recording, where that is a programme of works. */
+  programme?: { work: string; composer: string; movements?: string[] }[]
+  media?: Media
+  photo?: { src: string; caption: string }
+  docs?: Attachment[]
+}
+
+export const WORKS: Work[] = [
+  {
+    id: 'abendlied',
+    title: 'Abendlied',
+    scoring: 'TTBB choir and piano',
+    kind: 'Composition',
+    when: '2023 – 2024',
+    where: 'Written for the King’s College TTBB choir',
+    honour: 'Highly Commended, NZCF–SOUNZ Choral Composition Competition 2024',
+    note: 'A setting of Heine’s “Wenn ich auf dem Lager liege”, written for my own school’s lower-voice choir and taken into their repertoire for the Big Sing Cadenza, where they took the top award. It leans on Clara Schumann’s “Liebst du um Schönheit” for its rocking ii–V–I and its “ah” bass line, and on Donald Patriquin for the polyphony from bar 29 and the rhythmic augmentation from bar 46.',
+    media: { src: '/audio/abendlied.mp3', kind: 'audio', label: 'Abendlied — recording' },
+    photo: {
+      src: '/photos/cadenza.jpg',
+      caption: 'The King’s College choirs at the Big Sing Cadenza, Auckland Town Hall',
+    },
+  },
+  {
+    id: 'latin-america',
+    title: 'A Journey Through Latin America',
+    scoring: 'Alto saxophone and piano',
+    kind: 'Performance',
+    when: '2024',
+    where: 'Cambridge A Level Music, extended performance',
+    note: 'A recital built as one route rather than a set of pieces: French Brazil, an Argentine tango étude, then Havana and the Caribbean.',
+    programme: [
+      { work: 'Scaramouche, Op. 165c', composer: 'Darius Milhaud', movements: ['II. Modéré', 'III. Brazileira'] },
+      { work: '6 Tango Études', composer: 'Astor Piazzolla', movements: ['IV. Lento meditativo'] },
+      { work: 'Latin American Dances', composer: 'John Carmichael', movements: ['II. Obsession — Habañera', 'III. Bahama Rhumba'] },
+    ],
+    /* The recording is audio and not the video, and that is a size
+       decision rather than an aesthetic one: the recital runs 17:34 and
+       the camera file is 1.19GB of 9Mbps 720p. Nothing compresses a
+       seventeen-minute video under GitHub's 100MB per-file ceiling at a
+       quality worth watching, so the soundtrack is here in full at 13MB
+       and the picture needs somewhere that hosts video. */
+    media: { src: '/audio/journey-through-latin-america.m4a', kind: 'audio', label: 'The recital' },
+    docs: [
+      { kind: 'score', label: 'Scores', href: '/scores/journey-through-latin-america.pdf' },
+      { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf' },
+    ],
+  },
+  {
+    id: 'intro-rondo',
+    title: 'Introduction and Rondo',
+    scoring: 'Clarinet quintet',
+    kind: 'Composition',
+    when: '2024',
+    where: 'Cambridge A Level Music, extended composition',
+    media: { src: '/audio/introduction-and-rondo.mp3', kind: 'audio', label: 'Introduction and Rondo' },
+    docs: [
+      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf' },
+    ],
+  },
+]
+
+/**
+ * The rest of it: ensembles, instruments, a directorship. Roles rather than
+ * works, so they are a list and not a stage.
  */
 export const MUSIC: Item[] = [
   {
@@ -258,31 +349,12 @@ export const MUSIC: Item[] = [
     cta: 'mixedco.com',
   },
   {
-    id: 'abendlied',
-    org: 'NZCF–SOUNZ',
-    group: 'work',
-    featured: true,
-    title: 'Abendlied',
-    kind: 'Composition',
-    when: '2023 – 2024',
-    metric: { value: 'Gold', label: 'at Cadenza' },
-    line: 'A setting for lower-voice choir on a German text.',
-    stack: ['Choral', 'SATB lower voices'],
-    attachments: [
-      { kind: 'score', label: 'Score' },
-      { kind: 'audio', label: 'Recording' },
-    ],
-    bullets: [
-      'Highly commended in the NZCF–SOUNZ composition competition, and awarded Gold on its performance at the Upper North Island Cadenza festival.',
-    ],
-  },
-  {
     id: 'ipq',
-    org: 'Cambridge IPQ',
     group: 'research',
     featured: true,
     title: 'The shape of a saxophone mouthpiece',
     fullTitle: 'How does the shape of an alto saxophone mouthpiece affect its sound?',
+    org: 'Cambridge IPQ',
     kind: 'Extended research',
     when: '2024',
     line: 'Chamber geometry against timbre — the terminal’s question, with a reed.',
@@ -310,7 +382,7 @@ export const MUSIC: Item[] = [
     title: 'Kappella, and All the King’s Men',
     kind: 'Choir leader',
     when: '2020 – 2024',
-    line: 'Kappella and All the King’s Men — Gold, Silver and Bronze at the National Big Sing.',
+    line: 'Gold, Silver and Bronze at the National Big Sing.',
   },
   {
     id: 'sax',
@@ -319,7 +391,7 @@ export const MUSIC: Item[] = [
     title: 'Alto saxophone',
     kind: 'Grade 8, distinction',
     when: '2022',
-    line: 'Principal alto, Little Big Band — Gold at the National Youth Jazz Competition.',
+    line: 'Principal alto — Gold at the National Youth Jazz Competition.',
   },
   {
     id: 'violin',

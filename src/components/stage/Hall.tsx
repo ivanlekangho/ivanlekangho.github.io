@@ -38,7 +38,7 @@ export default function Hall({ onAbout }: { onAbout: () => void }) {
   const engineer = show.terminal > 0.5
 
   return (
-    <section className="hall" aria-label="Recital room">
+    <section className="hall" id="hall" aria-label="Recital room">
       <StageScene p={pos} />
 
       <header className="hall-head">

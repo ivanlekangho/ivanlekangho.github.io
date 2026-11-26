@@ -36,24 +36,31 @@ export function useHallScroll(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return
     /**
-     * The room only takes the wheel when the room is the first screen.
+     * The room takes the wheel back.
      *
-     * It no longer is — the hero is above it — and that one fact undoes
-     * the whole mechanism. Hijacking the wheel means holding the page
-     * still, which a region can only do at scroll zero, where there is
-     * nowhere above to be pushed to. Mid-document it has to argue with
-     * the scroll engine for the position on every frame, and the argument
-     * has no stable winner: measured, the rail either pinned the reader
-     * in the room with no way down to the work, or let the page run past
-     * all three stops without advancing one of them.
+     * It lost it when the hero went in above it: hijacking the wheel means
+     * holding the page still, and a region mid-document cannot hold a
+     * vertically scrolling page still — it has to argue with the scroll
+     * engine for the position on every frame, and measured, that argument
+     * had no stable winner. The rail either pinned the reader in the room
+     * with no way out, or let the page run past all three stops without
+     * advancing one.
      *
-     * So below the fold the rail is driven by its own control — the three
-     * stops are buttons and the handle drags — and the wheel belongs to
-     * the page, which is what a reader expects of a section that is not
-     * the first thing they met. Put the hall back at the top and this
-     * wakes up again on its own.
+     * The page does not scroll vertically any more. It is a row of panels
+     * that scrolls sideways (lib/deck.ts), the hall is the last of them,
+     * and a panel that is not scrolling vertically has nothing to argue
+     * with: there is no vertical position for the room and the page to
+     * disagree about. So the wheel is the rail's again wherever the room
+     * is the screen, which is what it was built to be.
+     *
+     * Order matters between the two. This listens on the window in the
+     * CAPTURE phase and the deck listens on the deck, so the room is asked
+     * first; when it takes the gesture it stops the event dead and the deck
+     * never sees it. When it declines — downward at the last stop, upward
+     * at the first — the event carries on and the deck turns the page.
+     * That is the whole handover: the rail walks to its end, and the next
+     * gesture leaves.
      */
-    if ((document.querySelector('.hall') as HTMLElement | null)?.offsetTop) return
     let timer = 0
     let touchY: number | null = null
     let gesture: number | null = null
@@ -62,51 +69,39 @@ export function useHallScroll(enabled: boolean) {
     /**
      * The room owns the wheel while the room is the screen.
      *
-     * This used to be `scrollY <= 1`, because the hall was the first thing
-     * in the document. It is the second thing now — the hero is above it —
-     * so being at the top of the page no longer means being in the room.
+     * The test is how much of the window the room covers, on BOTH axes.
+     * That word is the whole content of this comment, because leaving it
+     * out is a real bug that was really here: with only the vertical
+     * coverage measured, the hall panel reported itself as the screen from
+     * four panels away, since a panel in a horizontal deck is full height
+     * wherever it is sitting. The room then swallowed every wheel event on
+     * the site and spent it on a rail nobody could see — Creative looked
+     * like a page that had simply stopped scrolling.
      *
-     * The test is how much of the window the room covers, not where its
-     * top edge is. Position was the first thing I tried and it was wrong:
-     * a snapped panel rests with its top at the menu line, 56px down, not
-     * at zero, so a `top <= 4` test never fired once and the rail simply
-     * ignored the wheel. Coverage does not care about the offset.
+     * Position was the first thing tried, before the deck existed, and was
+     * wrong for its own reason: a snapped panel used to rest with its top
+     * at the menu line rather than at zero, so a `top <= 4` test never
+     * fired once. Coverage does not care about the offset. It does have to
+     * be coverage of the window, and a window has two dimensions.
      */
     const inHall = () => {
       const el = document.querySelector('.hall')
       if (!el) return false
       const r = el.getBoundingClientRect()
-      const covered = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)
-      return covered >= window.innerHeight * 0.85
+      const down = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)
+      const across = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0)
+      return down >= window.innerHeight * 0.85 && across >= window.innerWidth * 0.85
     }
 
     let wasAway = !inHall()
 
-    /**
-     * While the room has the wheel, the page has no snap.
-     *
-     * These two systems both insist on owning the scroll position, and
-     * they cannot both have it. The hall holds the page still and spends
-     * the wheel on the rail; mandatory snapping keeps relocating the page
-     * to the nearest snap position. That conflict was invisible while the
-     * hall was the first thing in the document, because scroll zero is a
-     * place snap cannot drag you away from. Second in the document, they
-     * fight: the reader ends up pinned in the room with no way down to the
-     * work, and a downward gesture can throw the page upward.
-     *
-     * So the room suspends snapping for as long as it is the screen — the
-     * same exception an open sheet already takes. Leaving re-arms it, and
-     * by then the next panel is most of the window, so snap settles onto
-     * the thing you were heading for anyway.
-     */
-    const marker = () => {
-      const root = document.documentElement
-      if (inHall()) root.setAttribute('data-in-hall', '')
-      else root.removeAttribute('data-in-hall')
-    }
-    marker()
-    window.addEventListener('scroll', marker, { passive: true })
-    window.addEventListener('resize', marker)
+    /* The `data-in-hall` marker that used to live here is gone with the
+       rule it served. It existed so the room could suspend the page's
+       vertical snapping while it held the wheel — two systems, one scroll
+       position. The page has no vertical snapping to suspend now, nothing
+       in the stylesheet read the attribute any more, and its two listeners
+       were on the window, which the deck's scrolling never reaches: it
+       would have sat there reporting the wrong answer forever. */
 
     /** Which stop a gesture began from, so it cannot travel past the next
      *  one. Null between gestures. */
@@ -177,6 +172,9 @@ export function useHallScroll(enabled: boolean) {
       const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
       if (!mine(dy)) return
       e.preventDefault()
+      /* Taken. The deck listens further down the same event and must not
+         also turn the page with it. */
+      e.stopPropagation()
       advance(dy)
     }
 
@@ -192,21 +190,19 @@ export function useHallScroll(enabled: boolean) {
       touchY = y
       if (!mine(dy)) return
       if (e.cancelable) e.preventDefault()
+      e.stopPropagation()
       advance(dy)
     }
     const onTouchEnd = () => { touchY = null }
 
-    window.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('wheel', onWheel, { passive: false, capture: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: false })
+    window.addEventListener('touchmove', onTouchMove, { passive: false, capture: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     return () => {
-      document.documentElement.removeAttribute('data-in-hall')
-      window.removeEventListener('scroll', marker)
-      window.removeEventListener('resize', marker)
-      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('wheel', onWheel, { capture: true })
       window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchmove', onTouchMove, { capture: true })
       window.removeEventListener('touchend', onTouchEnd)
       clearTimeout(timer)
     }
