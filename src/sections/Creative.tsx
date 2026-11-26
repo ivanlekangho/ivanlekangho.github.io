@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import DocSheet from '../components/DocSheet'
 import Mark from '../components/Mark'
 import Player from '../components/Player'
 import Todo from '../components/Todo'
 import WorkGrid from '../components/WorkGrid'
 import Chapters, { type Chapter } from '../components/Chapters'
+import Terminal from '../components/tone/Terminal'
 import { MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
 
 /**
@@ -253,6 +253,27 @@ export default function Creative() {
       ),
     },
     {
+      id: 'tone',
+      label: 'Tone',
+      body: (
+        <>
+          <p className="eyebrow" data-reveal>Tone</p>
+          <h2 className="chapter-head" data-reveal>Why a chord sounds like that</h2>
+          <p className="chapter-lede" data-reveal>
+            Type a chord, or play one on the keyboard. Nothing here is a
+            lookup: the ratios come from the pitches, the frequencies come
+            from the pitches and the tuning you pick, the curve is the sum of
+            one sine per frequency, and the sound is the same sines. Change
+            the tuning and all of it changes at once — which is the only way
+            to make four cents visible.
+          </p>
+          <div className="tone-bench" data-reveal>
+            <Terminal />
+          </div>
+        </>
+      ),
+    },
+    {
       id: 'ensembles',
       label: 'Ensembles',
       body: (
@@ -261,18 +282,6 @@ export default function Creative() {
           <h2 className="chapter-head" data-reveal>Choirs, a big band, an orchestra</h2>
           <WorkGrid items={MUSIC} tight minimal />
 
-          {/* The room is not in the bar, because it is the end of an
-              argument rather than a tab. This is where it belongs instead:
-              whoever has just listened to the compositions is the likeliest
-              person to want one phrase of Schubert read three ways. */}
-          <p className="to-hall">
-            <Link to="/hall">
-              <span className="to-hall-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
-              <span className="to-hall-gloss">
-                The recital room — one phrase of Schubert, read three ways
-              </span>
-            </Link>
-          </p>
         </>
       ),
     },
@@ -299,14 +308,6 @@ export default function Creative() {
       }
       chapters={chapters}
     >
-      <Todo>
-        <b>Is the clarinet quintet photograph licensed for this?</b> It is up,
-        with the disclosure on it saying it is a stock image of a quintet and
-        not this performance — but that disclosure is about honesty with a
-        reader, and it does nothing about whose picture it is. If it came from
-        a stock library, it needs the credit the licence asks for; if it was
-        lifted from a search, it should come down and the slot will show again.
-      </Todo>
       <Todo>
         <b>Introduction and Rondo describes itself from your report.</b> The
         forces, the Mozart instrumentation, the Saint-Saëns form and the

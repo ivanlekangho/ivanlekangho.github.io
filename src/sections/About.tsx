@@ -1,4 +1,5 @@
 import Chapters, { type Chapter } from '../components/Chapters'
+import Wanderer from '../components/score/Wanderer'
 import Todo from '../components/Todo'
 
 /**
@@ -31,10 +32,10 @@ export default function About() {
             <p className="about-lede">
               <em>I am a stranger everywhere.</em> My favourite line in any
               song. Schubert gives it to a baritone with nowhere to be from,
-              and the recital room at the end of this site is built out of the
-              bars that carry it: one phrase, read three ways.
+              and these are the bars that carry it.
             </p>
           </div>
+          <Wanderer />
         </>
       ),
     },

@@ -82,35 +82,19 @@ export default function Contact() {
         <>
           <p className="eyebrow" data-reveal>Languages</p>
           <h2 className="chapter-head" data-reveal>In whichever of these you like</h2>
-          <ul className="key" data-reveal>
+          <ul className="tongues" data-reveal>
             {LEADS.map((g) => (
               <li key={g.word + g.lang}>
-                <span className="key-word" lang={g.lang} dir={g.rtl ? 'rtl' : undefined}>
+                <span className="tongue-word" lang={g.lang} dir={g.rtl ? 'rtl' : undefined}>
                   {g.word}
                 </span>
-                <span className="key-name">{g.name}</span>
+                <span className="tongue-name">{g.name}</span>
               </li>
             ))}
           </ul>
           <p className="aside" data-reveal>
             你好 is the same two characters in both scripts, so the pair above
             is 哈囉 and 哈喽 — “hello” itself, which does differ.
-          </p>
-        </>
-      ),
-    },
-    {
-      id: 'colophon',
-      label: 'Colophon',
-      body: (
-        <>
-          <p className="eyebrow" data-reveal>Colophon</p>
-          <h2 className="chapter-head" data-reveal>How this was made</h2>
-          <p className="colophon" data-reveal>
-            Built from scratch. Vite, React, TypeScript, plain CSS. The notation,
-            the hall and the Steinway are hand-written SVG — no template, no CSS
-            framework, no animation library. Geist and Commit Mono.
-            {' '}<a href="https://github.com/ivanlekangho/ivanlekangho.github.io">Source</a>.
           </p>
         </>
       ),

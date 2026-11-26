@@ -8,11 +8,18 @@ import { label, midi, ratioTo } from '../../lib/tuning'
 import Keyboard, { keyboardRange } from './Keyboard'
 
 /**
- * The engineer's reading: a chord, and why it sounds like that.
+ * A chord, and why it sounds like that.
  *
- * One chord at a time and no scrollback, because the room owns the wheel at
- * every stop including this one, and a pane that swallowed the wheel would
- * strand you at the bottom of the rail. Each chord replaces the last.
+ * This was the engineer's reading at the far end of a recital room, and it
+ * is the one part of that room worth keeping: the place where the computer
+ * science and the music are the same sentence rather than two things listed
+ * side by side. It is a section of Creative now, which is where a reader
+ * looking for either of those will actually be.
+ *
+ * One chord at a time and no scrollback. Each chord replaces the last,
+ * which was originally so the pane could not swallow the page's scroll and
+ * is now simply the right shape for the thing: a tone generator is a bench
+ * instrument, not a log.
  *
  * Nothing here is a lookup of an answer someone wrote down. The ratios come
  * from the pitches, the frequencies come from the pitches and the chosen
@@ -139,7 +146,16 @@ function openingChord(): Chord {
  * boolean, so memo turns sixty renders a second into two — one when the stop
  * arrives and one when it leaves.
  */
-function Terminal({ live }: { live: boolean }) {
+/**
+ * `live` said whether the rail had arrived at this stop; it gated the
+ * controls so a reader could not play a chord at a room they were not
+ * looking at, and stopped the sound on the way out. The rail is gone and
+ * this is simply a section of a page now, so it is always live — but the
+ * stop-on-unmount still matters, because leaving the page while a chord is
+ * sounding should not leave it sounding.
+ */
+function Terminal() {
+  const live = true
   const [line, setLine] = useState('')
   const [chord, setChord] = useState<Chord | null>(openingChord)
   const [tuning, setTuning] = useState<TuningId>('equal')
@@ -160,7 +176,7 @@ function Terminal({ live }: { live: boolean }) {
   const sound = useChordSound(freqs)
 
   /* Nothing should keep ringing once the rail leaves this stop. */
-  useEffect(() => { if (!live) sound.stop() }, [live, sound])
+  useEffect(() => () => sound.stop(), [sound])
 
   function land(c: Chord) {
     setChord(c)

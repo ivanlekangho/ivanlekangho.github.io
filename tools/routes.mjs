@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path'
  * a mistyped URL, and the post pages, whose paths are not known here.
  *
  * The list is read out of src/lib/pages.ts rather than repeated, so a page
- * added to the bar cannot be forgotten here. /hall is added by hand
+ * added to the bar cannot be forgotten here. /home is added by hand
  * precisely because it is not in that list.
  */
 const root = join(import.meta.dirname, '..')
@@ -25,9 +25,8 @@ const index = join(root, 'dist', 'index.html')
 
 const pages = readFileSync(join(root, 'src', 'lib', 'pages.ts'), 'utf8')
 const routes = [...pages.matchAll(/path:\s*'(\/[a-z-]+)'/g)].map((m) => m[1])
-/* Neither of these is in the bar: the room is reached from Creative,
-   and the front page is reached from the name in the corner. */
-routes.push('/hall', '/home')
+/* Not in the bar: the front page is reached from the name in the corner. */
+routes.push('/home')
 
 if (routes.length < 2) {
   console.error('routes.mjs: found %d routes in pages.ts — refusing to run', routes.length)

@@ -1,4 +1,3 @@
-import type { ToneId } from './tones'
 
 /**
  * THE CENTERPIECE SOURCE OF TRUTH
@@ -13,12 +12,10 @@ import type { ToneId } from './tones'
  * notes on "Fremd", so the melisma sits in the middle of the word, not on
  * "ich" as we first assumed.
  *
- * Mandarin mapping (我处处皆为异客, 7 syllables over 9 notes): syllables fall
- * positionally. 皆 sits on the slur the score already draws across "Fremd",
- * and 客 is stretched over the last two notes so the word "stranger" lands on
- * the cadence. Note the asymmetry: "ü-ber-all" is three separate German
- * syllables with no slur, so the notation must NOT draw one there — that span
- * exists only in the Mandarin overlay. Hence two fields, not one.
+ * The Mandarin overlay this carried — 我处处皆为异客 mapped positionally over
+ * the nine notes — is gone with the reading that drew it. What is left is
+ * the German line and its engraving, which is what the score under About
+ * needs and all it needs.
  *
  * Pitches confirmed by Ivan, and independently re-measured off the score image
  * by detecting staff lines and correlating a notehead template (the scan
@@ -54,16 +51,11 @@ export type Note = {
    *  "e-v'ry" keeps three syllables for "ü-ber-all" without inventing a
    *  fourth. */
   english?: string | null
-  /** Mandarin character, only on the note where the syllable begins. */
-  han?: string
-  pinyin?: string
-  tone?: ToneId
   /** Score melisma: notes sharing an id are slurred on ONE GERMAN syllable.
    *  This is a fact of the music — it draws a slur in the notation. */
   melisma?: string
   /** Mandarin overlay: notes sharing an id carry ONE HAN syllable. This is our
    *  mapping choice, not something in the score, so it never draws a slur. */
-  hanGroup?: string
   /** Draw a hyphen to the next syllable — i.e. both belong to one word. */
   hyphenAfter?: boolean
 }
@@ -73,19 +65,17 @@ export const UE_PITCH_UNVERIFIED = false
 
 export const PHRASE: Note[] = [
   // pickup
-  { id: 'n1', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ich',  ipa: 'ɪç',  english: 'I',  han: '我', pinyin: 'wǒ',  tone: 3 },
+  { id: 'n1', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ich',  ipa: 'ɪç',  english: 'I' },
   // bar 1
-  { id: 'n2', step: 'F', octave: 3, accidental: 'sharp', beats: 1.5, german: 'bin',  ipa: 'bɪn', english: 'am', han: '处', pinyin: 'chù', tone: 4 },
-  { id: 'n3', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ein',  ipa: 'aɪ̯n', english: 'a', han: '处', pinyin: 'chù', tone: 4 },
-  { id: 'n4', step: 'B', octave: 3, beats: 1.0, german: 'Fremd', ipa: 'fʁɛmt', english: 'strang', hyphenAfter: true,
-    han: '皆', pinyin: 'jiē', tone: 1, melisma: 'm1', hanGroup: 'h4' },
-  { id: 'n5', step: 'G', octave: 3, beats: 0.5, german: null, melisma: 'm1', hanGroup: 'h4' },
-  { id: 'n6', step: 'E', octave: 3, beats: 0.5, german: 'ling', ipa: 'lɪŋ', english: 'er', han: '为', pinyin: 'wéi', tone: 2 },
+  { id: 'n2', step: 'F', octave: 3, accidental: 'sharp', beats: 1.5, german: 'bin',  ipa: 'bɪn', english: 'am' },
+  { id: 'n3', step: 'F', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ein',  ipa: 'aɪ̯n', english: 'a' },
+  { id: 'n4', step: 'B', octave: 3, beats: 1.0, german: 'Fremd', ipa: 'fʁɛmt', english: 'strang', hyphenAfter: true, melisma: 'm1' },
+  { id: 'n5', step: 'G', octave: 3, beats: 0.5, german: null, melisma: 'm1' },
+  { id: 'n6', step: 'E', octave: 3, beats: 0.5, german: 'ling', ipa: 'lɪŋ', english: 'er' },
   // bar 2
-  { id: 'n7', step: 'A', octave: 3, beats: 1.5, german: 'ü',   ipa: 'yː', english: 'e', hyphenAfter: true, han: '异', pinyin: 'yì', tone: 4 },
-  { id: 'n8', step: 'C', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ber', ipa: 'bɐ', english: "v'ry", hyphenAfter: true,
-    han: '客', pinyin: 'kè', tone: 4, hanGroup: 'h7' },
-  { id: 'n9', step: 'D', octave: 3, beats: 1.0, german: 'all', ipa: 'ʔal', english: 'where', hanGroup: 'h7' },
+  { id: 'n7', step: 'A', octave: 3, beats: 1.5, german: 'ü',   ipa: 'yː', english: 'e', hyphenAfter: true },
+  { id: 'n8', step: 'C', octave: 3, accidental: 'sharp', beats: 0.5, german: 'ber', ipa: 'bɐ', english: "v'ry", hyphenAfter: true },
+  { id: 'n9', step: 'D', octave: 3, beats: 1.0, german: 'all', ipa: 'ʔal', english: 'where' },
 ]
 
 export const PIECE = {

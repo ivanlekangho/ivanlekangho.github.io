@@ -2,8 +2,6 @@ import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Brand from './components/Brand'
 import Menu from './components/Menu'
-import Hall from './components/stage/Hall'
-import { useHallScroll } from './lib/hallScroll'
 import { useReveal } from './lib/reveal'
 import About from './sections/About'
 import Impact from './sections/Impact'
@@ -26,15 +24,24 @@ import Post from './pages/Post'
  * is the name at full size; every other page is the same name shrunk into
  * the corner of the bar, and it travels between the two (components/Brand).
  *
- * The recital room keeps its route and is reached from the foot of
- * Creative rather than from the bar.
+ * The recital room is gone. It walked one phrase of Schubert through three
+ * readings on a rail, over a drawn stage, under a lighting board that
+ * interpolated twenty-six colours a frame — a great deal of machinery for
+ * one argument, and an argument that reads better stated twice and quietly
+ * than performed once and loudly. What survives is the two halves of it
+ * that were worth keeping: the engraved bar under About, and the tone
+ * generator under Creative.
  */
 
 /** Where the old URLs went — the deck's hashes included. Nobody's bookmark
  *  breaks, and the hashes have to be caught in JS because a fragment never
  *  reaches the router. */
 const MOVED: [string, string][] = [
+  /* The recital room is gone; its argument is in two places now — the
+     score under About, the physics under Creative — so both of its old
+     URLs land on the nearer of the two. */
   ['/recital', '/creative'],
+  ['/hall', '/creative'],
   ['/music', '/creative'],
   ['/work', '/impact'],
   ['/projects', '/impact'],
@@ -54,7 +61,6 @@ const HASH_TO_PATH: Record<string, string> = {
   education: '/education',
   about: '/about',
   contact: '/contact',
-  hall: '/hall',
 }
 
 /**
@@ -101,7 +107,6 @@ function ToTop() {
 export default function App() {
   const { pathname } = useLocation()
   const open = pathname === '/home'
-  useHallScroll(pathname === '/hall')
   useReveal(pathname)
 
   return (
@@ -123,7 +128,6 @@ export default function App() {
           <Route path="/education" element={<Education />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/hall" element={<Hall />} />
           <Route path="/writing/:slug" element={<Post />} />
           {MOVED.map(([from, to]) => (
             <Route key={from} path={from} element={<Navigate to={to} replace />} />

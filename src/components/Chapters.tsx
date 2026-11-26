@@ -119,35 +119,3 @@ export default function Chapters({
     </>
   )
 }
-
-/**
- * One item in a chapter, open on click, and only one open at a time.
- *
- * `<details name>` does the mutual exclusion in the browser rather than in
- * JavaScript, which means it also works before this bundle has parsed and
- * keeps the open state in the element where the browser's own find-in-page
- * can reach it. Where the attribute is not supported the elements simply
- * all open independently, which is a worse accordion and still a working
- * one — the failure mode is the reason to use the native element rather
- * than a reason not to.
- */
-export function Fold({
-  group, lead, meta, children, open,
-}: {
-  group: string
-  lead: ReactNode
-  meta?: ReactNode
-  children: ReactNode
-  open?: boolean
-}) {
-  return (
-    <details className="item" name={group} open={open}>
-      <summary>
-        <span className="item-lead">{lead}</span>
-        {meta && <span className="item-meta">{meta}</span>}
-        <span className="item-mark" aria-hidden="true" />
-      </summary>
-      <div className="item-body">{children}</div>
-    </details>
-  )
-}

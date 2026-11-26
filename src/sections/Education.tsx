@@ -1,5 +1,7 @@
-import Chapters, { Fold, type Chapter } from '../components/Chapters'
+import { useState } from 'react'
+import Chapters, { type Chapter } from '../components/Chapters'
 import Chips from '../components/Chips'
+import Sheet from '../components/Sheet'
 import Todo from '../components/Todo'
 
 /**
@@ -14,7 +16,42 @@ import Todo from '../components/Todo'
  *
  * The clubs sit with the institution rather than in a leadership list,
  * because that is what they are: things run inside a school.
+ *
+ * Tiles, like Work/Impact, rather than the accordion this used first. Two
+ * patterns for the same job — a thing you click to see more of — is one
+ * pattern more than a reader should have to learn on one site, and the
+ * tiles came first.
  */
+
+/**
+ * A tile with a number on it and a sheet behind it.
+ *
+ * Deliberately not WorkGrid: that is built around a portfolio Item, and
+ * forcing a coursework list and a prize table into that shape to borrow a
+ * grid would be the data bending to the component. This borrows the card's
+ * own class instead, so they look like the tiles they are meant to look
+ * like, and keeps its own content.
+ */
+function Tile({
+  count, unit, title, children,
+}: { count: string; unit: string; title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button type="button" className="card card-min" onClick={() => setOpen(true)}>
+        <p className="card-metric"><b>{count}</b><span>{unit}</span></p>
+        <h4 className="card-title">{title}</h4>
+        <span className="card-foot"><span className="card-more">Read more</span></span>
+      </button>
+      {open && (
+        <Sheet onClose={() => setOpen(false)} label={title}>
+          <h2 className="sheet-title">{title}</h2>
+          {children}
+        </Sheet>
+      )}
+    </>
+  )
+}
 
 const COURSEWORK = [
   'Data structures & algorithms', 'Advanced algorithms', 'Computer security',
@@ -84,18 +121,13 @@ export default function Education() {
           <h2 className="chapter-head" data-reveal>Stanford University</h2>
           <p className="edu-deg" data-reveal>B.S. Computer Science, B.S. Mathematics — to June 2028</p>
 
-          {/* Folds rather than a flat stack, because the three things under
-              a school answer three different questions and a reader almost
-              always wants one of them. Native <details name>, so the
-              browser does the one-at-a-time and find-in-page can still
-              reach what is closed. */}
-          <div className="items" data-reveal>
-            <Fold group="stanford" lead="Coursework" meta={`${COURSEWORK.length} courses`}>
+          <div className="cards cards-tight" data-reveal>
+            <Tile count={String(COURSEWORK.length)} unit="courses" title="Coursework">
               <Chips items={COURSEWORK} label="Coursework" />
-            </Fold>
-            <Fold group="stanford" lead="What I run here" meta={`${STANFORD_CLUBS.length} roles`}>
+            </Tile>
+            <Tile count={String(STANFORD_CLUBS.length)} unit="roles" title="What I run here">
               <Rows items={STANFORD_CLUBS} />
-            </Fold>
+            </Tile>
           </div>
         </>
       ),
@@ -109,13 +141,14 @@ export default function Education() {
           <h2 className="chapter-head" data-reveal>King’s College, Auckland</h2>
           <p className="edu-deg" data-reveal>Cambridge International and NZQA — to 2024</p>
 
-          <div className="items" data-reveal>
-            <Fold group="kings" lead="What I ran" meta={`${KINGS_ROLES.length} roles`}>
+          <div className="cards cards-tight" data-reveal>
+            <Tile count={String(KINGS_ROLES.length)} unit="roles" title="What I ran">
               <Rows items={KINGS_ROLES} />
-            </Fold>
-            <Fold group="kings" lead="Results and placings" meta={`${KINGS_HONOURS.length} entries`}>
+            </Tile>
+            <Tile count={String(KINGS_HONOURS.length)} unit="results and placings"
+              title="Results and placings">
               <Rows items={KINGS_HONOURS} className="edu-honours" />
-            </Fold>
+            </Tile>
           </div>
         </>
       ),

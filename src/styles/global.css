@@ -83,310 +83,13 @@ pre {
 }
 .lede { font-size: var(--step-1); color: var(--ink-2); max-width: 34rem; line-height: 1.45; }
 .muted { color: var(--ink-2); }
+/* The recital room, its rail, its parchment sheet and the first hero all
+   lived here. They are gone with the components that drew them: the room
+   walked one phrase of Schubert through three readings on a rail over a
+   drawn stage, under a lighting board that interpolated twenty-six
+   colours a frame — a great deal of machinery for one argument. What
+   survives is the terminal below and the engraving under About. */
 
-/* ============================================================
-   The hall — the first screen
-   ============================================================ */
-.hall {
-  position: relative; overflow: hidden;
-  /* The panel's full height and no more. The terminal's scrollback would
-     otherwise push the room taller than the screen, and the room spends
-     the wheel on the rail rather than on scrolling. */
-  height: 100svh;
-  /* Clear of the bar, which is fixed over every panel including this one.
-     Without this the bar sat on top of the room's own credit line — the
-     course strip at 27–59px, under a bar occupying 0–57px.
-
-     The bar stays rather than hiding here, even though the room is a
-     picture and the original hall hid it. The room is a page of its own,
-     reachable from a link at the foot of Creative and from a bookmark, so
-     a reader who lands on it has to be able to see the way back. The stage
-     drawing is absolutely positioned against this padding box, so it
-     starts below the bar too — which is right, since there is no sense
-     drawing a room behind an opaque strip of paper. */
-  padding-top: var(--bar-h);
-  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
-  /* carries the hall colour above the stage wherever the drawing doesn't
-     reach the top of the viewport (phones, very tall windows) */
-  background: var(--hall);
-}
-.stage-svg {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  display: block; z-index: 0;
-}
-
-.hall-head {
-  position: relative; z-index: 1;
-  padding: clamp(1rem, 3vh, 2rem) var(--gutter) 0;
-}
-.brand-name {
-  font-family: var(--font-display); font-weight: 500;
-  font-size: var(--step-2); letter-spacing: -0.02em; color: var(--ink);
-  margin: 0; max-width: none;
-}
-.brand-sub {
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--ink-3);
-  margin: 2px 0 0; max-width: none;
-}
-
-/* ONE system, hanging over the performers: the voice staff above the
-   piano's two, bracketed, on a shared horizontal axis. Two ribbons side by
-   side said the opposite of what the page is claiming. */
-.score-system {
-  /* The staves, the language table and the terminal are three states of
-     one object, so they are one width and one left edge. Different maxima
-     slid the whole screen sideways between stops, which read as the room
-     lurching rather than the reading changing. */
-  --stage-w: 62rem;
-  position: relative; z-index: 1; margin: 0; min-height: 0;
-  padding: var(--space-4) clamp(1rem, 5vw, 4rem) 0;
-  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
-  /* Pinned to the top of its row rather than centred: the stage drawing is
-     anchored to the bottom of the viewport, so a centred system lands its
-     bass staff across the lid of the piano. (align-items, not
-     align-content — the 1fr row already eats all the free space, so
-     align-content has nothing left to distribute.) */
-  justify-items: center; align-items: start;
-}
-.score-head { width: 100%; max-width: var(--stage-w); }
-.score-head { display: grid; justify-items: center; }
-/* The credit is the way into the piece, so it has to look like a way in. */
-.score-title {
-  display: inline-flex; align-items: baseline; gap: var(--space-2);
-  margin: 0 auto var(--space-2); padding: 5px 14px 6px;
-  font: inherit; cursor: pointer; text-align: center;
-  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg) 46%, transparent);
-  /* The credit belongs to the score, so it is set in the score's face. */
-  font-family: var(--font-score); font-weight: 400;
-  font-size: var(--step-1); letter-spacing: -0.004em;
-  color: var(--ink-2);
-  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease),
-    background-color var(--dur-ui) var(--ease);
-}
-.score-title-text { display: inline; }
-.score-title-text span { color: var(--ink); font-weight: 500; }
-.score-title:hover, .score-title:focus-visible {
-  color: var(--accent); border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
-}
-.score-title:hover .score-title-text span { color: var(--accent); }
-.score-tag {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-4);
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--ink-3);
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 6px; margin-bottom: var(--space-3);
-}
-.score-tag b { font-weight: inherit; color: var(--accent); }
-
-/* Something for the score to sit in front of. The stage behind it is
-   softened and dimmed in the drawing itself; this is the shadow the score
-   casts back onto the room. */
-.score-system::before {
-  content: ''; position: absolute; z-index: -1;
-  left: 0; right: 0; top: -2vh; height: 78%;
-  background: radial-gradient(
-    ellipse 64% 72% at 50% 40%,
-    color-mix(in srgb, var(--bg) 56%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 34%, transparent) 50%,
-    transparent 78%);
-  pointer-events: none;
-}
-
-/* The score and the terminal share one cell and cross-fade. The stack
-   stretches to the row it is in so the terminal has a definite height and
-   its scrollback scrolls rather than growing. */
-.score-stack {
-  display: grid; width: 100%; align-self: stretch; min-height: 0;
-}
-.score-layer {
-  grid-area: 1 / 1; display: grid; justify-items: center; align-items: start;
-  min-width: 0; min-height: 0;
-}
-/* The terminal takes the height it needs rather than stretching to a tall
-   cell, but it starts where the staves and the language table start: all
-   three states of the one object open at the same top left corner, so the
-   rail changes the reading instead of moving the room. */
-.score-layer-term { align-items: start; }
-/* The language stop is the tallest frame — tone, characters, pinyin, the
-   metre strip and the German all stack — so the cap is set for that one;
-   the others are limited by width long before they reach it. */
-/* The row the stack sits in is what is left after the apparatus has taken
-   what it needs, so the system is capped by its own cell rather than by a
-   guess at the viewport — at the language stop the four rows below push it
-   smaller, and at the other two it takes the whole room. */
-.score-svg { width: 100%; max-width: var(--stage-w); max-height: min(54vh, 100%); }
-
-/* The language stop: the sung line, and the same line written out four
-   ways underneath it. It owns the cell the full system owns at the stop
-   before it, so the type can be read at arm's length. */
-.score-layer-lang { align-items: start; }
-/* A query container, because every size in the table below is a function
-   of this one width. Two beats of the phrase are 5.1% of it apart, and a
-   word centred on its note gets half of that — so the type has to be read
-   off the box, not off the viewport. Sized off the viewport it was legible
-   at 62rem and colliding at 63. */
-.apparatus {
-  width: 100%; max-width: var(--stage-w); container-type: inline-size;
-}
-
-/* The piece, still on the page. Every row below is a reading of these
-   nine notes and the words come off them, so the staff is not decoration
-   here — take it away and the table is four lists of the same length. */
-/* No height cap, deliberately: a cap letterboxes the viewBox, and then x in
-   the system's coordinates is no longer a fixed share of this box's width —
-   which is the one thing every row below depends on. The staff takes the
-   height its own aspect asks for and nothing else. */
-.apparatus-staff {
-  display: block; width: 100%; height: auto; margin-bottom: var(--space-3);
-}
-
-.apparatus-thesis {
-  margin: 0 0 var(--space-4); max-width: none;
-  font-family: var(--font-display); font-weight: var(--display-weight);
-  font-size: var(--step-1); line-height: 1.1;
-  letter-spacing: var(--display-tracking); color: var(--ink);
-}
-/* ---- the four rows, on the staff's own axis ----
-   Every row is the staff again. The label sits where the clef sits, and
-   each item sits at the share of the width its own note, or its own beat,
-   occupies in musical time — so a syllable is under the note it is sung
-   on, and a chord symbol is under the beat it falls on. Spread evenly
-   instead, which is what this was, the rows are four lists of the same
-   length and a reader has to take it on trust that the fourth syllable
-   goes with the fourth note. */
-.apparatus-rows { margin: 0; display: grid; }
-.arow {
-  display: grid; grid-template-columns: minmax(0, 1fr);
-  padding: var(--space-3) 0;
-  border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
-}
-.arow:first-child { border-top: 0; padding-top: 0; }
-.arow:last-child { padding-bottom: 0; }
-/* In the head of the row, where the clef and the key signature are: the
-   label is this row's clef, and it says in what the line is written. The
-   width is the share of the staff the head takes before the first note. */
-.arow > dt {
-  grid-area: 1 / 1; align-self: center; justify-self: start;
-  width: 18%; padding-right: 0.9rem; text-align: right;
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: 0.7rem; letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--ink-2);
-}
-.arow > dd { grid-area: 1 / 1; margin: 0; min-width: 0; }
-
-/* One cell with everything stacked in it, each item pushed out to its own x
-   by a margin — so where an item sits depends on its note and on nothing
-   else in the row. The cell still takes the height of the tallest item,
-   which is the one thing the old flow layout was doing for us. */
-.arow-syl {
-  position: relative;   /* so a syllable's offset is measured against its row */
-  display: grid; align-items: start;
-}
-.arow-syl > .syl, .arow-syl > .hyph {
-  grid-area: 1 / 1; justify-self: start; margin-left: var(--x);
-}
-/* The sung rows align on the baseline, not the box: the hyphen is set
-   larger than the syllables it joins, and any box alignment leaves it
-   floating above their x-height instead of sitting on the line. */
-.arow-sung { align-items: baseline; }
-
-/* Nothing wide, and the ink hangs out both ways: the box IS the note's x,
-   so a syllable is centred on its notehead rather than starting there. */
-.syl {
-  position: relative;   /* a fixed containing block: see useSlots() */
-  display: flex; flex-direction: column; align-items: center;
-  width: 0; white-space: nowrap; line-height: 1.15;
-}
-/* At the midpoint of the word, which is where a vocal score prints it —
-   and only possible at all now that the syllables are where the notes
-   are. */
-.hyph {
-  width: 0; display: flex; justify-content: center;
-  color: var(--accent); font-weight: 500; line-height: 1.15;
-  font-size: clamp(0.95rem, 2.3cqw, 1.44rem);           /* caps at --step-1 */
-  transition: opacity var(--dur-ui) var(--ease);
-}
-/* Set to what the music leaves room for: the alignment chose these sizes,
-   not taste. An engraver has the other move available and widens the
-   spacing until the lyric fits; here the box is fixed, so the type gives
-   way instead. Each caps at its step on the scale and shrinks from there
-   as the box narrows. */
-.syl b {
-  font-weight: 500; color: var(--ink);
-  font-size: clamp(0.78rem, 1.85cqw, 1.08rem);          /* caps at --step-0 */
-}
-.syl i {
-  font-style: normal; letter-spacing: 0.02em; color: var(--ink-2);
-  font-size: clamp(0.6rem, 1.3cqw, 0.84rem);            /* caps at --step--1 */
-}
-.syl .ipa {
-  font-family: var(--font-mono); letter-spacing: 0;
-  font-size: clamp(0.58rem, 1.25cqw, 0.78rem);
-}
-
-/* ---- Mandarin, on Chao's 1-5 scale ----
-   Five hairlines ruled across the row and each tone drawn as the line it
-   traces between them. A tone box with a rule along its top would bury the
-   level tone, which runs along exactly that rule, so the scale is the only
-   faint ink here and the contours are the only heavy ink. */
-.arow-han { --tone-h: 48px; --tone-w: min(28px, 2.9cqw); }
-.tone-scale {
-  position: absolute; left: 0; right: 0; top: 0; height: var(--tone-h);
-  pointer-events: none;
-}
-/* The rules run from the first contour to the last and stop there, the way
-   a staff stops at its barline — --band-l and --band-r come from the same
-   axis the noteheads do, so the scale cannot drift off its own contours. */
-.tone-scale i {
-  position: absolute; height: 0;
-  left: calc(var(--band-l) - var(--tone-w) / 2);
-  right: calc(var(--band-r) - var(--tone-w) / 2);
-  border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
-}
-.tone-scale i.is-edge { border-top-color: color-mix(in srgb, var(--ink) 32%, transparent); }
-.tone-scale span {
-  position: absolute; left: calc(var(--band-l) - var(--tone-w) / 2); line-height: 1;
-  transform: translateX(-100%); padding-right: 7px;
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: 0.64rem; letter-spacing: var(--label-tracking); color: var(--ink-2);
-}
-.tone-line { display: block; width: var(--tone-w); height: var(--tone-h); overflow: visible; }
-.arow-han .syl b {
-  font-size: clamp(1.25rem, 3.3cqw, 1.92rem);           /* caps at --step-2 */
-  line-height: 1; margin-top: 2px;
-}
-.arow-han .syl i { margin-top: 2px; }
-.arow-han .chao {
-  font-family: var(--font-mono); color: var(--ink-3); margin-top: 0;
-  font-size: clamp(0.56rem, 1.05cqw, 0.66rem);
-}
-
-/* The English is split on the German's own syllables, so the two rows can
-   be read down as well as across — and down the column, not just across
-   the row, now that both are under their own notes. Set in the same ink:
-   a gloss dimmed a step loses "I" and "a" altogether, and those are
-   words. */
-
-/* The chord row carries the name of the move as well, because that is the
-   part of the vocabulary worth learning. */
-/* The only thing in the table that will not fit between two beats on one
-   line, so it is the only thing allowed to wrap. The box overlaps its
-   neighbour's; the ink does not. */
-.arow-chords .move {
-  width: 6.6cqw; white-space: normal; text-align: center;
-  /* balance, or "cadential six-four" breaks at its own hyphen and reads
-     as "cadential six- / four". */
-  text-wrap: balance;
-  font-size: clamp(0.56rem, 1.08cqw, 0.7rem);
-  line-height: 1.25; color: var(--ink-3);
-}
 
 /* ============================================================
    The terminal — one chord at a time, and never a scrollbar
@@ -665,46 +368,6 @@ pre {
   }
   .score-system { padding-left: clamp(9.5rem, 15vw, 13.5rem); }
 }
-
-/* ============================================================
-   The dimmer — down the left edge, where a scrollbar would be
-   ============================================================ */
-.rail { display: grid; grid-template-columns: auto 24px; align-items: center; }
-.rail-track {
-  position: relative; width: 24px; height: min(44vh, 24rem);
-  cursor: grab; touch-action: none;
-}
-.rail-track:active { cursor: grabbing; }
-.rail-line, .rail-fill { position: absolute; left: 11px; width: 1px; }
- /* --rule is tuned for hairlines on a lit panel; against the dark hall the
-    rail needs to be findable. */
-.rail-line { top: 0; bottom: 0; background: color-mix(in srgb, var(--ink-3) 60%, transparent); }
-.rail-fill { top: 0; height: var(--at); background: var(--accent); }
-.rail-tick, .rail-knob { position: absolute; left: 12px; top: var(--at); transform: rotate(45deg); }
-.rail-tick {
-  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
-  background: color-mix(in srgb, var(--ink-3) 70%, transparent);
-}
-.rail-knob {
-  width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; background: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-.rail-stops { position: relative; width: 8rem; height: 100%; }
-.rail-stop {
-  position: absolute; right: 10px; top: var(--at); transform: translateY(-50%);
-  display: flex; align-items: baseline; justify-content: flex-end; gap: 7px;
-  white-space: nowrap;
-  font: inherit; font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-  background: none; border: 0; padding: 3px 0; cursor: pointer;
-  color: var(--ink-3);
-  transition: color var(--dur-ui) var(--ease);
-}
-.rail-stop-num { color: var(--ink-3); opacity: 0.6; }
-.rail-stop:hover { color: var(--ink-2); }
-.rail-stop.is-on { color: var(--accent); }
-.rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
 
 /* ============================================================
    The bar
@@ -1135,60 +798,6 @@ pre {
 .index-sub .chips { margin-bottom: 0; }
 
 /* ============================================================
-   The piece, on parchment — lifted out of the room by its credit
-   ============================================================ */
-.sheet-layer {
-  position: fixed; inset: 0; z-index: 70;
-  display: grid; place-items: center; padding: clamp(0.75rem, 3vw, 2.5rem);
-}
-.sheet-scrim { position: absolute; inset: 0; background: rgb(32 36 47 / 0.62); }
-/* ============================================================
-   Folds — a heading that holds a table shut
-   ============================================================ */
-.fold { border-top: 1px solid var(--rule); }
-.fold:last-of-type { border-bottom: 1px solid var(--rule); }
-.fold > summary {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: var(--space-4); padding: var(--space-4) 0;
-  cursor: pointer; list-style: none;
-  transition: color var(--dur-ui) var(--ease);
-}
-.fold > summary::-webkit-details-marker { display: none; }
-.fold > summary:hover .fold-title { color: var(--ink); }
-.fold > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.fold-title {
-  font-family: var(--font-label); font-weight: var(--label-weight);
-  font-size: var(--step--1); letter-spacing: var(--label-tracking);
-  text-transform: uppercase; color: var(--accent);
-  transition: color var(--dur-ui) var(--ease);
-}
-.fold-count {
-  font-family: var(--font-label); font-size: var(--step--1);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--ink-3);
-}
-/* The marker is drawn rather than inherited, because the default triangle
-   is a different shape in every browser and this page has one hairline
-   vocabulary. A plus that becomes a minus — the only two states there are. */
-.fold-title::before {
-  content: ''; display: inline-block; vertical-align: 0.08em;
-  width: 9px; height: 9px; margin-right: 0.85em;
-  background:
-    linear-gradient(currentColor, currentColor) center / 9px 1px no-repeat,
-    linear-gradient(currentColor, currentColor) center / 1px 9px no-repeat;
-  transition: background-size var(--dur-ui) var(--ease);
-}
-.fold[open] > summary .fold-title::before {
-  background:
-    linear-gradient(currentColor, currentColor) center / 9px 1px no-repeat,
-    linear-gradient(currentColor, currentColor) center / 1px 0 no-repeat;
-}
-/* The tables inside already carry their own bottom margin, and the fold
-   supplies the rule above them, so the body only needs its own top edge. */
-.fold-body { padding-bottom: var(--space-2); }
-.fold-body > .index:last-child, .fold-body > :last-child { margin-bottom: 0; }
-
-/* ============================================================
    Arrival
 
    Sections and grids rise into place the first time you reach them.
@@ -1277,138 +886,6 @@ pre {
 /* A lede inside a sheet, where .lede's own colour and measure do not apply. */
 .sheet-lede { font-size: var(--step-1); line-height: 1.45; color: var(--ink-2); }
 .sheet-lede em { color: var(--ink); font-style: italic; }
-
-/* ============================================================
-   The hero — the first screen
-
-   Proportions, not pixels. The Figma frame is 939px wide and every
-   measurement in it is a fraction of that, so they are written here as
-   fractions and the screen holds at any width.
-   ============================================================ */
-.hero {
-  min-height: 100svh;
-  display: flex; flex-direction: column;
-  background: var(--hero-paper);
-  color: var(--hero-ink);
-  border: 1px solid var(--hero-ink);
-  /* The first element in the document needs its snap position to be zero,
-     and scroll-padding-top would otherwise put it at -56px, which does not
-     exist. This is the same exception the hall used to carry, moved up with
-     the first screen. */
-  scroll-snap-align: start; scroll-snap-stop: always;
-  scroll-margin-top: -3.5rem;
-}
-
-/* The bar and the name: one third of the window, exactly. */
-.hero-top {
-  flex: none; height: 33.333svh;
-  display: flex; flex-direction: column;
-}
-
-.hero-nav {
-  /* Five now: About went in between Education and Contact. minmax(0,1fr)
-     rather than 1fr so a long label cannot widen its own column and put
-     the rules out of true. */
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-bottom: 1px solid var(--hero-ink);
-  flex: none;
-}
-.hero-nav a, .hero-nav button {
-  display: flex; align-items: center; justify-content: center;
-  /* Kept small so the name gets most of the third; floored for touch. */
-  min-height: clamp(2.75rem, 6svh, 3.75rem);
-  padding: 0 var(--space-2);
-  border: 0; border-right: 1px solid var(--hero-ink);
-  /* About is a button among four links and must not look like one. */
-  background: none; cursor: pointer;
-  font-family: var(--font-label); font-weight: 500;
-  font-size: clamp(0.62rem, 1.17vw, 0.8rem);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: inherit; text-decoration: none;
-  transition: background-color var(--dur-ui) var(--ease-out),
-              color var(--dur-ui) var(--ease-out);
-}
-.hero-nav > :last-child { border-right: 0; }
-.hero-nav a:hover, .hero-nav a:focus-visible,
-.hero-nav button:hover, .hero-nav button:focus-visible {
-  background: var(--hero-ink); color: var(--hero-paper); outline: none;
-}
-.hero-nav a:focus-visible, .hero-nav button:focus-visible {
-  outline: 2px solid var(--hero-red); outline-offset: -4px;
-}
-
-.hero-name {
-  margin: 0;
-  /* Fills what the bar leaves of the third, and is centred in it. */
-  flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
-  /* max-width: none against the global prose measure every p inherits —
-     34rem wrapped "Ivan Ho" onto two lines and pushed the hero three
-     hundred pixels past the window.
-
-     Sized by the SMALLER of height and width. Height is what actually
-     binds now: a third of a 900px window leaves about 240px for the name,
-     so 24svh. The 24vw term only takes over on a window far taller than it
-     is wide, where it stops the name running off the sides — measured, the
-     string is 3.28em in Geist Light, so 24vw is about 79% of the width. */
-  max-width: none; white-space: nowrap;
-  font-weight: 300; font-size: min(24vw, 24svh);
-  line-height: 1.06; letter-spacing: -0.012em;
-  text-align: center; color: var(--hero-ink);
-}
-
-/* The red, and the portrait that overruns it on both edges. */
-.hero-shot {
-  position: relative; flex: 1 1 auto;
-  background: var(--hero-red);
-  overflow: hidden;
-}
-.hero-portrait {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  /* Framed to the photograph, and these two numbers are measured off its
-     alpha channel rather than chosen by eye.
-     
-     The file is 912x1179. The hair starts at 19.0% down it, and at 87.3%
-     the shoulders reach the left and right edges of the original frame and
-     are sliced off square — two hard vertical lines, which are the one
-     thing that must never enter the picture, because the portrait is
-     narrower than the red block on a wide screen and there is nothing out
-     there to hide them behind.
-     
-     So the window is 17.4% to 85.4%: a sliver of air above the head, and
-     stopping about 22 source pixels short of the slice, which is as much
-     shirt and tie as this photograph has to give. Height sets the span
-     (1/1.47 = 68% of the file) and top sets where it starts
-     (0.255/1.47 = 17.4%); they have to move together. */
-  top: -25.5%; height: 147%; width: auto; max-width: none;
-  display: block;
-}
-.hero-next {
-  position: absolute; top: 0; right: 0; bottom: 0;
-  width: 12.4%; min-width: 4rem;
-  display: grid; place-items: center;
-  background: var(--hero-red); border: 0; cursor: pointer;
-  transition: background-color var(--dur-ui) var(--ease-out);
-}
-.hero-next:hover, .hero-next:focus-visible {
-  background: color-mix(in srgb, #000 12%, var(--hero-red));
-}
-.hero-next img { display: block; transition: transform var(--dur-ui) var(--ease-out); }
-.hero-next:hover img { transform: translateX(4px); }
-
-/* On a phone the name at 21.3vw is unreadably small, and the nav's four
-   cells stop fitting one row. Both get their own floor. */
-/* The phone keeps all four across. Two rows of two cost twice the height,
-   and the bar is coming out of the same third the name has to live in. */
-@media (max-width: 40rem) {
-  .hero-nav a, .hero-nav button {
-    min-height: 2.75rem; padding: 0 2px;
-    font-size: clamp(0.5rem, 2.1vw, 0.62rem); letter-spacing: 0.04em;
-  }
-  /* Sized by width here, not height. Two thirds of a tall narrow screen is
-     still 539px, and 165% of that is nearly twice the width of the phone —
-     a face cropped at both ears rather than a figure standing in red. */
-  .hero-portrait { height: auto; width: 124%; top: -7%; }
-}
 
 /* ============================================================
    Cards — the at-a-glance layer
@@ -2632,38 +2109,9 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    snap; they just lose the dots. */
 @media (max-width: 48rem) { .rail-dots { display: none; } }
 
-/* ---- an item, open on click ---------------------------------------- */
-.item { border-bottom: 1px solid var(--rule); }
-.item:first-of-type { border-top: 1px solid var(--rule); }
-.item > summary {
-  display: flex; align-items: baseline; gap: var(--space-4);
-  padding: var(--space-4) 0; cursor: pointer; list-style: none;
-}
-.item > summary::-webkit-details-marker { display: none; }
-.item-lead {
-  flex: 1 1 auto; font-size: var(--step-1); font-weight: 400;
-  letter-spacing: -0.014em; color: var(--ink); text-wrap: balance;
-}
-.item-meta {
-  flex: none; font-family: var(--font-label); font-size: 0.68rem;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
-}
-.item-mark {
-  flex: none; position: relative; width: 13px; height: 13px;
-  transition: transform 240ms var(--ease-out);
-}
-.item-mark::before, .item-mark::after {
-  content: ''; position: absolute; inset: 50% 0 auto 0;
-  height: 1px; background: var(--ink-3);
-}
-.item-mark::after { transform: rotate(90deg); transition: opacity 240ms var(--ease-out); }
-.item[open] .item-mark { transform: rotate(180deg); }
-.item[open] .item-mark::after { opacity: 0; }
-.item > summary:hover .item-lead { color: var(--accent-deep); }
-.item > summary:hover .item-mark::before,
-.item > summary:hover .item-mark::after { background: var(--accent); }
-.item > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.item-body { padding: 0 0 var(--space-5); max-width: 52rem; }
+/* The accordion that was here is gone with Education's folds: two patterns
+   for "click to see more" is one more than a reader should have to learn,
+   and the tiles came first. */
 
 /* Anyone who asked for less motion gets the sheet and the hero as two
    static things, and the content simply present. */
@@ -2688,7 +2136,6 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 
 
 /* A stack of folds inside a chapter. */
-.items { margin-top: var(--space-5); }
 .chapter .edu-deg {
   margin: 0 0 var(--space-2); color: var(--ink-2); font-size: var(--step-0);
 }
@@ -2882,15 +2329,15 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    What the seven are. The cloud is hidden from a screen reader because
    twenty-four greetings read in a row is noise; this is the part that is
    read, so it carries the names. */
-.key { list-style: none; margin: 0 0 var(--space-5); padding: 0; display: grid; gap: var(--space-3); }
-@media (min-width: 40rem) { .key { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); } }
-.key li {
+.tongues { list-style: none; margin: 0 0 var(--space-5); padding: 0; display: grid; gap: var(--space-3); }
+@media (min-width: 40rem) { .tongues { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); } }
+.tongues li {
   display: flex; align-items: baseline; gap: var(--space-4);
   padding-bottom: var(--space-2); border-bottom: 1px solid var(--rule);
 }
-.key-word { flex: 1 1 auto; font-size: var(--step-1); color: var(--ink); }
-.key-word:lang(zh-Hans), .key-word:lang(zh-Hant) { font-family: var(--font-han); }
-.key-name {
+.tongue-word { flex: 1 1 auto; font-size: var(--step-1); color: var(--ink); }
+.tongue-word:lang(zh-Hans), .tongue-word:lang(zh-Hant) { font-family: var(--font-han); }
+.tongue-name {
   flex: none; font-family: var(--font-label); font-weight: 500;
   font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink-3);
