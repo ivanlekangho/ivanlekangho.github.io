@@ -727,7 +727,7 @@ pre {
      time, because z-index 80 sits above the brand's 70. The paper belongs
      to the part of the bar that actually holds labels. */
   padding-left: var(--brand-w);
-  transition: padding-left var(--brand-dur) var(--ease-out);
+  transition: padding-left var(--brand-dur) var(--ease-brand);
 }
 /* On the front page the name is below, at display size, so the bar has the
    full width and the labels run edge to edge. */
@@ -874,10 +874,23 @@ pre {
   border-right: 1px solid var(--hero-ink);
   border-bottom: 1px solid var(--hero-ink);
   transition:
-    width var(--brand-dur) var(--ease-out),
-    height var(--brand-dur) var(--ease-out);
+    width var(--brand-dur) var(--ease-brand),
+    height var(--brand-dur) var(--ease-brand);
+  will-change: width, height;
 }
-:root { --brand-dur: 560ms; }
+/* The journey between the front page and a sub-page, and it is the only
+   thing on this site that is allowed to take most of a second.
+   
+   560ms on --ease-out was the first attempt and read as a snap: that curve
+   is cubic-bezier(0.16, 1, 0.3, 1), which spends almost all its distance
+   in the first third and then creeps, so the eye sees a jump followed by a
+   settle rather than a thing travelling. A near-symmetric ease-in-out over
+   900ms reads as deliberate, because the middle of the movement is where
+   most of the distance is and that is the part you actually watch. */
+:root {
+  --brand-dur: 900ms;
+  --ease-brand: cubic-bezier(0.62, 0.02, 0.2, 1);
+}
 
 .brand.is-open { width: 100vw; height: 100svh; border-right-color: transparent; }
 .brand.is-shut { width: var(--brand-w); height: var(--bar-h); }
@@ -892,9 +905,10 @@ pre {
   font-weight: 300; letter-spacing: -0.012em; line-height: 1.06;
   white-space: nowrap;
   transition:
-    font-size var(--brand-dur) var(--ease-out),
-    height var(--brand-dur) var(--ease-out),
-    padding var(--brand-dur) var(--ease-out);
+    font-size var(--brand-dur) var(--ease-brand),
+    height var(--brand-dur) var(--ease-brand),
+    margin var(--brand-dur) var(--ease-brand),
+    padding var(--brand-dur) var(--ease-brand);
 }
 .brand.is-open .brand-word {
   /* A third of the screen, less the bar that sits over the top of it. */
@@ -921,7 +935,10 @@ pre {
   flex: 1 1 auto; min-height: 0;
   background: var(--hero-red);
   overflow: hidden;
-  transition: opacity var(--brand-dur) var(--ease-out);
+  /* The red goes a little ahead of the box on the way out and arrives a
+     little behind it on the way in, which is what stops the portrait
+     looking like it is being guillotined by the closing edge. */
+  transition: opacity calc(var(--brand-dur) * 0.72) var(--ease-brand);
 }
 .brand.is-shut .brand-shot { opacity: 0; }
 
@@ -2149,11 +2166,6 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    Wider than a reading sheet, because what is in it is a page of music
    and a page of music does not reflow. */
 .sheet-wide { width: min(72rem, 100%); max-height: min(92vh, 60rem); }
-.doc-frame {
-  display: block; width: 100%; height: min(66vh, 44rem);
-  border: 1px solid var(--rule); background: var(--paper-2);
-  margin-bottom: var(--space-3);
-}
 .doc-escape { margin: 0; font-size: var(--step--1); color: var(--ink-3); }
 .doc-escape a { color: var(--accent-deep); }
 
@@ -2537,3 +2549,129 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   margin: 0 0 var(--space-2); color: var(--ink-2); font-size: var(--step-0);
 }
 .chapter .colophon { max-width: 46rem; }
+
+
+/* ============================================================
+   The book — a score as the printed thing
+
+   Shut, it is the title page alone with the weight of paper under it.
+   Clicking turns the cover about its left edge, in perspective, and the
+   document opens into a spread.
+
+   The turn is one transform on one element. That is the only way it reads
+   as paper: anything built out of two halves and a crossfade looks like
+   two halves and a crossfade, and at this size a reader can see the
+   difference immediately.
+   ============================================================ */
+:root { --leaf-turn: 760ms; }
+
+.book { display: grid; justify-items: center; gap: var(--space-4); }
+
+/* ---- shut ---------------------------------------------------------- */
+.book-cover {
+  /* The depth the rotation happens in. Without a perspective the leaf
+     scales rather than turns, which reads as a card shrinking. */
+  perspective: 2200px;
+  display: grid; justify-items: center; gap: var(--space-3);
+  padding: 0; border: 0; background: none; cursor: pointer;
+}
+.book-leaf {
+  display: block;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform var(--leaf-turn) cubic-bezier(0.45, 0.05, 0.3, 1),
+              opacity var(--leaf-turn) linear;
+  /* Paper, stacked. Three shadows: the sheet's own edge, the leaves under
+     it, and the shadow it casts on the table. */
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hero-ink) 12%, transparent),
+    4px 4px 0 -1px #FFF, 5px 5px 0 0 color-mix(in srgb, var(--hero-ink) 10%, transparent),
+    8px 8px 0 -1px #FFF, 9px 9px 0 0 color-mix(in srgb, var(--hero-ink) 8%, transparent),
+    0 26px 50px -24px rgb(32 36 47 / 0.5);
+}
+.book-leaf img {
+  display: block; width: auto; height: auto;
+  max-width: min(26rem, 72vw); max-height: min(58vh, 34rem);
+  background: #FFF;
+}
+.book-cover:hover .book-leaf { transform: rotateY(-7deg); }
+.book-cover:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+
+/* The turn itself. Past 90deg the reader is looking at the back of the
+   sheet, which is blank paper, so it fades out as it goes rather than
+   showing a mirrored score. */
+.book.is-turning .book-leaf {
+  transform: rotateY(-168deg);
+  opacity: 0;
+}
+.book.is-turning .book-cover { pointer-events: none; }
+
+.book-hint {
+  font-family: var(--font-label); font-size: 0.68rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.book-cover:hover .book-hint { color: var(--accent-deep); }
+
+/* ---- open ---------------------------------------------------------- */
+.book-spread {
+  display: grid; grid-template-columns: 1fr 1fr;
+  /* The gutter. Two sheets bound together meet; they do not float apart. */
+  gap: 0;
+  animation: book-open 420ms var(--ease-out) both;
+  box-shadow: 0 26px 60px -30px rgb(32 36 47 / 0.5);
+}
+@keyframes book-open {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.book-page {
+  display: block; width: 100%; height: auto;
+  background: #FFF;
+  border: 1px solid color-mix(in srgb, var(--hero-ink) 12%, transparent);
+}
+.book-page:first-child {
+  /* The shadow in the gutter falls on the inner edge of each page. */
+  box-shadow: inset -14px 0 22px -18px rgb(32 36 47 / 0.75);
+}
+.book-page:last-child { box-shadow: inset 14px 0 22px -18px rgb(32 36 47 / 0.75); }
+.book-page.is-blank { background: #FFF; aspect-ratio: 1 / 1.414; }
+
+.book-controls {
+  display: flex; align-items: center; gap: var(--space-5);
+}
+.book-controls button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+  background: none; color: var(--ink-2); cursor: pointer;
+  font-family: var(--font-label); font-weight: 500;
+  font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: border-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
+}
+.book-controls button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-deep); }
+.book-controls button:disabled { opacity: 0.35; cursor: default; }
+.book-controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.book-folio {
+  margin: 0; min-width: 9ch; text-align: center;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  font-variant-numeric: tabular-nums; color: var(--ink-3);
+}
+
+.book-preload { position: absolute; width: 0; height: 0; overflow: hidden; }
+.book-bare { margin: 0; font-size: var(--step--1); color: var(--ink-2); }
+.book-bare a { color: var(--accent-deep); }
+
+/* One page at a time where two will not fit. A spread on a phone is two
+   postage stamps. */
+@media (max-width: 46rem) {
+  .book-spread { grid-template-columns: 1fr; }
+  .book-page:last-child { display: none; }
+  .book-page:first-child { box-shadow: none; }
+}
+
+/* Anyone who asked for less motion gets the book open, not the turning of
+   it. */
+@media (prefers-reduced-motion: reduce) {
+  .book-leaf, .book-spread { transition: none; animation: none; }
+  .book-cover:hover .book-leaf { transform: none; }
+}

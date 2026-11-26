@@ -1,3 +1,4 @@
+import Book from './Book'
 import Sheet from './Sheet'
 import type { Attachment } from '../data/portfolio'
 
@@ -11,16 +12,17 @@ import type { Attachment } from '../data/portfolio'
  * page instead, over the top of it, and closing it puts you back exactly
  * where you were with the sound still running.
  *
- * The frame is the browser's own PDF viewer. That is a deliberate choice
- * over rendering the pages here: it brings paging, zoom, text selection,
- * search, print and the reader's own accessibility settings, none of which
- * would be worth writing again and all of which somebody will want on
- * eight pages of a choral score.
+ * What is in it is a book, not a PDF frame. The browser's viewer brings
+ * paging, zoom, search and print for free and was what this used first,
+ * and it was wrong for one reason that outweighed all of them: it is a
+ * grey application pasted into a page made of paper and one red, and it
+ * cannot be made to look like the thing it is showing. A score is a
+ * printed object and now it opens like one.
  *
- * Where it cannot do that — an inline PDF frame is unreliable on iOS, and
- * some browsers and extensions refuse it outright — the escape line below
- * is the whole answer, so it is always present rather than conditional on
- * detecting a failure that cannot be detected from in here.
+ * The PDF has not gone anywhere. The line under the book offers it, which
+ * covers everything the viewer was good at — searching it, printing it,
+ * reading it on a device where a two-page spread is too small — and covers
+ * the case where the page images have not been rendered.
  */
 export default function DocSheet({
   doc, title, onClose,
@@ -30,18 +32,13 @@ export default function DocSheet({
       <p className="sheet-eyebrow">{title}</p>
       <h2 className="sheet-title">{doc.label}</h2>
 
-      <iframe
-        className="doc-frame"
-        src={doc.href}
-        title={`${title} — ${doc.label}`}
-        loading="lazy"
-      />
+      {doc.href && <Book href={doc.href} label={`${title} — ${doc.label}`} />}
 
       <p className="doc-escape">
-        Not showing?{' '}
-        <a href={doc.href} target="_blank" rel="noreferrer">Open it in a new tab</a>
+        <a href={doc.href} target="_blank" rel="noreferrer">Open the PDF</a>
         {' · '}
-        <a href={doc.href} download>download the PDF</a>.
+        <a href={doc.href} download>download it</a> — for searching, printing,
+        or reading on something a spread will not fit on.
       </p>
     </Sheet>
   )
