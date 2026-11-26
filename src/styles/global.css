@@ -2342,3 +2342,17 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink-3);
 }
+
+
+/* ---- a hosted film -------------------------------------------------
+   Their player, in our frame. 16:9 is theirs to assume, not ours to
+   measure — a hosted film has no intrinsic size to read, which is why
+   this one gets an aspect ratio where the self-hosted ones were sized
+   from the file. */
+.reel-frame {
+  width: 100%; max-width: 44rem; margin-inline: auto;
+  aspect-ratio: 16 / 9;
+  background: var(--ink);
+  border: 1px solid var(--rule);
+}
+.reel-frame iframe, .reel-yt { display: block; width: 100%; height: 100%; border: 0; }

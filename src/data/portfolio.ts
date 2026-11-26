@@ -271,10 +271,23 @@ export const byGroup = (g: Group) => ITEMS.filter((i) => i.group === g)
  */
 
 export type Media = {
-  /** The master. Whatever drives the transport and makes the sound. */
-  src: string
+  /** The master. Whatever drives the transport and makes the sound.
+   *  Absent where the film is hosted and brings its own player. */
+  src?: string
   kind: 'audio' | 'video'
   label: string
+  /**
+   * A film hosted on YouTube, by id.
+   *
+   * Self-hosting could not work: GitHub Pages serves one fixed file at one
+   * quality, so a seventeen-minute recital meant either 284MB at 480p or a
+   * 32MB file whose audio was 16kHz. Hosted, it streams adaptively and
+   * costs the repository nothing. The price is their player instead of this
+   * site's own transport, and the one thing that transport did that
+   * mattered — jumping to a movement — survives, because the IFrame API can
+   * seek.
+   */
+  youtube?: string
   /**
    * A silent picture to run against `src`.
    *
@@ -356,11 +369,9 @@ export const WORKS: Work[] = [
        worse than a picture with ordinary sound. */
     media: {
       kind: 'video',
-      src: '/video/abendlied.mp4',
+      youtube: '8Z23Cg1CbBc',
       label: 'Abendlied at Cadenza',
       caption: 'King’s College Choir',
-      /* The film runs on into the applause. */
-      end: 144,
     },
     docs: [
       { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf' },

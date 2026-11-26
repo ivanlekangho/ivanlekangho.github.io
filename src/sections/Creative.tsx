@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import DocSheet from '../components/DocSheet'
 import Mark from '../components/Mark'
 import Player from '../components/Player'
+import Youtube, { type Seekable } from '../components/Youtube'
 import Todo from '../components/Todo'
 import WorkGrid from '../components/WorkGrid'
 import Chapters, { type Chapter } from '../components/Chapters'
@@ -153,10 +154,13 @@ function Still({ photo }: { photo: NonNullable<Work['photo']> }) {
 
 function Stage({ work }: { work: Work }) {
   const media = useRef<HTMLMediaElement | null>(null)
+  const film = useRef<Seekable | null>(null)
   const [now, setNow] = useState(0)
 
-  /** Jump there and start, because clicking a movement means "play this". */
+  /** Jump there and start, because clicking a movement means "play this".
+   *  Whichever of the two is carrying this work answers. */
   const seek = (t: number) => {
+    if (film.current) { film.current.seek(t); setNow(t); return }
     const m = media.current
     if (!m) return
     m.currentTime = t
@@ -182,7 +186,10 @@ function Stage({ work }: { work: Work }) {
             either way: look at the thing, then the controls under it. */}
         <div className="work-media">
 
-          {work.media && (
+          {work.media?.youtube && (
+            <Youtube id={work.media.youtube} label={work.media.label} handle={film} />
+          )}
+          {work.media?.src && (
             <Player
               src={work.media.src}
               kind={work.media.kind}
