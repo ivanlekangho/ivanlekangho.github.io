@@ -2328,6 +2328,26 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   display: grid; gap: 0.2rem;
   position: relative;
 }
+
+/* The step arrows, above and below the dots. Sized and indented to line up
+   with the marks, so the rail reads top to bottom as one column: up, the
+   stops, down. */
+.rail-step {
+  display: grid; place-items: center;
+  width: 100%; height: 1.6rem; padding: 0;
+  margin-inline-start: 0;
+  border: 0; border-radius: var(--radius-lg);
+  background: none; color: var(--ink-3); cursor: pointer;
+  transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out);
+}
+.rail-step svg { width: 17px; height: 17px; }
+.rail-step:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--accent-deep);
+}
+.rail-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rail-step:disabled { opacity: 0.28; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .rail-step { transition: none; } }
 /* A track behind the marks, so the rail reads as one object with positions
    on it rather than as three unrelated dots. */
 .rail-dots ul::before {
@@ -2398,6 +2418,10 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .rail-dots ul::before { display: none; }
   .dot { padding: 0.5rem 0.6rem; gap: 0.45rem; }
   .dot-label { font-size: 0.62rem; letter-spacing: 0.08em; }
+  /* The whole strip is one row on a phone, arrows included, so they sit at
+     its two ends rather than above and below it. */
+  .rail-dots { display: flex; align-items: center; gap: 0.1rem; }
+  .rail-step { width: 1.9rem; height: 2rem; flex: none; }
 }
 
 /* The accordion that was here is gone with Education's folds: two patterns

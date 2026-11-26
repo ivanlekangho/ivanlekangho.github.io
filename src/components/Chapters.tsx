@@ -77,11 +77,44 @@ export default function Chapters({
      title screen and stop i+1 is chapter i. */
   const go = (i: number) => goToStop(i)
 
+  /* Which stop the reader is on, as an index into the rail: 0 is the title
+     screen and i+1 is chapter i. The arrows need it to know when they have
+     run out of page, and the alternative — reading it back off the DOM —
+     would be a second source of truth for something the dots already
+     know. */
+  const stops = (page ? 1 : 0) + chapters.length
+  const here = atTop ? 0 : Math.max(0, chapters.findIndex((c) => c.id === active) + 1)
+
   return (
     <>
       {/* The rail is fixed and outside the sheet, so it does not travel
           with the thing it is reporting on. */}
       <nav className="rail-dots" aria-label="Sections on this page">
+        {/* Up and down, either side of the dots.
+        
+            The dots say where you are and let you jump anywhere; the arrows
+            are for the reader who just wants the next thing and should not
+            have to read four labels to find out which one that is. Two ways
+            to the same place, which is right for the only control that moves
+            this page — and the arrows are the one a reader will find without
+            being told, because every page they have ever read has them.
+            
+            Disabled at the ends rather than hidden: a control that vanishes
+            at the top of the page is a control whose absence has to be
+            interpreted. */}
+        <button
+          type="button"
+          className="rail-step"
+          onClick={() => go(here - 1)}
+          disabled={here <= 0}
+          aria-label="Previous section"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 14.5 12 8.5 18 14.5" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
         <ul>
           {/* The title screen, as the first stop on the rail. Without it
               the rail began at the first chapter and had nothing to say
@@ -115,6 +148,19 @@ export default function Chapters({
             </li>
           ))}
         </ul>
+
+        <button
+          type="button"
+          className="rail-step"
+          onClick={() => go(here + 1)}
+          disabled={here >= stops - 1}
+          aria-label="Next section"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </nav>
 
       {/* The snap positions live on these, not on the cards.
