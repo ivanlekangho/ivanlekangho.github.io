@@ -75,9 +75,10 @@ const SLACK = 8
    third is the one that matters most.
 
    BUDGET is how hard. A mouse notch is about 100–120px of deltaY in
-   Chrome, so 260 is between two and three notches: a short firm push on a
-   trackpad, Ivan's setting after trying 320. Under ~200 it starts firing
-   by accident; over ~450 the page feels stuck.
+   Chrome, so 200 is two notches — Ivan's setting, after 320 and 260 both
+   felt heavy. It is at the light end of what works: much under this and a
+   single emphatic notch starts carrying the page away on its own, which is
+   the thing the budget exists to prevent. Over ~450 the page feels stuck.
 
    DECAY is what stops the budget being a tally instead of a gesture.
    Without it, ten idle nudges spread over a minute eventually add up to a
@@ -93,7 +94,7 @@ const SLACK = 8
 
    TOUCH_BUDGET is the same idea in the units a finger works in: how far
    you dragged past the edge. */
-const BUDGET = 260
+const BUDGET = 200
 const TOUCH_BUDGET = 110
 /** Silence this long empties the budget. Long enough to survive the gaps
  *  in a slow, steady push: a trackpad held at a constant pressure emits
