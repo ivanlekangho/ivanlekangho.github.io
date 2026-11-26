@@ -40,6 +40,23 @@ export type Chapter = {
   body: ReactNode
 }
 
+/**
+ * How full the push is, drawn round the arrow it is pushing towards.
+ *
+ * A threshold with no feedback is indistinguishable from a page ignoring
+ * you: the first shove does nothing, and doing nothing is exactly what a
+ * broken control does. The ring is filled from `--push`, which
+ * lib/sectionSnap writes as the budget fills, and is shown only on the
+ * arrow for the direction being pushed.
+ */
+function Ring() {
+  return (
+    <svg className="page-step-ring" viewBox="0 0 44 44" aria-hidden="true">
+      <circle cx="22" cy="22" r="20.5" />
+    </svg>
+  )
+}
+
 export default function Chapters({
   title, subtitle, backdrop, chapters, children,
 }: {
@@ -151,6 +168,7 @@ export default function Chapters({
             <path d="M6 14.5 12 8.5 18 14.5" fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+          <Ring />
         </button>
         <button
           type="button"
@@ -163,6 +181,7 @@ export default function Chapters({
             <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+          <Ring />
         </button>
       </nav>
 

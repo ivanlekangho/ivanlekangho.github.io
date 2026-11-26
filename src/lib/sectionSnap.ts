@@ -23,19 +23,21 @@ import { useEffect } from 'react'
  * one gesture from the title screen came to rest at 400px, half way down
  * the hero, which is the thing the brief most wanted not to happen.
  *
- * WHAT THIS DOES INSTEAD. The page's own snapping is off, and a gesture no
- * longer moves between sections AT ALL. Scrolling walks you through a
- * section's own content and stops at its edge; the rail down the left is
- * how you cross from one section to the next.
+ * WHAT THIS DOES INSTEAD. The page's own snapping is off and the document
+ * is locked, so nothing moves the page except this file. A gesture inside a
+ * section reads it. A gesture at a section's EDGE fills a budget, and
+ * crossing that budget moves exactly one section, to the top of it. See
+ * the note on BUDGET for the three numbers that make that work.
  *
- * That is Ivan's decision after living with the one-section-per-gesture
- * version, and it is the honest end of this road. Every arrangement that
- * let a gesture cross a boundary had the same problem in a different
- * costume: the reader cannot tell, before they move, whether this gesture
- * will scroll the paragraph in front of them or replace the whole screen.
- * One gesture doing two jobs is the ambiguity, and no amount of tuning the
- * threshold removes it. Separating them removes it: the wheel is for
- * reading, the rail is for going.
+ * The ambiguity that sank every earlier version was a gesture doing two
+ * jobs: the reader could not tell, before they moved, whether this flick
+ * would scroll the paragraph in front of them or replace the whole screen.
+ * The budget is what resolves it. The two jobs are now different efforts
+ * rather than the same effort in different places, and the charge is shown
+ * while it fills so the difference is visible before it is committed to.
+ *
+ * The rail and the arrows stay, and they are not a fallback: they are how
+ * you cross four sections at once, which no amount of pushing should do.
  *
  * The cost is that the rail is now load-bearing, so it cannot be the
  * hover-only decoration it was — it is labelled at all times, and it is
@@ -65,6 +67,51 @@ const WAKE = 4
 /** How far off a marker a touch scroll has to settle before it is corrected. */
 const SLACK = 8
 
+/* ---- the charge -----------------------------------------------------
+   What it takes to cross from one section to the next.
+
+   A gesture at a section's edge does not advance the page; it fills a
+   budget, and crossing the budget advances it. Three numbers, and the
+   third is the one that matters most.
+
+   BUDGET is how hard. A mouse notch is about 100–120px of deltaY in
+   Chrome, so 320 is roughly three notches: deliberate on a wheel, a short
+   firm push on a trackpad. Under ~200 it fires by accident; over ~450 the
+   page feels stuck.
+
+   DECAY is what stops the budget being a tally instead of a gesture.
+   Without it, ten idle nudges spread over a minute eventually add up to a
+   jump and the page feels haunted. 180ms of silence empties it, and so
+   does a change of direction.
+
+   QUIET_MS, already above, is the one that makes "never skip" true. A
+   trackpad keeps emitting for 300–800ms after your fingers leave the pad,
+   so the lock is not released when the animation ends — it is released
+   when the animation has ended AND the input has gone silent. No browser
+   flags inertial events, so silence is the only honest way to tell the
+   tail of one gesture from the start of the next.
+
+   TOUCH_BUDGET is the same idea in the units a finger works in: how far
+   you dragged past the edge. */
+const BUDGET = 320
+const TOUCH_BUDGET = 110
+const DECAY_MS = 180
+
+/**
+ * One wheel event, in pixels, whatever units it arrived in.
+ *
+ * `deltaMode` is 0 for pixels, 1 for lines and 2 for pages, and a budget
+ * counted in pixels is meaningless against the other two — a line-mode
+ * mouse reports 3 and a page-mode one reports 1, so both would push
+ * against a 320px budget for ever and the page would never move for them.
+ */
+const PX_PER_LINE = 16
+function pixels(e: WheelEvent) {
+  if (e.deltaMode === 1) return e.deltaY * PX_PER_LINE
+  if (e.deltaMode === 2) return e.deltaY * window.innerHeight
+  return e.deltaY
+}
+
 const quiet = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -72,6 +119,36 @@ let raf = 0
 let busy = false
 let lastInput = 0
 let settle = 0
+
+/** How full the budget is, and which way it is being pushed. */
+let charge = 0
+let chargeDir: 1 | -1 | 0 = 0
+let decay = 0
+
+/**
+ * Show the reader the charge.
+ *
+ * A threshold with no feedback is indistinguishable from a page that is
+ * ignoring you — the first push does nothing, and nothing is exactly what
+ * a broken control does. So the fraction goes onto the document as
+ * `--push` and the direction as `data-push`, and the arrow for that
+ * direction fills while the section leans a few pixels the way you are
+ * pushing it. The moment a reader sees the ring move, 320px stops being
+ * arbitrary and starts being a weight.
+ */
+function showCharge() {
+  const root = document.documentElement
+  root.style.setProperty('--push', (charge / BUDGET).toFixed(3))
+  if (chargeDir === 0) root.removeAttribute('data-push')
+  else root.setAttribute('data-push', chargeDir > 0 ? 'down' : 'up')
+}
+
+function dropCharge() {
+  charge = 0
+  chargeDir = 0
+  window.clearTimeout(decay)
+  showCharge()
+}
 
 const easeInOutCubic = (p: number) =>
   p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
@@ -93,6 +170,7 @@ export function halt() {
  */
 export function glideTo(to: number, onDone?: () => void) {
   halt()
+  dropCharge()
   const from = window.scrollY
   const dist = to - from
 
@@ -265,21 +343,44 @@ export function useSectionSnap(enabled = true) {
       glideTo(ys[next])
     }
 
+    /** Add to the budget, and spend it if it is full. */
+    const push = (amount: number, dir: 1 | -1, budget: number) => {
+      /* A change of direction is a new gesture, not a continuation. */
+      if (dir !== chargeDir) { charge = 0; chargeDir = dir }
+      charge += amount
+      window.clearTimeout(decay)
+      decay = window.setTimeout(dropCharge, DECAY_MS)
+      if (charge < budget) { showCharge(); return }
+      /* Full. `go` ends in `glideTo`, which empties the budget and takes
+         the lock; the lock is not released until the page has arrived AND
+         the pointer has gone quiet, which is what stops the tail of this
+         same flick spending a second one. */
+      go(dir)
+    }
+
     const onWheel = (e: WheelEvent) => {
       /* Pinch-zoom and a sheet over the page are not ours. */
       if (e.ctrlKey || document.documentElement.hasAttribute('data-sheet')) return
       lastInput = performance.now()
       if (busy) { e.preventDefault(); return }
-      const dy = e.deltaY
+      const dy = pixels(e)
       if (Math.abs(dy) < WAKE) return
-      /* Inside a section with room left to scroll: this is reading, and it
-         is the one thing the wheel still does. */
-      if (readingInside(e.target, dy)) return
-      /* At a section's edge the gesture stops here. It does NOT advance:
-         crossing between sections is the rail's job now. Swallowed rather
-         than left alone, because letting it through would scroll the page
-         off its section and leave the reader between two of them. */
+      /* Inside a section with room left to scroll: this is reading, and
+         reading is untouched. */
+      if (readingInside(e.target, dy)) { dropCharge(); return }
+      /* At the edge. The page cannot move on its own — the document is
+         locked — so this is swallowed either way; what it does instead is
+         fill the budget. */
       e.preventDefault()
+      /* Capped at the budget, not below it. An earlier version clamped
+         each event to 120px to stop one freak event spending everything,
+         and that was the wrong instinct twice over: it threw away genuine
+         effort, and a device that reports a whole gesture in one event
+         could never fill the budget at all. Measured here, the harness
+         sends a ten-tick push as a single deltaY of 1000 and the page
+         never moved. One event carrying 320px of intent IS a strong
+         scroll, and should be spent as one. */
+      push(Math.min(Math.abs(dy), BUDGET), dy > 0 ? 1 : -1, BUDGET)
     }
 
     const KEYS: Record<string, 1 | -1> = {
@@ -327,8 +428,28 @@ export function useSectionSnap(enabled = true) {
       const y = ys[Math.min(anchored, ys.length - 1)]
       if (Math.abs(y - window.scrollY) > SLACK) glideTo(y)
     }
+    /* Touch spends the same budget, measured the way a finger measures:
+       how far you dragged past the edge, rather than how much delta the
+       wheel reported. The page is locked, so nothing rubber-bands under
+       the finger — the ring and the lean are the feedback instead. */
+    let lastY = 0
+    const onTouchMove = (e: TouchEvent) => {
+      if (document.documentElement.hasAttribute('data-sheet')) return
+      const t = e.touches[0]
+      if (!t) return
+      const dy = lastY - t.clientY
+      lastY = t.clientY
+      if (!dy) return
+      lastInput = performance.now()
+      if (busy) return
+      if (readingInside(e.target, dy)) { dropCharge(); return }
+      push(Math.min(Math.abs(dy), 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
+    }
+
     let touching = false
-    const onTouchStart = () => {
+    const onTouchStart = (e: TouchEvent) => {
+      lastY = e.touches[0]?.clientY ?? 0
+      dropCharge()
       touching = true
       halt()
       /* Where the reader is NOW, so the correction returns them to it
@@ -338,6 +459,7 @@ export function useSectionSnap(enabled = true) {
     }
     const onTouchEnd = () => {
       touching = false
+      dropCharge()
       window.clearTimeout(idle)
       idle = window.setTimeout(correct, 220)
     }
@@ -350,16 +472,20 @@ export function useSectionSnap(enabled = true) {
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('keydown', onKey)
     window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
       halt()
+      dropCharge()
+      root.style.removeProperty('--push')
       root.style.overflow = hadOverflow
       window.clearTimeout(idle)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('scroll', onScroll)
     }
