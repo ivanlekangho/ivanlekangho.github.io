@@ -104,7 +104,7 @@ function ToTop() {
   useEffect(() => {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
   }, [])
-  useEffect(() => { scrollToTop() }, [pathname])
+  useEffect(() => { scrollToTop(false) }, [pathname])
   return null
 }
 

@@ -1,58 +1,46 @@
+import { glideTo, halt } from './sectionSnap'
+
 /**
- * Go somewhere, past the snapping.
+ * Go somewhere — the bar, the dots down the left, the cue under a hero.
  *
- * `scroll-snap-type: y mandatory` and a programmatic scroll do not get on.
- * The browser re-resolves the snap after the scroll and refuses the jump:
- * measured on Creative, `window.scrollTo(0, 0)` from 4220px landed back at
- * 4220, every time. Dropping `scroll-snap-stop` changed nothing; turning
- * the snapping off landed at 0 exactly. So it is the mandatory snap, and it
- * breaks every bit of navigation that is not a human scrolling: the bar's
- * return to a title page, the dots down the left, and the cue under the
- * hero.
+ * This file used to be a workaround. `scroll-snap-type: y mandatory` and a
+ * programmatic scroll do not get on: the browser re-resolved the snap after
+ * the scroll and refused the jump, and measured on Creative,
+ * `window.scrollTo(0, 0)` from 4220px landed back at 4220 every time. So
+ * every journey switched the snapping off, travelled, and switched it back
+ * on at `scrollend` — with a timeout behind it for Safari, which has no such
+ * event.
  *
- * So the snap is suspended for the length of the journey and restored at
- * the end of it. Suspending it is safe — nothing re-snaps while the
- * property is off, and by the time it comes back the scroll is resting
- * exactly on a snap position anyway, which is where it was being sent.
- *
- * Restoring it is the fiddly half. Too early and the snap grabs the scroll
- * mid-animation and drags it back, which looks exactly like the bug this
- * fixes. `scrollend` is the right signal and is honoured where it exists;
- * the timeout behind it is for Safari, which has none, and for the case
- * where the scroll was already at its destination and no event ever comes.
+ * None of that is needed now. The page has no CSS snap to fight: sections
+ * are moved between by lib/sectionSnap, which animates the scroll itself.
+ * So these simply hand the same animation the same kind of destination, and
+ * the bar, the dots and the cue travel exactly as a wheel gesture does
+ * rather than arriving by a different mechanism that looks slightly
+ * different.
  */
 
-/** Long enough for a smooth scroll across a long page, short enough that a
- *  reader cannot get a second gesture in before the snap is back. */
-const PATIENCE = 1100
+/** Move to an absolute y. */
+export const scrollToY = (y: number) => glideTo(Math.max(0, y))
 
-let restoring = 0
-
-export function scrollToY(y: number, smooth = false) {
-  const root = document.documentElement
-  const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  root.style.scrollSnapType = 'none'
-  window.clearTimeout(restoring)
-
-  const give = () => {
-    window.clearTimeout(restoring)
-    root.style.removeProperty('scroll-snap-type')
-    window.removeEventListener('scrollend', give)
-  }
-  window.addEventListener('scrollend', give)
-  restoring = window.setTimeout(give, PATIENCE)
-
-  window.scrollTo({ top: y, behavior: smooth && !quiet ? 'smooth' : 'instant' })
+/**
+ * The top of the page, which is the top of its title screen.
+ *
+ * `animate` is false on a route change: a new page should already be at its
+ * title when it appears, and animating there would show the reader the
+ * middle of a page they never asked for on the way.
+ */
+export const scrollToTop = (animate = true) => {
+  if (animate) { glideTo(0); return }
+  halt()
+  window.scrollTo(0, 0)
 }
 
-/** The top of the page, which is the top of its title screen. */
-export const scrollToTop = (smooth = false) => scrollToY(0, smooth)
-
 /** The top of a section, allowing for the bar over it. */
-export function scrollToSection(id: string, smooth = true) {
+export function scrollToSection(id: string) {
   const el = document.getElementById(id)
   if (!el) return
-  const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 0
-  scrollToY(el.getBoundingClientRect().top + window.scrollY - bar, smooth)
+  const bar = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--bar-h'),
+  ) || 0
+  glideTo(Math.max(0, el.getBoundingClientRect().top + window.scrollY - bar))
 }

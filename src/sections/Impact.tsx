@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Chapters, { type Chapter } from '../components/Chapters'
 import Todo from '../components/Todo'
 import WorkGrid from '../components/WorkGrid'
@@ -23,34 +22,10 @@ import { GROUPS, byGroup } from '../data/portfolio'
  * on the same screen was the version before this.
  */
 
-/**
- * A photograph that appears the moment the file does.
- *
- * The site's rule is that a declared-but-missing thing must not be
- * promised, and a broken image icon over a caption is the worst version of
- * promising it. So this renders the picture if the file is served and a
- * marked slot if it is not, decided by the browser rather than by a build
- * flag — drop the file in and it is simply there.
- */
-function Photo({ src, caption, note }: { src: string; caption: string; note?: string }) {
-  const [missing, setMissing] = useState(false)
-  return (
-    <figure className="photo">
-      {missing ? (
-        <div className="photo-slot">
-          <p>Photograph</p>
-          <p className="exhibit-note">public{src}</p>
-        </div>
-      ) : (
-        <img src={src} alt={caption} loading="lazy" onError={() => setMissing(true)} />
-      )}
-      <figcaption>
-        {caption}
-        {missing && note && <span className="photo-pending"> — {note}</span>}
-      </figcaption>
-    </figure>
-  )
-}
+/* The `Photo` component that stood here is gone with the photograph it
+   drew. Daffodil Day now sits inside the Cancer Society sheet, which is
+   what it is a picture of — at the foot of the chapter it read as a
+   portrait belonging to all four tiles at once. */
 
 export default function Impact() {
   const chapters: Chapter[] = GROUPS.map((g) => ({
@@ -61,17 +36,6 @@ export default function Impact() {
         <p className="eyebrow" data-reveal>{g.title}</p>
         <h2 className="chapter-head" data-reveal>{g.gloss}</h2>
         <WorkGrid items={byGroup(g.id)} minimal />
-
-        {/* The photograph closes the Health chapter rather than opening
-            it: the work is the argument and the picture is the person who
-            did it, and in that order it reads as evidence instead of as a
-            hero shot. */}
-        {g.id === 'health' && (
-          <Photo
-            src="/photos/daffodil-day.jpg"
-            caption="Daffodil Day 2026: New Zealand’s largest fundraising campaign"
-          />
-        )}
       </>
     ),
   }))

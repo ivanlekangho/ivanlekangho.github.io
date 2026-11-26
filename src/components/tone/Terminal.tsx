@@ -354,7 +354,7 @@ function Terminal() {
                   <b>beating</b>
                   <span>
                     {fastest < 0.05
-                      ? 'every coincidence exact — nothing beats'
+                      ? 'every coincidence exact, so nothing beats'
                       : `fastest ${fastest.toFixed(1)} a second, over ${BEAT_SPAN}s`}
                   </span>
                   <span className="term-beat-cue">tuning, top right ↗</span>

@@ -3,11 +3,10 @@ import DocSheet from '../components/DocSheet'
 import Mark from '../components/Mark'
 import Player from '../components/Player'
 import Youtube, { type Seekable } from '../components/Youtube'
-import Todo from '../components/Todo'
 import WorkGrid from '../components/WorkGrid'
 import Chapters, { type Chapter } from '../components/Chapters'
 import Terminal from '../components/tone/Terminal'
-import { MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
+import { KINGS_MUSIC, MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
 
 /**
  * Creative — two things you can hear, and one you can watch.
@@ -89,32 +88,47 @@ function Programme({
   const all = works.flatMap((w) => w.movements ?? [])
   const live = all.reduce<number | null>((best, m) => (now + 0.25 >= m.at ? m.at : best), null)
 
+  /* The first movement starts at 0, so the mark is on it before the film
+     has been touched — which is the point: a reader has to be able to see
+     that the list tracks the film before they have any reason to believe
+     it does. The mark is the invitation, not a reward for pressing play. */
+
   return (
-    <ol className="programme">
-      {works.map((w) => (
-        <li key={w.work}>
-          <p className="programme-work">{w.work}</p>
-          <p className="programme-by">{w.composer}</p>
-          {w.movements && (
-            <ul className="movements">
-              {w.movements.map((m) => (
-                <li key={m.title}>
-                  <button
-                    type="button"
-                    className={live === m.at ? 'mvt is-live' : 'mvt'}
-                    onClick={() => onSeek(m.at)}
-                    aria-current={live === m.at ? 'true' : undefined}
-                  >
-                    <span className="mvt-at">{clock(m.at)}</span>
-                    <span className="mvt-title">{m.title}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </li>
-      ))}
-    </ol>
+    <>
+      <ol className="programme">
+        {works.map((w) => (
+          <li key={w.work}>
+            <p className="programme-work">{w.work}</p>
+            <p className="programme-by">{w.composer}</p>
+            {w.movements && (
+              <ul className="movements">
+                {w.movements.map((m) => (
+                  <li key={m.title}>
+                    <button
+                      type="button"
+                      className={live === m.at ? 'mvt is-live' : 'mvt'}
+                      onClick={() => onSeek(m.at)}
+                      aria-current={live === m.at ? 'true' : undefined}
+                      /* The visible row reads "0:00  II. Modéré", which out
+                         of context is a time and a title and no verb. */
+                      aria-label={`Jump to ${m.title}, at ${clock(m.at)}`}
+                    >
+                      <span className="mvt-at">{clock(m.at)}</span>
+                      <span className="mvt-title">{m.title}</span>
+                      <span className="mvt-go" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" fill="currentColor" />
+                        </svg>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ol>
+    </>
   )
 }
 
@@ -133,21 +147,22 @@ function Still({ photo }: { photo: NonNullable<Work['photo']> }) {
     )
   }
   return (
-    <figure className={photo.stock ? 'work-photo is-stock' : 'work-photo'}>
-      <img
-        src={photo.src}
-        alt={photo.stock
-          ? `${photo.caption} — a stock photograph, not a picture of this performance`
-          : photo.caption}
-        loading="lazy"
-        onError={() => setMissing(true)}
-      />
-      {photo.stock && (
-        <span className="stock-note" aria-hidden="true">
-          Stock image of a clarinet quintet — not this performance
-        </span>
-      )}
-      <figcaption>{photo.caption}</figcaption>
+    /* No stock disclosure any more: Ivan has licensed the photograph, so
+       the thing the hover existed to admit is no longer true.
+    
+       NOT lazy, and `width`/`height` are declared. Lazy-loaded it never
+       appeared at all: the picture sits well down a chapter's inner
+       scroller, so it is far outside the document viewport the lazy loader
+       measures against, and with no intrinsic size declared the element
+       collapsed to 2px — measured, 492x2 with `loaded: false`. So the
+       layout left no room for it and the fetch never fired. It is 77KB on a
+       page a reader has deliberately opened; the attributes reserve its box
+       whether or not the bytes have arrived. */
+    <figure className="work-photo">
+      <img src={photo.src} alt={photo.caption || ''}
+        width={photo.width} height={photo.height}
+        onError={() => setMissing(true)} />
+      {photo.caption && <figcaption>{photo.caption}</figcaption>}
     </figure>
   )
 }
@@ -171,12 +186,12 @@ function Stage({ work }: { work: Work }) {
   return (
     <article className="work" data-reveal>
       <header className="work-head">
-        <p className="work-kind">
-          <span>{work.kind}</span>
-          <span className="work-when">{work.when}</span>
-        </p>
+        {/* The year, and only the year. This read "COMPOSITION 2023" — but
+            the chapter is already called Composition and the rail already
+            says so, so the word was the third time a reader was told. The
+            date is the one fact in that line they did not already have. */}
+        <p className="work-kind"><span className="work-when">{work.when}</span></p>
         <h3 className="work-title">{work.title}</h3>
-        <p className="work-scoring">{work.scoringNote ?? work.scoring}</p>
       </header>
 
       <div className="work-body">
@@ -214,8 +229,12 @@ function Stage({ work }: { work: Work }) {
         </div>
 
         <div className="work-aside">
-          {work.honour && <p className="work-honour">{work.honour}</p>}
-          {work.where && <p className="work-where">{work.where}</p>}
+          {work.honour && (
+            <p className="work-honour">
+              <b>{work.honour.award}</b>
+              <span>{work.honour.where}</span>
+            </p>
+          )}
           {work.note && <p className="work-note">{work.note}</p>}
 
           {work.programme && (
@@ -233,14 +252,48 @@ export default function Creative() {
   const compositions = WORKS.filter((w) => w.kind === 'Composition')
   const performances = WORKS.filter((w) => w.kind === 'Performance')
 
+  /**
+   * The tone generator, kept off the public site.
+   *
+   * Ivan wants to keep iterating on it, so it is a chapter only while the
+   * site is being worked on: `npm run dev` shows it, the build does not.
+   * Not an unlinked route, which is the obvious alternative and the wrong
+   * one — an unlinked page on a live site is still a public page, as the
+   * draft log post was until an hour ago. "Not public facing" has to mean
+   * not shipped.
+   */
+  const TONE: Chapter = {
+      id: 'tone',
+      label: 'Tone',
+      body: (
+        <>
+          <h2 className="chapter-head is-strong" data-reveal>Tone</h2>
+          <p className="chapter-lede" data-reveal>
+            Type a chord, or play one on the keyboard. Nothing here is a
+            lookup: the ratios come from the pitches, the frequencies come
+            from the pitches and the tuning you pick, the curve is the sum of
+            one sine per frequency, and the sound is the same sines. Change
+            the tuning and all of it changes at once, which is the only way
+            to make four cents visible.
+          </p>
+          <div className="tone-bench" data-reveal>
+            <Terminal />
+          </div>
+        </>
+      ),
+    }
+
   const chapters: Chapter[] = [
     {
       id: 'composition',
       label: 'Composition',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Composition</p>
-          <h2 className="chapter-head" data-reveal>Written for people I knew</h2>
+          {/* The word itself, big and black. It was a small red eyebrow over
+              a light sentence ("Written for people I knew"), which made the
+              name of the section the quietest thing on the screen and the
+              sentence the loudest. */}
+          <h2 className="chapter-head is-strong" data-reveal>Composition</h2>
           <div className="works">
             {compositions.map((w) => <Stage key={w.id} work={w} />)}
           </div>
@@ -252,44 +305,30 @@ export default function Creative() {
       label: 'Performance',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Performance</p>
-          <h2 className="chapter-head" data-reveal>One route through a continent</h2>
+          <h2 className="chapter-head is-strong" data-reveal>Performance</h2>
           <div className="works">
             {performances.map((w) => <Stage key={w.id} work={w} />)}
           </div>
         </>
       ),
     },
-    {
-      id: 'tone',
-      label: 'Tone',
-      body: (
-        <>
-          <p className="eyebrow" data-reveal>Tone</p>
-          <h2 className="chapter-head" data-reveal>Why a chord sounds like that</h2>
-          <p className="chapter-lede" data-reveal>
-            Type a chord, or play one on the keyboard. Nothing here is a
-            lookup: the ratios come from the pitches, the frequencies come
-            from the pitches and the tuning you pick, the curve is the sum of
-            one sine per frequency, and the sound is the same sines. Change
-            the tuning and all of it changes at once — which is the only way
-            to make four cents visible.
-          </p>
-          <div className="tone-bench" data-reveal>
-            <Terminal />
-          </div>
-        </>
-      ),
-    },
+    /* Dev only. See the note on TONE above. */
+    ...(import.meta.env.DEV ? [TONE] : []),
     {
       id: 'ensembles',
       label: 'Ensembles',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Ensembles</p>
-          <h2 className="chapter-head" data-reveal>Choirs, a big band, an orchestra</h2>
-          <WorkGrid items={MUSIC} tight minimal />
+          <h2 className="chapter-head is-strong" data-reveal>Ensembles</h2>
+          <WorkGrid items={MUSIC} stack minimal />
 
+          {/* School music under its own heading, because five years of it
+              sorted by instrument is a different list from the two current
+              roles above and was reading as more of the same. */}
+          <h3 className="works-sub" data-reveal>King’s College</h3>
+          {/* Not `minimal`: these have no metric, so without their one
+              line they are an eyebrow and a title in an empty box. */}
+          <WorkGrid items={KINGS_MUSIC} tight />
         </>
       ),
     },
@@ -315,20 +354,6 @@ export default function Creative() {
         </>
       }
       chapters={chapters}
-    >
-      <Todo>
-        <b>Introduction and Rondo describes itself from your report.</b> The
-        forces, the Mozart instrumentation, the Saint-Saëns form and the
-        A–B–A–C–A–coda are all yours, read out of the research report. Your
-        clarinettist and the quartet are named in that report and are not named
-        here, because they are other people — say the word and they go in with a
-        credit. And the report says the live recording was never made, so the
-        audio is labelled a playback of the score rather than a performance.
-      </Todo>
-      <Todo>
-        <b><em>Dorian</em>, for baroque jazz combo, is a third composition</b> I
-        found with its own written commentary, and it is not up yet.
-      </Todo>
-    </Chapters>
+    />
   )
 }

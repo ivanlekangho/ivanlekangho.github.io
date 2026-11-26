@@ -1,72 +1,87 @@
 /**
- * Hello, in as many languages as the page can hold.
+ * "Say hello", in as many languages and as many scripts as the page holds.
  *
- * Seven of them lead, at Ivan's asking: Simplified and Traditional
- * Chinese, German, French, Māori, Tongan and Arabic. The rest are a
- * quieter field behind them.
+ * The phrase, not the greeting. These used to be bare greetings — Hallo,
+ * Bonjour, 你好 — which is a different thing: the page is called Say Hello,
+ * so each of these is that instruction in another language. `Dites
+ * bonjour`, not `Bonjour`. It reads as a page saying one sentence many ways
+ * instead of a page listing words.
  *
- * One thing worth knowing before editing the Chinese. 你好 is written with
- * the same two characters in both scripts — simplified and traditional are
- * not different languages but different glyph sets, and these two glyphs
- * are not among the ones that differ. Printing 你好 twice would have shown
- * the same word twice and looked like a bug. 哈囉 and 哈喽 are the ordinary
- * transliterations of "hello" itself and DO differ, in the second
- * character, so the pair actually demonstrates the thing it is there to
- * demonstrate. 你好 is kept as well, as Mandarin, because it is the
- * greeting anybody would actually say.
+ * Fifteen languages across three alphabets: Latin, Cyrillic and Greek, plus
+ * the Armenian. This is Ivan's own list — it was wider, taking in Han,
+ * Hangul, Arabic, Hebrew, Devanagari and more, and he cut it to these. The
+ * field is quieter for it and every phrase on it is one he will stand
+ * behind, which on a page about being understood is the better trade.
  *
- * The coordinates are hand-set and there is one rule behind them: the
- * title occupies roughly x 30–70% at y 44–56%, and nothing goes in it. A
- * random field always drops one word across the middle of the heading, and
- * the fix for that is not more randomness.
+ * All of them are set in title case, which he asked for: "Say Hello" is the
+ * page's own title, so every translation of it is a title too.
  *
- * `rtl` is not decoration: Arabic, Hebrew and Persian render wrongly
- * without it, and a site about who a system is built to understand should
- * not be the one that gets that wrong.
+ * `rtl` stays on the type though nothing uses it now. Arabic and Hebrew
+ * render wrongly without it, and if either comes back the field has to be
+ * there waiting rather than remembered.
+ *
+ * CHECKED WITH NATIVE SPEAKERS. Ivan has confirmed every wording here,
+ * which is why there is no longer a per-line flag marking which ones were
+ * guesses — on a page whose whole argument is about being understood, a
+ * mistranslation on the front would have cost more than the page is worth.
+ *
+ * The coordinates are hand-set against one rule: the title occupies roughly
+ * x 28–72% at y 42–58% and nothing goes in it. A random field always drops
+ * a word across the middle of the heading, and the fix for that is not more
+ * randomness.
  */
 export type Greeting = {
-  word: string
+  /** "Say hello", in that language. */
+  say: string
   /** BCP-47, so the browser picks the right face and a screen reader the
    *  right voice. */
   lang: string
-  /** What it is, for the key beneath. Lead entries only. */
-  name?: string
   rtl?: boolean
-  /** Hand-placed, as a percentage of the hero. Not random: the seven lead
-   *  words are positioned around the title rather than on top of it. */
+  /** Percentage of the hero. */
   x: number
   y: number
-  /** Relative size and ink. Leads are larger and darker. */
+  /** Relative size and ink. */
   size: number
   ink: number
 }
 
-export const LEADS: Greeting[] = [
-  { word: '你好',         lang: 'zh-Hans', name: 'Mandarin',    x: 14, y: 16, size: 2.5, ink: 0.42 },
-  { word: '哈喽',         lang: 'zh-Hans', name: 'Simplified',  x: 77, y: 70, size: 2.0, ink: 0.34 },
-  { word: '哈囉',         lang: 'zh-Hant', name: 'Traditional', x: 72, y: 20, size: 2.1, ink: 0.38 },
-  { word: 'Hallo',        lang: 'de',      name: 'German',      x: 20, y: 76, size: 2.3, ink: 0.40 },
-  { word: 'Bonjour',      lang: 'fr',      name: 'French',      x: 62, y: 86, size: 1.9, ink: 0.32 },
-  { word: 'Kia ora',      lang: 'mi',      name: 'Māori',       x: 15, y: 54, size: 2.4, ink: 0.44 },
-  { word: 'Mālō e lelei', lang: 'to',      name: 'Tongan',      x: 83, y: 38, size: 1.8, ink: 0.36 },
-  { word: 'مرحبا',        lang: 'ar',      name: 'Arabic', rtl: true, x: 26, y: 33, size: 2.2, ink: 0.38 },
+export const GREETINGS: Greeting[] = [
+  /* --- the loudest, and the ones Ivan asked to lead ----------------- */
+  { say: 'Say Hello',         lang: 'en', x: 15, y: 15, size: 2.3, ink: 0.46 },
+  { say: 'Dis Bonjour',       lang: 'fr', x: 62, y: 85, size: 1.9, ink: 0.40 },
+  { say: 'Sag Hallo',         lang: 'de', x: 19, y: 77, size: 2.1, ink: 0.42 },
+  { say: 'Mihi Mai',          lang: 'mi', x: 14, y: 54, size: 2.2, ink: 0.44 },
+
+  /* --- the field, at a weight you can actually read ----------------- */
+  { say: 'Скажи Привет',      lang: 'ru', x: 85, y: 36, size: 1.3, ink: 0.30 },
+  { say: 'Πες Γεια',          lang: 'el', x: 9,  y: 30, size: 1.3, ink: 0.30 },
+  { say: 'Բարև Ասա',          lang: 'hy', x: 90, y: 80, size: 1.2, ink: 0.27 },
+  { say: 'Di Hola',           lang: 'es', x: 31, y: 5,  size: 1.2, ink: 0.28 },
+  { say: "Di' Ciao",          lang: 'it', x: 6,  y: 42, size: 1.2, ink: 0.27 },
+  { say: 'Diz Olá',           lang: 'pt', x: 52, y: 72, size: 1.2, ink: 0.27 },
+  { say: 'Zeg Hallo',         lang: 'nl', x: 76, y: 7,  size: 1.1, ink: 0.25 },
+  { say: 'Säg Hej',           lang: 'sv', x: 94, y: 92, size: 1.1, ink: 0.24 },
+  { say: 'Powiedz Cześć',     lang: 'pl', x: 44, y: 96, size: 1.1, ink: 0.24 },
+  { say: 'Merhaba De',        lang: 'tr', x: 66, y: 38, size: 1.2, ink: 0.26 },
+  { say: 'Nói Xin Chào Nhé',  lang: 'vi', x: 23, y: 22, size: 1.1, ink: 0.25 },
 ]
 
-export const FIELD: Greeting[] = [
-  { word: 'Hola',      lang: 'es', x: 44, y: 9,  size: 1.1, ink: 0.16 },
-  { word: 'こんにちは',  lang: 'ja', x: 88, y: 34, size: 1.2, ink: 0.15 },
-  { word: '안녕하세요',  lang: 'ko', x: 5,  y: 88, size: 1.1, ink: 0.14 },
-  { word: 'नमस्ते',      lang: 'hi', x: 38, y: 92, size: 1.2, ink: 0.17 },
-  { word: 'Jambo',     lang: 'sw', x: 90, y: 56, size: 1.0, ink: 0.13 },
-  { word: 'Talofa',    lang: 'sm', x: 34, y: 60, size: 1.1, ink: 0.15 },
-  { word: 'Привет',    lang: 'ru', x: 84, y: 12, size: 1.0, ink: 0.13 },
-  { word: 'Γειά σου',  lang: 'el', x: 10, y: 28, size: 1.0, ink: 0.14 },
-  { word: 'שלום',      lang: 'he', rtl: true, x: 54, y: 24, size: 1.1, ink: 0.15 },
-  { word: 'Olá',       lang: 'pt', x: 52, y: 72, size: 1.0, ink: 0.13 },
-  { word: 'Ciao',      lang: 'it', x: 30, y: 6,  size: 1.0, ink: 0.14 },
-  { word: 'Merhaba',   lang: 'tr', x: 60, y: 4,  size: 1.0, ink: 0.12 },
-  { word: 'Xin chào',  lang: 'vi', x: 76, y: 94, size: 1.0, ink: 0.14 },
-  { word: 'สวัสดี',      lang: 'th', x: 16, y: 64, size: 1.1, ink: 0.15 },
-  { word: 'Sawubona',  lang: 'zu', x: 7,  y: 70, size: 1.0, ink: 0.11 },
-  { word: 'Halo',      lang: 'id', x: 92, y: 80, size: 1.0, ink: 0.12 },
+/**
+ * What Ivan actually speaks, and how well — his words for the levels.
+ *
+ * The first column is each language's own name for itself, which is also
+ * where the script difference shows: 普通话 is written in simplified
+ * characters and 客家話 in traditional. The labels that said so have gone —
+ * the characters are the evidence, and a reader who can read them does not
+ * need to be told, while one who cannot is not helped by the word.
+ */
+export type Tongue = { own: string; lang: string; name: string; level: string }
+
+export const TONGUES: Tongue[] = [
+  { own: 'English',  lang: 'en',      name: 'English',          level: 'Native' },
+  { own: '普通话',    lang: 'zh-Hans', name: 'Mandarin Chinese', level: 'Fluent' },
+  { own: '客家話',    lang: 'zh-Hant', name: 'Hakka Chinese',    level: 'Fluent' },
+  { own: 'Français', lang: 'fr',      name: 'French',           level: 'B2-Level' },
+  { own: 'Māori',    lang: 'mi',      name: 'Māori',            level: 'Learning' },
+  { own: 'Deutsch',  lang: 'de',      name: 'German',           level: 'Learning' },
 ]

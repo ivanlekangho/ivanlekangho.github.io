@@ -32,15 +32,17 @@ import Todo from '../components/Todo'
  * own class instead, so they look like the tiles they are meant to look
  * like, and keeps its own content.
  */
-function Tile({
-  count, unit, title, children,
-}: { count: string; unit: string; title: string; children: React.ReactNode }) {
+function Tile({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
     <>
       <button type="button" className="card card-min" onClick={() => setOpen(true)}>
-        <p className="card-metric"><b>{count}</b><span>{unit}</span></p>
-        <h4 className="card-title">{title}</h4>
+        {/* No count. "8 courses" and "2 roles" were the loudest thing on
+            these tiles and the least worth reading — a tally of a list is
+            not a finding, and next to Work/Impact's 95% and 60k it borrowed
+            a form built for numbers that mean something. The name of the
+            thing takes the size and the red instead. */}
+        <h4 className="card-title edu-tile-name">{title}</h4>
         <span className="card-foot"><span className="card-more">Read more</span></span>
       </button>
       {open && (
@@ -82,14 +84,21 @@ const KINGS_HONOURS = [
   { what: 'Australasian Schools Debate Championships', where: 'Premier Advanced 1 team', when: '2024' },
 ]
 
+/* Cultural, then academic, then the prefect body: Ivan's order, which is
+   also the useful one, running from what he was elected to do to the body
+   he sat on rather than from the grandest title down.
+   
+   Head Prefect (Academic) and President of the Scholars' Common Room are
+   ONE office, not two. They were listed separately and that read as four
+   posts where there are three. */
 const KINGS_ROLES = [
-  { org: 'Senior Prefect', role: 'Head of the prefect body, final year', when: '2024' },
-  { org: 'Cultural Leader', role: 'Responsible for every music and cultural group in the school', when: '2024' },
-  { org: 'Student President, Scholars’ Common Room', role: 'Academic prefect — tutoring, academic events, and the peer-tutoring club started inside it', when: '2024' },
+  { org: 'Head Prefect (Cultural)', role: 'For all 30+ music and cultural groups', when: '2024' },
+  { org: 'Head Prefect (Academic)', role: 'President of the Scholars’ Common Room, for tutoring and academic events', when: '2024' },
+  { org: 'Senior Prefect', role: '1 of 15 representing the student body', when: '2024' },
 ]
 
 const STANFORD_CLUBS = [
-  { org: 'Mixed Company', role: 'Musical Director — Stanford’s oldest all-gender a cappella group', when: '2026 – present' },
+  { org: 'Mixed Company', role: 'Musical Director for Stanford’s oldest all-gender, all-genre a cappella group', when: '2026 – present' },
   { org: 'Phi Kappa Psi', role: 'Deputy Chair, Risk Management and Violence Intervention & Prevention', when: 'Sep 2026 – present' },
 ]
 
@@ -117,16 +126,19 @@ export default function Education() {
       label: 'Stanford',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Now</p>
+          <p className="eyebrow" data-reveal>University</p>
           <h2 className="chapter-head" data-reveal>Stanford University</h2>
-          <p className="edu-deg" data-reveal>B.S. Computer Science, B.S. Mathematics — to June 2028</p>
+          <p className="edu-deg" data-reveal>
+            B.S. Computer Science, B.S. Mathematics
+            <span>Graduation: June 2028</span>
+          </p>
 
           <div className="cards cards-tight" data-reveal>
-            <Tile count={String(COURSEWORK.length)} unit="courses" title="Coursework">
+            <Tile title="Coursework">
               <Chips items={COURSEWORK} label="Coursework" />
             </Tile>
-            <Tile count={String(STANFORD_CLUBS.length)} unit="roles" title="What I run here">
-              <Rows items={STANFORD_CLUBS} />
+            <Tile title="Leadership">
+              <Rows items={STANFORD_CLUBS} className="edu-roles" />
             </Tile>
           </div>
         </>
@@ -137,16 +149,18 @@ export default function Education() {
       label: 'King’s College',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Before</p>
+          <p className="eyebrow" data-reveal>High School</p>
           <h2 className="chapter-head" data-reveal>King’s College, Auckland</h2>
-          <p className="edu-deg" data-reveal>Cambridge International and NZQA — to 2024</p>
+          <p className="edu-deg" data-reveal>
+            Dux/Valedictorian 2024
+            <span>7A* and 1A at Cambridge International A-Level</span>
+          </p>
 
           <div className="cards cards-tight" data-reveal>
-            <Tile count={String(KINGS_ROLES.length)} unit="roles" title="What I ran">
-              <Rows items={KINGS_ROLES} />
+            <Tile title="Leadership">
+              <Rows items={KINGS_ROLES} className="edu-roles" />
             </Tile>
-            <Tile count={String(KINGS_HONOURS.length)} unit="results and placings"
-              title="Results and placings">
+            <Tile title="Awards">
               <Rows items={KINGS_HONOURS} className="edu-honours" />
             </Tile>
           </div>
@@ -158,11 +172,9 @@ export default function Education() {
   return (
     <Chapters title="My Education" chapters={chapters}>
       <Todo>
-        The University of Sydney Chancellor’s Award was in your first brief but
-        not on your résumé, so it is off the site until you say where it
-        belongs. And there is nothing under Stanford but coursework and two
-        clubs — if there are results, grants or awards from the last two years,
-        this is where they go.
+        There is nothing under Stanford but coursework and two clubs — if there
+        are results, grants or awards from the last two years, this is where
+        they go.
       </Todo>
     </Chapters>
   )

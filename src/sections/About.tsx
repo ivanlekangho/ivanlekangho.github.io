@@ -1,6 +1,5 @@
 import Chapters, { type Chapter } from '../components/Chapters'
 import Wanderer from '../components/score/Wanderer'
-import Todo from '../components/Todo'
 
 /**
  * About — a screen of its own.
@@ -21,43 +20,37 @@ import Todo from '../components/Todo'
  * large, not that there is more to read.
  */
 export default function About() {
+  /* One chapter, not two.
+  
+     The line and the mission were a chapter each, and split that way the
+     first was a quotation with no argument under it and the second an
+     argument with no reason to be on this page. Joined, the paragraph does
+     what it was always trying to do: the song says the thing, and the next
+     sentence says what he intends to do about it. "Who is this built to
+     understand?" is gone with the split — it was a heading introducing the
+     sentence directly beneath it. */
   const chapters: Chapter[] = [
     {
-      id: 'the-line',
-      label: 'The line',
+      id: 'my-mission',
+      label: 'My mission',
       body: (
         <>
-          <p className="eyebrow" data-reveal>The line</p>
+          <p className="eyebrow" data-reveal>My mission</p>
           <div className="about-text" data-reveal>
             <p className="about-lede">
-              <em>I am a stranger everywhere.</em> My favourite line in any
-              song. Schubert gives it to a baritone with nowhere to be from,
-              and these are the bars that carry it.
+              <em>&ldquo;I am a stranger everywhere.&rdquo;</em>
+            </p>
+            <p>
+              This is my favourite lyric in any song I have performed. Schubert
+              wrote it for a man searching for a homeland where happiness and
+              security might be found. As a queer person of colour making a
+              life in a new country, I recognise myself in him. I want to make
+              fewer people strangers in their own world. I am drawn to the
+              intersection of technology, art and society, three worlds that
+              can seem so disconnected.
             </p>
           </div>
           <Wanderer />
-        </>
-      ),
-    },
-    {
-      id: 'the-work',
-      label: 'The work',
-      body: (
-        <>
-          <p className="eyebrow" data-reveal>The work</p>
-          <h2 className="chapter-head" data-reveal>
-            Who is this built to understand?
-          </h2>
-          <div className="about-text" data-reveal>
-            <p>
-              I want to make fewer people strangers in their own world — work
-              where technology, language and art meet, and one question
-              underneath all of it. A database that could not answer a question
-              about a patient. Authorship that does not count the Global South.
-              A model that answers in Hakka, my first language, confidently and
-              wrongly.
-            </p>
-          </div>
         </>
       ),
     },
@@ -70,16 +63,6 @@ export default function About() {
       title={<>&ldquo;Ich bin ein<br /><em>Fremdling</em> überall&rdquo;</>}
       subtitle={<>&mdash; Schubert, <cite>Der Wanderer</cite>, D.489</>}
       chapters={chapters}
-    >
-      <Todo>
-        The second sentence of the first paragraph is mine, not yours: you asked
-        for something about why this line is the centrepiece and that is my
-        guess at it. Replace it — the real reason will be better than a
-        plausible one. Still open too: how much of the queer framing you want
-        stated here rather than left as subtext. And this is two screens now
-        rather than a sheet, so there is room for the longer story if you want
-        one — the Hakka paragraph that was cut would sit here.
-      </Todo>
-    </Chapters>
+    />
   )
 }

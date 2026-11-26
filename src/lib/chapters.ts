@@ -178,3 +178,56 @@ export function useActiveChapter(ids: string[]) {
 
   return active
 }
+
+/**
+ * Whether the reader is still on the page's title screen.
+ *
+ * The rail has a dot for the title screen now, and it needs to know when
+ * it is the one lit. `useActiveChapter` cannot answer this: it reports the
+ * chapter in the middle band of the window, and on the title screen there
+ * is no such chapter, so it holds whatever it last said — which is why the
+ * first chapter's dot was lit while the title was still filling the
+ * screen.
+ *
+ * Measured against the hero's own height, which is the distance the sheet
+ * travels to cover it — one screen less the bar, read off the element so
+ * it is exact at every width. Halfway is the crossing: the point where the
+ * sheet, and not the title, is the thing being looked at.
+ *
+ * NOT the first chapter's `offsetTop`, which is what this measured first
+ * and which is always 0: the chapters are sticky inside a `position:
+ * relative` sheet, so the sheet is their offsetParent and the first one
+ * sits at the top of it. That made the crossing a negative number and the
+ * title dot was never lit at all.
+ *
+ * Not an IntersectionObserver on the hero. The hero is sticky and stays
+ * pinned behind the sheet for the whole page, so it never stops
+ * intersecting and an observer on it would answer "yes" at the bottom of
+ * Society.
+ */
+export function useAtTop() {
+  const [atTop, setAtTop] = useState(true)
+
+  useEffect(() => {
+    let raf = 0
+    const measure = () => {
+      raf = 0
+      const hero = document.querySelector<HTMLElement>('.chapters-hero')
+      if (!hero) return
+      const span = hero.getBoundingClientRect().height
+      if (span <= 0) return
+      setAtTop(window.scrollY < span / 2)
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure) }
+    measure()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  return atTop
+}

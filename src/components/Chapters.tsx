@@ -1,6 +1,8 @@
 import { Fragment, type ReactNode } from 'react'
-import { useActiveChapter, useBarHeight, useHandoff, useStack } from '../lib/chapters'
-import { scrollToSection } from '../lib/scroll'
+import { useLocation } from 'react-router-dom'
+import { useActiveChapter, useAtTop, useBarHeight, useHandoff, useStack } from '../lib/chapters'
+import { goToStop, useSectionSnap } from '../lib/sectionSnap'
+import { PAGES } from '../lib/pages'
 
 /**
  * The shape every page of this site has.
@@ -54,11 +56,26 @@ export default function Chapters({
   useHandoff()
   useStack()
   const active = useActiveChapter(chapters.map((c) => c.id))
+  const atTop = useAtTop()
+  useSectionSnap()
 
-  /* Not scrollIntoView: mandatory snapping refuses a programmatic jump, so
-     every dot and the cue under the hero simply did nothing. See
-     lib/scroll. */
-  const go = (id: string) => scrollToSection(id)
+  /* The title screen's dot is labelled with the page's own name in the bar
+     — Work/Impact, Education — taken from the same list the bar draws
+     itself from, so the rail cannot start calling a page something the bar
+     does not. */
+  const { pathname } = useLocation()
+  const page = PAGES.find(
+    (p) => pathname === p.path || pathname.startsWith(`${p.path}/`),
+  )
+
+  /* By INDEX, not by element. Everything that moves these pages moves
+     through lib/sectionSnap, for two reasons: it arrives on the same curve
+     a wheel gesture does, and it reads the position off the markers. A
+     chapter cannot be measured — it is sticky, so once it is pinned its
+     rectangle is where it is pinned and not where it lives, and a dot that
+     measured it computed "the position you are already at". Stop 0 is the
+     title screen and stop i+1 is chapter i. */
+  const go = (i: number) => goToStop(i)
 
   return (
     <>
@@ -66,13 +83,31 @@ export default function Chapters({
           with the thing it is reporting on. */}
       <nav className="rail-dots" aria-label="Sections on this page">
         <ul>
-          {chapters.map((c) => (
+          {/* The title screen, as the first stop on the rail. Without it
+              the rail began at the first chapter and had nothing to say
+              while the title filled the screen — and, worse, lit the first
+              chapter's dot there, so the one place the rail was wrong was
+              the first place a reader saw it. */}
+          {page && (
+            <li>
+              <button
+                type="button"
+                className={atTop ? 'dot is-here' : 'dot'}
+                onClick={() => go(0)}
+                aria-current={atTop ? 'true' : undefined}
+              >
+                <span className="dot-mark" aria-hidden="true" />
+                <span className="dot-label">{page.label}</span>
+              </button>
+            </li>
+          )}
+          {chapters.map((c, i) => (
             <li key={c.id}>
               <button
                 type="button"
-                className={active === c.id ? 'dot is-here' : 'dot'}
-                onClick={() => go(c.id)}
-                aria-current={active === c.id ? 'true' : undefined}
+                className={!atTop && active === c.id ? 'dot is-here' : 'dot'}
+                onClick={() => go(i + 1)}
+                aria-current={!atTop && active === c.id ? 'true' : undefined}
               >
                 <span className="dot-mark" aria-hidden="true" />
                 <span className="dot-label">{c.label}</span>
@@ -105,7 +140,7 @@ export default function Chapters({
             because a reader who understands it may well want to press it. */}
         {chapters[0] && (
           <button type="button" className="chapters-down"
-            onClick={() => go(chapters[0].id)} aria-label="Scroll to the first section">
+            onClick={() => go(1)} aria-label="Scroll to the first section">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor"
                 strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />

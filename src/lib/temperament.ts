@@ -62,13 +62,13 @@ export const TUNINGS: Tuning[] = [
   {
     id: 'equal',
     name: 'equal',
-    blurb: 'twelve identical steps — every key usable, no interval but the octave pure',
+    blurb: 'twelve identical steps, so every key is usable and no interval but the octave is pure',
     ratios: Array.from({ length: 12 }, (_, i) => Math.pow(2, i / 12)),
   },
   {
     id: 'just',
     name: 'choral',
-    blurb: 'whole-number ratios against the bass — what a choir drifts to when it locks',
+    blurb: 'whole-number ratios against the bass, which is what a choir drifts to when it locks',
     /* The same table the ratio column measures against, so this system is
        the zero the others are read from. */
     ratios: JUST.map(([a, b]) => a / b),
@@ -76,13 +76,13 @@ export const TUNINGS: Tuning[] = [
   {
     id: 'pythagorean',
     name: 'pythagorean',
-    blurb: 'a chain of pure fifths — bright fourths and fifths, a third 22¢ sharp',
+    blurb: 'a chain of pure fifths: bright fourths and fifths, and a third 22¢ sharp',
     ratios: pythagorean(),
   },
   {
     id: 'meantone',
     name: 'meantone',
-    blurb: 'fifths narrowed to buy pure thirds — the Renaissance keyboard, and a wolf',
+    blurb: 'fifths narrowed to buy pure thirds: the Renaissance keyboard, and a wolf',
     ratios: meantone(),
   },
 ]

@@ -92,7 +92,7 @@ export default function Book({ href, label }: { href: string; label: string }) {
   if (!book) {
     return (
       <p className="book-bare">
-        This document has no page images yet — run <code>npm run book-pages</code>.
+        This document has no page images yet. Run <code>npm run book-pages</code>.
       </p>
     )
   }

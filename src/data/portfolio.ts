@@ -60,16 +60,32 @@ export type Item = {
   line?: string
   /** The one number worth seeing from across the room. */
   metric?: { value: string; label: string }
+  /** Where one number does not carry the job. The Cancer Society internship
+   *  is three pieces of work with a figure each, and picking one of them to
+   *  stand on the tile undersold the other two — a reader does not have to
+   *  know what 60,000 counts before deciding the tile is worth opening. */
+  metrics?: { value: string; label: string }[]
   /** Leads its group, at twice the width. One per group. */
   featured?: boolean
   stack?: string[]
   attachments?: Attachment[]
+  /** Says so, in the sheet, where there is more to come. Better than a
+   *  bullet pretending to be content, and better than silence: a reader who
+   *  opens a tile with one line behind it should be told it is early rather
+   *  than left to conclude there is nothing. */
+  soon?: boolean
+  /** A photograph that belongs with the work, shown inside the sheet. */
+  photo?: { src: string; caption: string; width: number; height: number }
   /** The sheet's body. An item with none of these does not open. */
   bullets?: string[]
   href?: string
   cta?: string
   /** The sheets that carry an exhibit rather than only prose. */
-  exhibit?: 'authorship' | 'uyghur'
+  exhibit?: 'authorship'
+  /** A film of the thing itself, served from `public/films`. Small enough
+   *  to host here — the two recital films are on YouTube because they are
+   *  tens of megabytes; this one is 1.7. */
+  film?: { src: string; caption?: string }
 }
 
 /**
@@ -86,62 +102,54 @@ export type Item = {
  * and a reader meets it before anything else.
  */
 export const GROUPS: { id: Group; title: string; gloss: string }[] = [
-  { id: 'health', title: 'Health', gloss: 'Engineering inside the places that treat people.' },
-  { id: 'education', title: 'Education', gloss: 'Teaching the thing itself.' },
-  { id: 'society', title: 'Society', gloss: 'Who the record leaves out, and who gets a say.' },
+  { id: 'health', title: 'Health', gloss: 'Innovation for Health' },
+  { id: 'education', title: 'Education', gloss: 'Inspiring Innovation' },
+  { id: 'society', title: 'Society', gloss: 'Researching Societal Issues' },
 ]
 
 export const ITEMS: Item[] = [
   /* -------------------------------------------------------- health */
   {
-    id: 'charity-db',
+    id: 'charity',
     org: 'Cancer Society of New Zealand',
     group: 'health',
     featured: true,
     title: 'Software and Data Engineer Intern for New Zealand’s largest cancer non-profit',
-    /* The job, rather than the first task in it. The database rebuild is
-       the lead bullet behind the tile; it was the title here and that
-       undersold a paid engineering internship as one piece of work. */
+    /* One internship, not three tiles.
+    
+       The database rebuild, the donor governance and the two APIs were
+       three separate cards carrying the same org, the same year and three
+       different metrics, which read as three jobs at one charity rather
+       than as one job with three pieces of work in it. Worse, the strongest
+       number was on the featured card and the other two competed with it
+       from the row underneath. As one item the internship is the unit a
+       reader is actually assessing, and the three pieces are what is behind
+       it. */
     kind: 'Internship',
     when: 'Jun – Sep 2026',
-    metric: { value: '95%', label: 'faster extraction' },
-    line: 'Rebuilt an undocumented patient database, then decided what the charity was allowed to keep.',
-    stack: ['Python', 'MySQL'],
-    bullets: [
-      'Reverse-engineered the table relationships of a legacy case-management system from scratch — no documentation, no declared foreign keys — and redesigned the architecture around what the data actually was.',
-      'Migrated unstructured records into relational tables, which is what made patient data requests answerable in an afternoon rather than a week.',
-      'Benchmarked it honestly: median and 95th-percentile extraction time over a fixed set of real tasks, same hardware before and after. 95% reduction. A single best-case timing would have been easier and would have meant nothing.',
-      'Described here at the level of the technical problem only — no product name, no schema detail, nothing about what the records contain.',
+    metrics: [
+      { value: '95%', label: 'faster extraction' },
+      { value: '60,000+', label: 'donor records governed' },
+      { value: '80%', label: 'less overpayment' },
     ],
-  },
-  {
-    id: 'charity-governance',
-    org: 'Cancer Society of New Zealand',
-    group: 'health',
-    title: 'Deciding what a charity may keep',
-    kind: 'Data governance',
-    when: '2026',
-    metric: { value: '60k', label: 'donor records' },
-    line: 'Which records the privacy policy required deleting, and which lapsed donors were worth keeping.',
-    stack: ['Python', 'Data governance'],
+    line: 'Rebuilt an undocumented patient database, decided what the charity was allowed to keep, and replaced two paper forms with two APIs.',
+    stack: ['Python', 'MySQL', 'Google Maps API', 'Outlook API'],
+    photo: {
+      src: '/photos/daffodil-day.jpg',
+      caption: 'Daffodil Day 2026, New Zealand’s largest fundraising campaign',
+      width: 900,
+      height: 1200,
+    },
+    /* `**` marks the phrase a reader should catch while skimming: the
+       figures, and the job itself. Not decoration — a sheet of eight
+       bullets is read by scanning first and reading second, and the scan
+       should land on the numbers that made the tile worth opening. */
     bullets: [
-      'Led governance on a 60,000+ record donor database: read the government privacy policy and worked out which records had to go and which lapsed donors were worth re-engaging.',
-      'Applied RFM segmentation to separate the two, weighing revenue potential against retention cost and legal obligation. Deleting donor records is not a cleanup task — it is a decision with a rule behind it.',
-    ],
-  },
-  {
-    id: 'charity-apis',
-    org: 'Cancer Society of New Zealand',
-    group: 'health',
-    title: 'Two APIs replacing two forms',
-    kind: 'Engineering',
-    when: '2026',
-    metric: { value: '80%', label: 'less overpayment' },
-    line: 'Driver reimbursement from map distance rather than self-reported hours.',
-    stack: ['Python', 'Google Maps API', 'Outlook API'],
-    bullets: [
-      'Replaced self-reported driver hours with a distance calculation from the Google Maps API, cutting an estimated 80% of reimbursement overpayment across 500+ volunteer drivers.',
-      'Automated shift scheduling for 40 staff through the Outlook API, replacing a fragile desktop-automation dependency.',
+      '**Software and Data Engineer Intern** across three systems: the patient database, the donor record and the volunteer driver fleet.',
+      'Reverse-engineered an undocumented legacy case-management schema with no declared foreign keys and rebuilt it as relational tables, cutting patient data extraction time by **95%** on median and 95th-percentile benchmarks.',
+      'Led data governance on a **60,000+ record** donor database, applying the government privacy policy and RFM segmentation to decide which records had to go and which lapsed donors were worth re-engaging.',
+      'Replaced self-reported driver hours with Google Maps API distance calculations, cutting an estimated **80% of reimbursement overpayment** across **500+ volunteer drivers**.',
+      'Automated shift scheduling for **40 staff** through the Outlook API, replacing a fragile desktop-automation dependency.',
     ],
   },
   {
@@ -152,34 +160,45 @@ export const ITEMS: Item[] = [
     kind: 'Section leader',
     when: 'Mar 2026 – present',
     metric: { value: '15–20', label: 'students a quarter' },
-    line: 'Section leader for Stanford’s intro sequence — Python, then C++ and data structures.',
+    line: 'Section leader for Stanford’s intro sequence: Python, then C++ and data structures.',
     stack: ['Python', 'C++'],
     bullets: [
       'Section leader for Stanford’s introductory computer science sequence: CS106A in Python, CS106B in C++ and data structures.',
-      '15–20 students a quarter, in section and in office hours.',
+      '15–20 students a quarter.',
     ],
   },
   {
     id: 'code4myanmar',
-    org: 'Code4Myanmar',
+    org: 'Code For Myanmar',
     group: 'education',
     title: 'Volunteer Python instructor',
     kind: 'Teaching',
-    line: 'Six weeks, remote, for college-aged students in Chin State.',
+    when: 'Jul – Aug 2026',
+    metric: { value: '40', label: 'students' },
+    line: 'A six-week Python syllabus for forty students in Chin State, taught through cultural analogies.',
     stack: ['Python'],
+    bullets: [
+      'Designed the syllabus and taught a six-week Python programme to 40 students at Chinbridge College in Chin State, Myanmar.',
+      'Taught for low computer and English literacy: the concepts were carried by cultural analogies rather than by the vocabulary and the keyboard fluency a first programming course usually takes for granted.',
+    ],
+    film: {
+      src: '/films/code4myanmar.mp4',
+      caption: 'Chinbridge College, Chin State',
+    },
+    href: 'https://www.codedotx.org/code-for-myanmar',
   },
   {
     id: 'pharmacy',
     org: 'Grafton Pharmacy',
     group: 'health',
-    title: 'Four years behind the counter',
+    title: 'Volunteering',
     kind: 'Service',
     when: '2020 – 2024',
     metric: { value: '300+', label: 'hours' },
-    line: 'Blister packs for cancer and dialysis patients, medicine runs, the counter.',
+    line: 'Blister packs for cancer and dialysis patients, medicine runs, the counter, and the website.',
     bullets: [
-      '300+ hours — packing blister packs for cancer and dialysis patients, delivering medicine, serving the public.',
-      'Where HIV treatment and the stigma around it stopped being abstract: the pharmacists explained the first, and a patient willing to talk explained the second.',
+      'Packing blister packs for cancer and dialysis patients, delivering medicine, serving the public.',
+      'Designed and built the pharmacy’s website, putting its orders online so a prescription could be requested without a phone call or a queue.',
     ],
   },
 
@@ -193,14 +212,26 @@ export const ITEMS: Item[] = [
     kind: 'Paper',
     when: 'Feb – Mar 2026',
     metric: { value: '8.9%', label: 'last-author deficit' },
-    line: 'Held across all 19 fields, every citation quartile, and eighteen years.',
+    line: 'Held across 18 of 19 fields, every citation quartile, and eighteen years.',
     stack: ['Python', 'pandas', 'OpenAlex API', 'World Bank API'],
     exhibit: 'authorship',
-    attachments: [{ kind: 'pdf', label: 'Paper' }],
+    /* No paper. There isn't one — the output is the analysis and the
+       figures, so the card offers the code instead of promising a write-up
+       that does not exist. */
+    attachments: [{
+      kind: 'repo',
+      label: 'Code and data',
+      href: 'https://github.com/ivanlekangho/authorship-inequality',
+    }],
+    /* The same destination on the card and at the foot of the sheet: a
+       reader who opened the sheet to read the bullets should not have to
+       close it again to reach the code. */
+    href: 'https://github.com/ivanlekangho/authorship-inequality',
     bullets: [
-      'An 8.9% last-authorship deficit for Global South researchers on internationally co-authored papers — and it held across all 19 fields, every citation quartile, and eighteen years, with no measurable improvement over time. A pattern that stable is structural, not incidental.',
-      'Built the dataset to test it: 111,602 author rows across 180 countries, from 14,250 papers, merging bibliometric and economic development data.',
-      'Checked it could survive being wrong — McNemar’s test, confidence intervals, citation-quartile stratification, field-by-field robustness, longitudinal trend — then put it in choropleths, forest plots and time series.',
+      'Uncovered a statistically significant **8.9% last-authorship deficit** for Global South researchers across **19 fields and 18 years**, a structural pattern of inequality in global scientific publishing. Global South researchers hold first authorship, the execution, above their expected rate while holding last authorship, the credit, below it.',
+      'The deficit held in 18 of the 19 fields, in every citation quartile, and in every year, with no measurable improvement over time. A pattern that stable is structural, not incidental. Earth and Planetary Sciences is the single exception.',
+      'Built a **111,602-row dataset across 180 countries** from **14,250 papers**, merging bibliometric and economic data from the OpenAlex and World Bank APIs.',
+      'Validated it with McNemar’s tests and longitudinal trend analysis, and presented it in choropleth maps, forest plots and time series (pandas, matplotlib, seaborn).',
     ],
   },
   {
@@ -211,10 +242,9 @@ export const ITEMS: Item[] = [
     kind: 'Paper',
     line: 'State media, platform design and language policy, read as one machine.',
     stack: ['Discourse analysis', 'Language policy'],
-    exhibit: 'uyghur',
-    attachments: [{ kind: 'excerpt', label: 'Excerpt' }],
+    attachments: [{ kind: 'report', label: 'Paper', href: '/papers/uyghur-oppression.pdf' }],
     bullets: [
-      'How Chinese state media, platform design and language policy combine to push Uyghur linguistic expression out of digital space — three mechanisms usually studied separately, read as one machine.',
+      'How Chinese state media, platform design and language policy combine to push Uyghur linguistic expression out of digital space: three mechanisms usually studied separately, read as one machine.',
     ],
   },
   {
@@ -230,8 +260,42 @@ export const ITEMS: Item[] = [
       'Two legal gaps follow from that: who is liable once it has crossed one, and whether Māori get a decision rather than a consultation. Neither appears to be reached by the Gene Technology Bill.',
     ],
   },
-  { id: 'spog', org: 'SPOG lab', group: 'society', kind: 'Lab' },
-  { id: 'soyalab', org: 'SoyaLab', group: 'society', kind: 'Lab' },
+  {
+    id: 'spog',
+    org: 'SPOG Lab, Stanford',
+    group: 'society',
+    title: 'Research Assistant',
+    fullTitle: 'Research Assistant, Speech and Cognitive Development Lab',
+    kind: 'Lab',
+    when: 'Jan 2026 – present',
+    metric: { value: '20%', label: 'faster processing' },
+    line: 'Preprocessing and annotation pipelines for validating speech recognition against real recordings.',
+    stack: ['Python', 'ASR'],
+    bullets: [
+      'Research Assistant in the Speech and Cognitive Development Lab.',
+      'Built **IRB-compliant** Python preprocessing and annotation pipelines to accelerate ASR model validation against naturalistic speech recordings, increasing data processing efficiency by **20%**.',
+    ],
+  },
+  {
+    id: 'uzbeksafety',
+    org: 'uzbeksafety.ai',
+    group: 'society',
+    title: 'Project Helper and UI/UX Designer',
+    kind: 'AI safety',
+    /* The project plan Ivan sent is a colleague's document, with her name on
+       it, a stakeholder analysis and a budget in it. None of that is his to
+       publish, so what is here is his own contribution plus the problem as
+       briefly as it can be stated. The lead researcher is deliberately not
+       named, like the other third parties on this site. */
+    line: 'Safety infrastructure for Uzbek, a language 34 million people speak and almost no safety benchmark covers.',
+    stack: ['UI/UX', 'AI safety'],
+    bullets: [
+      'Project helper on an effort to build the AI safety infrastructure Uzbek does not have: a taxonomy of harms, a benchmark, and a detection tool that can sit in front of a model as a safety layer.',
+      'Large language models are measurably less safe in low-resource languages, and the usual workaround of machine-translating an English benchmark loses the cultural and contextual nuance that decides whether something is harmful in the first place.',
+      '**Designed the UI and UX** for the project’s data-collection site, where Uzbek speakers report the scams, abuse and culturally wrong model output they actually receive.',
+    ],
+    soon: true,
+  },
 
   /* --------------------------------------------- society, continued */
   {
@@ -242,11 +306,15 @@ export const ITEMS: Item[] = [
     when: 'Sep – Dec 2025',
     metric: { value: '10+', label: 'REST endpoints' },
     line: 'A social platform from nothing: auth, timelines, likes, comments.',
-    stack: ['Django', 'JavaScript', 'AWS EC2', 'S3', 'RDS'],
-    attachments: [{ kind: 'repo', label: 'Source' }],
+    stack: ['Python', 'JavaScript', 'AWS EC2', 'S3', 'RDS'],
+    /* No repo and no demo, at Ivan's instruction. The attachment row used
+       to declare a "Source" link that did not exist, which is the promise
+       this site is not allowed to make. */
     bullets: [
-      'A full-stack social platform built from scratch: authentication, posting, timelines, likes, comments.',
-      '10+ REST endpoints with stateful server-side routing, relational models on RDS and media storage on S3.',
+      'Engineered a full-stack social media platform in Python, JavaScript and AWS (EC2, S3, RDS), with authentication, feeds, likes and comments.',
+      'Designed and deployed **10+ REST API endpoints** on EC2, with stateful server-side routing and real-time updates across concurrent user sessions.',
+      'Architected the relational schemas on RDS, structuring user data, the social graph and post histories into modular components.',
+      'Integrated S3 for media storage, for high-throughput upload and delivery of user-generated media.',
     ],
   },
 ]
@@ -313,15 +381,17 @@ export type Work = {
   id: string
   title: string
   /** Scoring, instrument, forces — what it is written for or played on. */
-  scoring: string
-  /** Where the scoring deserves a longer line than the heading allows. */
-  scoringNote?: string
+  /* `scoring` and `scoringNote` are gone. They printed "TTBB choir and
+     piano" and "Clarinet and string quartet, after Mozart's K.581" under
+     each title, and every one of those facts is now in the paragraph
+     underneath in Ivan's own words — the line under the heading was saying
+     the same thing twice, a beat earlier and worse. */
   kind: 'Composition' | 'Performance'
   when: string
   /** Who performed it, or what it was submitted to. */
   where?: string
   /** The one line of recognition worth the space. */
-  honour?: string
+  honour?: { award: string; where: string }
   /** Two sentences at most. The recording is the argument; this is a note. */
   note?: string
   /**
@@ -339,27 +409,55 @@ export type Work = {
   media?: Media
   photo?: {
     src: string
+    /** Empty where the picture speaks for itself. The clarinet quintet
+     *  carried a stock-image disclosure until Ivan licensed the photograph,
+     *  at which point the thing it was admitting stopped being true. */
     caption: string
-    /** Not a photograph of this: a picture of the forces, standing in for
-     *  one. Said out loud on the image rather than buried in a credit,
-     *  because a stock photograph presented as documentation of your own
-     *  work is the kind of small dishonesty that costs a reader's trust in
-     *  everything around it. */
-    stock?: boolean
+    /** The file's own pixels, so the box is reserved before the bytes
+     *  land. Without these the element is 2px tall and the layout has
+     *  nowhere to put the picture. */
+    width: number
+    height: number
   }
   docs?: Attachment[]
 }
 
+/* Introduction and Rondo first, which is Ivan's order and the stronger
+   one: it is the larger piece, it has a research report behind it, and a
+   reader meeting the compositions should meet that one first. */
 export const WORKS: Work[] = [
+  {
+    id: 'intro-rondo',
+    title: 'Introduction and Rondo',
+    kind: 'Composition',
+    when: '2024',
+    note: 'A Romantic-style piece written for clarinet and string quartet, influenced by Mozart, Mendelssohn, Saint-Saëns, Binge and Haydn. The research report has the rest.',
+    media: {
+      src: '/audio/introduction-and-rondo.mp3',
+      kind: 'audio',
+      label: 'Introduction and Rondo',
+    },
+    docs: [
+      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf' },
+      { kind: 'report', label: 'Research report', href: '/papers/introduction-and-rondo.pdf' },
+    ],
+    photo: {
+      src: '/photos/clarinet-quintet.jpg',
+      caption: '',
+      width: 640,
+      height: 400,
+    },
+  },
   {
     id: 'abendlied',
     title: 'Abendlied',
-    scoring: 'TTBB choir and piano',
     kind: 'Composition',
     when: '2023',
-    where: 'Written for the King’s College TTBB choir',
-    honour: 'Highly Commended, NZCF–SOUNZ Choral Composition Competition 2024',
-    note: 'A setting of Heine’s “Wenn ich auf dem Lager liege”, written for my own school’s lower-voice choir and taken into their repertoire for the Big Sing Cadenza, where they took the top award. It leans on Clara Schumann’s “Liebst du um Schönheit” for its rocking ii–V–I and its “ah” bass line, and on Donald Patriquin for the polyphony from bar 29 and the rhythmic augmentation from bar 46.',
+    honour: {
+      award: 'Highly Commended',
+      where: 'NZCF–SOUNZ Choral Composition Competition 2024',
+    },
+    note: 'A Romantic-style setting of Heine’s “Wenn ich auf dem Lager liege”, written for TTBB choir and piano. This piece was taken into my school’s repertoire for the Regional Big Sing Cadenza, where we took the top award.',
     /* The performance itself, filmed on the night — 480x848, because it was
        filmed on a phone held upright, which is why the frame below sizes
        itself from the file rather than assuming a shape. Its own 63kbps
@@ -371,7 +469,6 @@ export const WORKS: Work[] = [
       kind: 'video',
       youtube: '8Z23Cg1CbBc',
       label: 'Abendlied at Cadenza',
-      caption: 'King’s College Choir',
     },
     docs: [
       { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf' },
@@ -380,11 +477,9 @@ export const WORKS: Work[] = [
   {
     id: 'latin-america',
     title: 'A Journey Through Latin America',
-    scoring: 'Alto saxophone and piano',
     kind: 'Performance',
     when: '2024',
-    where: 'Cambridge A Level Music, extended performance',
-    note: 'A recital built as one route rather than a set of pieces: French Brazil, an Argentine tango étude, then Havana and the Caribbean.',
+    note: 'An alto saxophone recital laid out as a single route rather than a set of pieces: Brazil by way of France, an Argentine tango étude, then Havana and the Caribbean. The research report has the rest.',
     programme: [
       {
         work: 'Scaramouche, Op. 165c',
@@ -425,36 +520,6 @@ export const WORKS: Work[] = [
       { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf' },
     ],
   },
-  {
-    id: 'intro-rondo',
-    title: 'Introduction and Rondo',
-    scoring: 'Clarinet quintet',
-    kind: 'Composition',
-    when: '2024',
-    where: 'Cambridge A Level Music, extended composition',
-    scoringNote: 'Clarinet and string quartet, after Mozart’s K.581',
-    note: 'Scored for clarinet and string quartet on the instrumentation of Mozart’s Clarinet Quintet, K.581, and built on the form of Saint-Saëns’ Introduction and Rondo Capriccioso: a slow introduction in 2/4 over a pizzicato bass, then a fast rondo in triple time running A–B–A–C–A–coda. The other pieces of influence named in the report are Mendelssohn’s Rondo Capriccioso, Binge’s saxophone concerto and Haydn’s Requiem in C minor.',
-    media: {
-      src: '/audio/introduction-and-rondo.mp3',
-      kind: 'audio',
-      label: 'Introduction and Rondo',
-      /* Stated, not implied. The report says a live recording could not be
-         produced because the players' schedules did not meet, so this is
-         the engraving played back — and a synthesised realisation offered
-         as though it were a performance is a small lie that a listener
-         works out two seconds in. */
-      caption: 'A playback of the score — the live recording was never made',
-    },
-    docs: [
-      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf' },
-      { kind: 'report', label: 'Research report', href: '/papers/introduction-and-rondo.pdf' },
-    ],
-    photo: {
-      src: '/photos/clarinet-quintet.jpg',
-      caption: 'A clarinet quintet — clarinet and string quartet',
-      stock: true,
-    },
-  },
 ]
 
 /**
@@ -469,58 +534,82 @@ export const MUSIC: Item[] = [
     title: 'Musical Director',
     kind: 'A cappella',
     when: '2026 – present',
-    metric: { value: 'MD', label: 'Stanford’s oldest all-gender a cappella group' },
+    metric: { value: 'MD', label: 'Stanford’s oldest all-gender, all-genre a cappella group' },
     line: 'Running the rehearsals, the arrangements and the room.',
-    href: 'https://www.mixedco.com/',
-    cta: 'mixedco.com',
-  },
-  {
-    id: 'ipq',
-    featured: true,
-    title: 'The shape of a saxophone mouthpiece',
-    fullTitle: 'How does the shape of an alto saxophone mouthpiece affect its sound?',
-    org: 'Cambridge IPQ',
-    kind: 'Extended research',
-    when: '2024',
-    line: 'Chamber geometry against timbre — the terminal’s question, with a reed.',
-    stack: ['Acoustics', 'Cambridge IPQ'],
-    attachments: [{ kind: 'pdf', label: 'Paper' }],
+    /* The tile opens rather than leaving the site. It used to be a link
+       straight out to mixedco.com, which sent a reader away before Ivan had
+       said anything about what he does there — and there is a season of it
+       still to write. The link is inside now, at the foot of the sheet. */
     bullets: [
-      'An extended research project on the acoustics of my own instrument — chamber geometry against timbre.',
-      'It is the same question the terminal at the top of this page is asking about a chord, with a reed in place of a string.',
+      'Musical Director of Stanford’s oldest all-gender, all-genre a cappella group: running the rehearsals, writing the arrangements, and holding the room.',
     ],
+    soon: true,
+    href: 'https://www.mixedco.com/',
   },
   {
     id: 'nzssc',
     org: 'NZ Secondary Students’ Choir',
+    featured: true,
     title: 'Soloist',
     kind: 'Choir',
     when: '2023 – 2024',
     metric: { value: '1 of 56', label: 'nationally' },
     line: 'Represented New Zealand at the China International Chorus Festival.',
-  },
-  {
-    id: 'kings-choirs',
-    org: 'King’s College',
-    title: 'Kappella, and All the King’s Men',
-    kind: 'Choir leader',
-    when: '2020 – 2024',
-    line: 'Gold, Silver and Bronze at the National Big Sing.',
-  },
-  {
-    id: 'sax',
-    org: 'Little Big Band',
-    title: 'Alto saxophone',
-    kind: 'Grade 8, distinction',
-    when: '2022',
-    line: 'Principal alto — Gold at the National Youth Jazz Competition.',
-  },
-  {
-    id: 'violin',
-    org: 'King’s College Symphony Orchestra',
-    title: 'Violin',
-    kind: 'Grade 6, distinction',
-    when: '2020',
-    line: 'Deputy leader of the Symphony Orchestra, principal second violin.',
+    bullets: [
+      'One of 56 singers selected nationally for New Zealand’s secondary schools choir.',
+      'Soloist, and represented New Zealand at the China International Chorus Festival.',
+    ],
   },
 ]
+
+/**
+ * School music, by instrument rather than by ensemble.
+ *
+ * Five years of it was four tiles sorted by group — a choir, a band, an
+ * orchestra, each with a grade certificate for an eyebrow — which made a
+ * reader assemble the person out of the groups. Sorted by what he plays, it
+ * is three tiles and reads in one pass: here is the voice and what it led,
+ * here is the saxophone and what it sat in, here is the violin.
+ *
+ * The practical grades are gone with that arrangement. "Grade 8,
+ * distinction" is a fact about an exam, not about playing in a band, and it
+ * was standing where the eyebrow should have said which kind of ensemble
+ * this was.
+ */
+export const KINGS_MUSIC: Item[] = [
+  {
+    id: 'kings-voice',
+    title: 'Voice',
+    kind: 'Choirs',
+    when: '2020 – 2024',
+    line: 'Leader of All the King’s Men and of Kappella; a bass in the Chapel Choir.',
+    bullets: [
+      'Leader of All the King’s Men and of Kappella.',
+      'A bass in the Chapel Choir.',
+      'Gold, Silver and Bronze at the National Big Sing.',
+    ],
+  },
+  {
+    id: 'kings-sax',
+    title: 'Saxophone',
+    kind: 'Bands',
+    when: '2020 – 2024',
+    line: 'Principal alto, across four bands.',
+    bullets: [
+      'Premier Concert Band, Concert Band, Little Big Band and Glee Band.',
+      'Principal alto, and Gold at the National Youth Jazz Competition.',
+    ],
+  },
+  {
+    id: 'kings-violin',
+    title: 'Violin',
+    kind: 'Orchestras',
+    when: '2020 – 2024',
+    line: 'Section leader of the second violins, and a trio with a clarinet in it.',
+    bullets: [
+      'Section leader of the second violins in the Symphony Orchestra, and in the Chamber Orchestra.',
+      'Milhaud’s Trio, a chamber group for violin, clarinet and piano.',
+    ],
+  },
+]
+

@@ -50,7 +50,7 @@ export default function Brand({ open }: { open: boolean }) {
     <>
       <span className="brand-word">Ivan Ho</span>
       <span className="brand-shot" aria-hidden="true">
-        <img src="/ivan-ho.png" alt="" className="brand-portrait" />
+        <img src="/ivan-ho.webp" alt="" className="brand-portrait" />
       </span>
     </>
   )

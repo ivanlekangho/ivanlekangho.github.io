@@ -58,7 +58,7 @@ export function Attachments({ items }: { items: Attachment[] }) {
 
 export default function Card({
   kind, when, org, title, line, stack, more, onOpen, href, tint, pending,
-  metric, featured, attachments, minimal,
+  metric, metrics, featured, attachments, minimal,
 }: {
   kind?: string
   when?: string
@@ -76,6 +76,7 @@ export default function Card({
    *  bug rather than as a gap unless something labels it. */
   pending?: boolean
   metric?: { value: string; label: string }
+  metrics?: { value: string; label: string }[]
   featured?: boolean
   attachments?: Attachment[]
   /** Face carries the number and the name only; the rest waits behind the
@@ -98,6 +99,20 @@ export default function Card({
         </p>
       )}
       {org && <p className="card-org">{org}</p>}
+      {/* Several figures where one will not do. They sit in a row at the
+          metric's own size, because the point is that a reader sees three
+          numbers from across the room and opens the tile to find out what
+          they are — not that they understand all three first. */}
+      {metrics && metrics.length > 0 && (
+        <p className="card-metrics">
+          {metrics.map((m) => (
+            <span key={m.value}>
+              <b>{m.value}</b>
+              <i>{m.label}</i>
+            </span>
+          ))}
+        </p>
+      )}
       {metric && (
         <p className="card-metric">
           <b>{metric.value}</b>
@@ -111,7 +126,11 @@ export default function Card({
       )}
       {line && !minimal && <p className="card-line">{line}</p>}
       {stack && stack.length > 0 && !minimal && <Chips items={stack} label="Stack" />}
-      {pending && <p className="card-pending">Needs a description</p>}
+      {/* Dev only, for the same reason `Todo` is: this is a note from me to
+          Ivan, and it was being printed on his portfolio for anyone who
+          opened it — "Needs a description" was live under SPOG lab and
+          SoyaLab. A card with nothing to say says nothing instead. */}
+      {pending && import.meta.env.DEV && <p className="card-pending">Needs a description</p>}
       <span className="card-foot">
         {attachments && attachments.length > 0 && <Attachments items={attachments} />}
         {more && <span className="card-more">{more}</span>}

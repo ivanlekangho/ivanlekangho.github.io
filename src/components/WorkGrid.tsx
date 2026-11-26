@@ -21,14 +21,24 @@ import type { Item } from '../data/portfolio'
  * thing and the wide card never lands mid-row leaving a hole beside it.
  */
 export default function WorkGrid({
-  items, tight, minimal,
-}: { items: Item[]; tight?: boolean; minimal?: boolean }) {
+  items, tight, minimal, stack,
+}: {
+  items: Item[]; tight?: boolean; minimal?: boolean
+  /** One per row, full width. For a short list of current roles, where
+   *  each one is a lead card and sitting them side by side makes two leads
+   *  look like two halves of one thing. */
+  stack?: boolean
+}) {
   const [open, setOpen] = useState<Item | null>(null)
   const ordered = [...items].sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
 
   return (
     <>
-      <div className={tight ? 'cards cards-tight' : 'cards'} data-reveal>
+      <div
+        className={['cards', stack && 'cards-stack', tight && !stack && 'cards-tight']
+          .filter(Boolean).join(' ')}
+        data-reveal
+      >
         {ordered.map((it) => {
           const opens = Boolean(it.exhibit || it.bullets?.length)
           return (
@@ -41,6 +51,7 @@ export default function WorkGrid({
               line={it.line}
               stack={it.stack}
               metric={it.metric}
+              metrics={it.metrics}
               featured={it.featured}
               minimal={minimal}
               attachments={it.attachments}

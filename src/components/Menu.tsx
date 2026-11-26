@@ -27,7 +27,7 @@ export default function Menu({ open }: { open: boolean }) {
   const same = (to: string) => (e: React.MouseEvent) => {
     if (pathname !== to) return
     e.preventDefault()
-    scrollToTop(true)
+    scrollToTop()
   }
 
   return (

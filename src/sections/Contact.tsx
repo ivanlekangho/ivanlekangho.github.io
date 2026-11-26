@@ -1,34 +1,33 @@
 import Chapters, { type Chapter } from '../components/Chapters'
-import { FIELD, LEADS, type Greeting } from '../data/greetings'
+import { GREETINGS, TONGUES } from '../data/greetings'
 
 /**
- * Say Hello — in twenty-four languages, seven of them out loud.
+ * Say Hello — the instruction, in as many languages as the page holds.
  *
- * The greetings are the page, not an ornament on it. This is a site about
- * who a system is built to understand, written by somebody whose first
- * language a model answers in confidently and wrongly, and the contact page
- * is the one place where saying the same simple thing twenty-four ways is
- * the argument rather than a decoration of it.
+ * The phrases are the page, not an ornament on it. This is a site about who
+ * a system is built to understand, written by somebody whose first language
+ * a model answers in confidently and wrongly, and the contact page is the
+ * one place where saying the same simple thing twenty-eight ways is the
+ * argument rather than a decoration of it.
  *
- * Each word carries its own `lang`, which is what gets it the right face
+ * Each phrase carries its own `lang`, which is what gets it the right face
  * from the system and the right voice from a screen reader, and `dir` where
  * the script runs the other way. Arabic and Hebrew render wrongly without
  * it, and this is not the site to get that wrong on.
  *
- * The cloud itself is hidden from assistive technology. Not because the
- * words do not matter — because twenty-four greetings read aloud in a row,
- * with no context and no pause, is noise where the page's actual content is
- * three links. The seven that lead are named in the key below, which is
- * read.
+ * The cloud is hidden from assistive technology, and that is a decision
+ * rather than an oversight: twenty-eight greetings read aloud in a row, with
+ * no context and no pause, is noise where the page's actual content is three
+ * links and a table. The languages Ivan actually speaks are in that table,
+ * which is read.
  */
 function Cloud() {
-  const all: Greeting[] = [...FIELD, ...LEADS]
   return (
     <div className="greetings" aria-hidden="true">
-      {all.map((g, i) => (
+      {GREETINGS.map((g, i) => (
         <span
-          key={g.word + g.lang}
-          className={g.name ? 'greet is-lead' : 'greet'}
+          key={g.say + g.lang}
+          className={g.size >= 1.8 ? 'greet is-lead' : 'greet'}
           lang={g.lang}
           dir={g.rtl ? 'rtl' : undefined}
           style={{
@@ -41,7 +40,7 @@ function Cloud() {
             '--d': `${(i % 7) * 0.9}s`,
           } as React.CSSProperties}
         >
-          {g.word}
+          {g.say}
         </span>
       ))}
     </div>
@@ -50,8 +49,8 @@ function Cloud() {
 
 const LINKS = [
   { label: 'Email', value: 'hoivan@stanford.edu', href: 'mailto:hoivan@stanford.edu' },
-  { label: 'GitHub', value: 'github.com/ivanlekangho', href: 'https://github.com/ivanlekangho' },
   { label: 'LinkedIn', value: 'linkedin.com/in/ivanhonz', href: 'https://www.linkedin.com/in/ivanhonz' },
+  { label: 'GitHub', value: 'github.com/ivanlekangho', href: 'https://github.com/ivanlekangho' },
 ]
 
 export default function Contact() {
@@ -61,8 +60,10 @@ export default function Contact() {
       label: 'Reach me',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Reach me</p>
-          <h2 className="chapter-head" data-reveal>Three ways, all of them read</h2>
+          {/* The heading carries the red now and the small label above it is
+              gone. Two red lines stacked made the eyebrow look like a
+              mis-set version of the heading rather than a label for it. */}
+          <h2 className="chapter-head is-accent" data-reveal>Reach Me</h2>
           <ul className="index" data-reveal>
             {LINKS.map((l) => (
               <li key={l.label} className="index-row">
@@ -80,22 +81,21 @@ export default function Contact() {
       label: 'Languages',
       body: (
         <>
-          <p className="eyebrow" data-reveal>Languages</p>
-          <h2 className="chapter-head" data-reveal>In whichever of these you like</h2>
+          <h2 className="chapter-head is-accent" data-reveal>Languages</h2>
+          {/* Each language in its own name first, then in English, then how
+              well. The two Chinese rows differ in script as well as in
+              language, and the characters themselves are the evidence of
+              that — they carried "simplified" and "traditional" labels
+              until the characters were left to say it. */}
           <ul className="tongues" data-reveal>
-            {LEADS.map((g) => (
-              <li key={g.word + g.lang}>
-                <span className="tongue-word" lang={g.lang} dir={g.rtl ? 'rtl' : undefined}>
-                  {g.word}
-                </span>
-                <span className="tongue-name">{g.name}</span>
+            {TONGUES.map((t) => (
+              <li key={t.lang} className="tongue">
+                <span className="tongue-own" lang={t.lang}>{t.own}</span>
+                <span className="tongue-name">{t.name}</span>
+                <span className="tongue-level">{t.level}</span>
               </li>
             ))}
           </ul>
-          <p className="aside" data-reveal>
-            你好 is the same two characters in both scripts, so the pair above
-            is 哈囉 and 哈喽 — “hello” itself, which does differ.
-          </p>
         </>
       ),
     },
