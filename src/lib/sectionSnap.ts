@@ -62,6 +62,11 @@ import { useEffect, useState } from 'react'
 const GLIDE_MS = 480
 /** A fling keeps firing after the animation ends; it has to go quiet first. */
 const QUIET_MS = 140
+/** ...but not for ever. See `arrived` and the rising test below. */
+const HOLD_MAX_MS = 700
+/** A delta this much bigger than the one before it is a person, not a
+ *  tail: inertial scrolling only ever decays. */
+const RISE = 1.2
 /** Ignore the shiver a trackpad emits when a finger merely rests on it. */
 const WAKE = 4
 /** How far off a marker a touch scroll has to settle before it is corrected. */
@@ -128,6 +133,13 @@ let lastInput = 0
 let settle = 0
 
 /** How full the budget is, and which way it is being pushed. */
+/** Whether the page has finished moving, as distinct from whether the
+ *  lock has opened. Between the two is where the tail is swallowed. */
+let arrived = false
+let arrivedAt = 0
+/** The last swallowed magnitude, for telling a tail from a new push. */
+let lastMag = Infinity
+
 let charge = 0
 let chargeDir: 1 | -1 | 0 = 0
 let decay = 0
@@ -212,6 +224,8 @@ export function halt() {
  */
 export function glideTo(to: number, onDone?: () => void) {
   halt()
+  arrived = false
+  lastMag = Infinity
   /* Instant: the budget was just spent, so there is no weight left to
      show returning. */
   dropCharge(true)
@@ -221,9 +235,28 @@ export function glideTo(to: number, onDone?: () => void) {
   /* Whatever happens next, the index follows the page. */
   const land = () => setStop(nearest(stops(), window.scrollY))
 
+  /**
+   * Open the lock once the tail has passed.
+   *
+   * Waiting for silence is right for a fling, whose tail goes on firing
+   * for several hundred milliseconds after the fingers lift. It is wrong
+   * for a reader who simply keeps scrolling: every swallowed event
+   * refreshed `lastInput`, so the silence never came and the lock never
+   * opened. They had to stop — and what they noticed themselves doing was
+   * moving the mouse, because moving it takes long enough to count as
+   * stopping.
+   *
+   * So silence is no longer the only way out. The ceiling below bounds the
+   * wait, and `onWheel` opens it early when it sees a delta rising, which
+   * momentum never does.
+   */
   const release = () => {
+    arrived = true
+    arrivedAt = performance.now()
+    lastMag = Infinity
     const wait = () => {
-      if (performance.now() - lastInput > QUIET_MS) { busy = false; return }
+      const now = performance.now()
+      if (now - lastInput > QUIET_MS || now - arrivedAt > HOLD_MAX_MS) { busy = false; return }
       settle = window.setTimeout(wait, 60)
     }
     wait()
@@ -490,8 +523,23 @@ export function useSectionSnap(enabled = true) {
       /* Pinch-zoom and a sheet over the page are not ours. */
       if (e.ctrlKey || document.documentElement.hasAttribute('data-sheet')) return
       lastInput = performance.now()
-      if (busy) { e.preventDefault(); return }
       const dy = pixels(e)
+
+      if (busy) {
+        e.preventDefault()
+        const mag = Math.abs(dy)
+        /* A tail only ever decays. A delta bigger than the one before it
+           is the reader pushing again, so the lock opens now rather than
+           waiting for a silence that an unbroken scroll will never
+           provide — and this event is theirs to spend. */
+        if (arrived && mag > lastMag * RISE + 4) {
+          window.clearTimeout(settle)
+          busy = false
+        } else {
+          lastMag = Math.min(lastMag, mag)
+          return
+        }
+      }
       /* Too small to count for anything, but NOT nothing: a finger held
          steady on a trackpad emits a stream of one- and two-pixel events,
          and returning here without touching the timer let the budget drain
