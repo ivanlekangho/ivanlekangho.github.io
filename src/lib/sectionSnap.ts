@@ -340,7 +340,7 @@ const nearest = (ys: number[], y: number) =>
 
 /** The chapter body under this event, if it can still scroll that way. */
 /**
- * How far the section under this gesture can still scroll that way.
+ * How far the section ON SCREEN can still scroll that way.
  *
  * Returns the scroller and the pixels left in it, so a gesture can be
  * SPLIT rather than classified. The old version answered yes-or-no —
@@ -349,9 +349,25 @@ const nearest = (ys: number[], y: number) =>
  * stop, and start again to build any charge. One motion now does both,
  * because the part of a flick that runs off the end of the content is
  * handed straight to the budget.
+ *
+ * IT DOES NOT LOOK AT THE EVENT'S TARGET, and that is the point. Chrome
+ * latches a wheel sequence to whatever was under the cursor when it
+ * began, so for a few hundred milliseconds after the page moves, events
+ * are still delivered to the chapter that just left the screen. Resolving
+ * the scroller from the target therefore fed the gesture to a section the
+ * reader could not see: it had room, so it absorbed everything, the
+ * budget never filled, and the page sat still until the mouse was moved
+ * and the latch re-hit-tested. Which is exactly the symptom — "I have to
+ * jiggle the mouse before I can scroll again".
+ *
+ * The chapters are sticky and only one of them is ever on screen, so the
+ * section under the gesture is simply the section we are stopped on. The
+ * index already knows which that is.
  */
-function roomBelow(target: EventTarget | null, dy: number) {
-  const el = target instanceof Element ? target.closest('.chapter-scroll') : null
+function roomBelow(dy: number) {
+  /* Stop 0 is the title screen, which has no scroller; stop i is the
+     i-th chapter. */
+  const el = document.querySelectorAll<HTMLElement>('.chapter-scroll')[atStop - 1]
   if (!el) return null
   const span = el.scrollHeight - el.clientHeight
   if (span <= 1) return null
@@ -495,7 +511,7 @@ export function useSectionSnap(enabled = true) {
          the reader having to stop and start again. The whole gesture is
          continuous; it is only the budget that makes the last part of it
          cost something. */
-      const room = roomBelow(e.target, dy)
+      const room = roomBelow(dy)
       if (room && room.left > 0) {
         const used = Math.min(Math.abs(dy), room.left)
         room.el.scrollTop += Math.sign(dy) * used
@@ -546,7 +562,7 @@ export function useSectionSnap(enabled = true) {
          reading a paragraph. */
       const dir = KEYS[e.key]
       if (!dir) return
-      const kroom = roomBelow(t, dir)
+      const kroom = roomBelow(dir)
       if (kroom && kroom.left > 0) return
       lastInput = performance.now()
       if (busy) { e.preventDefault(); return }
@@ -580,7 +596,7 @@ export function useSectionSnap(enabled = true) {
       if (!dy) return
       lastInput = performance.now()
       if (busy) return
-      const room = roomBelow(e.target, dy)
+      const room = roomBelow(dy)
       if (room && room.left > 0) {
         const used = Math.min(Math.abs(dy), room.left)
         room.el.scrollTop += Math.sign(dy) * used
