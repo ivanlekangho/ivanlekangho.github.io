@@ -1986,7 +1986,13 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .chapter-scroll {
   flex: 1 1 auto; min-height: 0;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
+  /* Chaining is deliberately LEFT ON. `overscroll-behavior-y: contain` was
+     here and it is what trapped the reader: it stops a scroll passing from
+     an inner scroller out to the page, so once a section's content reached
+     its end the page could not advance and the section read as glued down.
+     Containment is right for a modal, which is where the habit comes from;
+     here the whole design depends on the scroll running out of the content
+     and into the next section. */
   display: flex; flex-direction: column; justify-content: safe center;
   padding-block: clamp(2.5rem, 7vh, 5rem);
   scrollbar-width: thin;
