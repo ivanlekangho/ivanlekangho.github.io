@@ -2829,3 +2829,69 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .book-leaf, .book-stage { transition: none; }
   .book.is-shut .book-stage:hover .book-leaf { transform: none; }
 }
+
+
+/* ============================================================
+   Say Hello — the same simple thing, twenty-four ways
+
+   The greetings are the page rather than an ornament on it. They are
+   hand-placed around the title rather than scattered at random, because a
+   random field always puts one word across the middle of the heading and
+   the fix for that is not more randomness.
+   ============================================================ */
+.greetings {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.greet {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  transform: translate(-50%, -50%);
+  /* Ink, not colour: the brief is greys of the page's own text colour, so
+     the red of the title is the only colour on the screen and every word
+     behind it is the same ink at a different strength. */
+  color: color-mix(in srgb, var(--ink) calc(var(--o) * 100%), transparent);
+  font-size: calc(var(--s) * 1rem);
+  font-weight: 300; letter-spacing: -0.01em; white-space: nowrap;
+  animation: drift 14s ease-in-out var(--d) infinite;
+}
+/* CJK needs the Han face; everything else keeps the page's. */
+.greet:lang(zh-Hans), .greet:lang(zh-Hant), .greet:lang(ja) { font-family: var(--font-han); }
+
+.greet.is-lead { font-weight: 400; }
+
+@keyframes drift {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 10px)); }
+}
+@media (prefers-reduced-motion: reduce) { .greet { animation: none; } }
+
+/* The title sits over them, and has to say so. */
+.chapters-hero > .chapters-title, .chapters-hero > .chapters-sub,
+.chapters-hero > .chapters-down { position: relative; z-index: 1; }
+
+/* Small screens cannot hold twenty-four words without them colliding, so
+   the quiet field goes and the seven that were asked for stay. */
+@media (max-width: 48rem) {
+  .greet:not(.is-lead) { display: none; }
+  .greet.is-lead { font-size: calc(var(--s) * 0.62rem); }
+}
+
+/* ---- the key -------------------------------------------------------
+   What the seven are. The cloud is hidden from a screen reader because
+   twenty-four greetings read in a row is noise; this is the part that is
+   read, so it carries the names. */
+.key { list-style: none; margin: 0 0 var(--space-5); padding: 0; display: grid; gap: var(--space-3); }
+@media (min-width: 40rem) { .key { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); } }
+.key li {
+  display: flex; align-items: baseline; gap: var(--space-4);
+  padding-bottom: var(--space-2); border-bottom: 1px solid var(--rule);
+}
+.key-word { flex: 1 1 auto; font-size: var(--step-1); color: var(--ink); }
+.key-word:lang(zh-Hans), .key-word:lang(zh-Hant) { font-family: var(--font-han); }
+.key-name {
+  flex: none; font-family: var(--font-label); font-weight: 500;
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-3);
+}

@@ -38,11 +38,13 @@ export type Chapter = {
 }
 
 export default function Chapters({
-  title, subtitle, chapters, children,
+  title, subtitle, backdrop, chapters, children,
 }: {
   /** The page's own title, set large and centred on the first screen. */
   title: ReactNode
   subtitle?: ReactNode
+  /** Something behind the title, for a page that wants one. */
+  backdrop?: ReactNode
   chapters: Chapter[]
   /** Anything after the last chapter — notes, a way onward. */
   children?: ReactNode
@@ -79,6 +81,7 @@ export default function Chapters({
       </nav>
 
       <header className="chapters-hero">
+        {backdrop}
         <h1 className="chapters-title">{title}</h1>
         {subtitle && <p className="chapters-sub">{subtitle}</p>}
         {/* A first screen with nothing showing below the fold has to say
