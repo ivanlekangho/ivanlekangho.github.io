@@ -2208,27 +2208,8 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .chapters-sub .sub-lead { font-size: 1.16em; margin-bottom: 0.18em; color: var(--accent); }
 .chapters-sub cite { font-style: italic; }
 
-/* The cue. A first screen with nothing below the fold showing has to say
-   that there is something below the fold; it is a button rather than a
-   glyph because a reader who understands it may well want to press it. It
-   inherits the hero's own fade, so it leaves as the sheet arrives. */
-.chapters-down {
-  margin-top: var(--space-5);
-  display: grid; place-items: center;
-  width: 2.6rem; height: 2.6rem; padding: 0;
-  border: 0; background: none; cursor: pointer;
-  color: var(--ink-3);
-  animation: nudge 2.6s var(--ease-out) infinite;
-  transition: color var(--dur-ui) var(--ease-out);
-}
-.chapters-down svg { width: 100%; height: 100%; }
-.chapters-down:hover, .chapters-down:focus-visible { color: var(--accent); outline: none; }
-.chapters-down:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-@keyframes nudge {
-  0%, 62%, 100% { transform: translateY(0); }
-  78% { transform: translateY(5px); }
-}
-@media (prefers-reduced-motion: reduce) { .chapters-down { animation: none; } }
+/* The hero's own down-cue is gone, along with its `nudge` keyframes: the
+   page-level arrow at the foot of the screen is the one cue now. */
 
 .chapters-sheet {
   position: relative; z-index: 1;
@@ -2746,8 +2727,8 @@ html[data-push='up'] .page-step-up .page-step-ring circle { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .greet { animation: none; } }
 
 /* The title sits over them, and has to say so. */
-.chapters-hero > .chapters-title, .chapters-hero > .chapters-sub,
-.chapters-hero > .chapters-down { position: relative; z-index: 1; }
+.chapters-hero > .chapters-title,
+.chapters-hero > .chapters-sub { position: relative; z-index: 1; }
 
 /* Small screens cannot hold twenty-eight phrases without them colliding,
    so the quiet field goes and the seven that lead stay. */

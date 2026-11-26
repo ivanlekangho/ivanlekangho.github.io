@@ -207,18 +207,10 @@ export default function Chapters({
         {backdrop}
         <h1 className="chapters-title">{title}</h1>
         {subtitle && <p className="chapters-sub">{subtitle}</p>}
-        {/* A first screen with nothing showing below the fold has to say
-            there is something below the fold. A button rather than a glyph,
-            because a reader who understands it may well want to press it. */}
-        {chapters[0] && (
-          <button type="button" className="chapters-down"
-            onClick={() => go(1)} aria-label="Scroll to the first section">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor"
-                strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
+        {/* The chevron that used to sit here is gone. It was written when
+            a title screen had nothing below the fold to say so with, and
+            the page-level down arrow says it now — two of them under one
+            title, both pointing the same way, was one cue too many. */}
       </header>
 
       <div className="chapters-sheet">
