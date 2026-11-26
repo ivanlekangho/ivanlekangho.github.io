@@ -317,15 +317,6 @@ export default function Creative() {
       chapters={chapters}
     >
       <Todo>
-        <b>The recital film is not resolving.</b> <code>kEUctVukl4s</code> is
-        wired in and the programme jumps against it, but YouTube answers 404
-        for that id and the embed reports “removed because it was too long”.
-        The recital runs 16:47 after the trim, and a channel that has not been
-        phone-verified cannot hold anything over 15 minutes — verify at
-        youtube.com/verify and the ceiling goes to 12 hours. Re-uploading will
-        mint a new id; send it and this is a one-line change.
-      </Todo>
-      <Todo>
         <b>Introduction and Rondo describes itself from your report.</b> The
         forces, the Mozart instrumentation, the Saint-Saëns form and the
         A–B–A–C–A–coda are all yours, read out of the research report. Your

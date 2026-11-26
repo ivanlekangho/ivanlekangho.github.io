@@ -421,7 +421,7 @@ export const WORKS: Work[] = [
        against the upload rather than against the tape. */
     media: {
       kind: 'video',
-      youtube: 'kEUctVukl4s',
+      youtube: 'cFW4_g_HcfQ',
       label: 'The recital',
     },
     docs: [
