@@ -1,64 +1,35 @@
-import { Link } from 'react-router-dom'
-import { PANELS, SECTIONS, goToPanel } from '../lib/deck'
+import { NavLink } from 'react-router-dom'
+import { PAGES } from '../lib/pages'
 
 /**
  * The bar.
  *
- * It is the hero's own nav bar, kept. On the first screen that bar is part
- * of the picture — four boxes ruled across the top third, above the name —
- * and when the reader moves right it stays exactly where it was and in
- * exactly the same hand, so it reads as one bar that the page slid out from
- * under rather than as two bars that look alike. That is the whole reason
- * it is hairline boxes and not a floating pill.
+ * Five labels ruled into equal cells, and nothing else — the name that
+ * used to sit at its left is its own element now (components/Brand), which
+ * is what stopped the labels jumping sideways every time it appeared.
  *
- * Which is also why it is absent on the hero: the hero is already drawing
- * it. Showing both would be the same bar twice, two pixels apart.
+ * The bar reserves the room that name needs with a padding that travels
+ * with it, on the same curve and over the same duration, so the two read
+ * as one movement rather than as a bar reacting to something.
  *
- * Five entries, and the hall is deliberately not one of them. It sits at
- * the far right as the thing the site arrives at, and an entry in the bar
- * would turn the end of the argument into a tab.
- *
- * Every entry now simply goes to a panel — About included, which used to be
- * the one button here that opened a layer instead of travelling.
+ * The hall is deliberately not here. It is the end of the argument rather
+ * than a tab, and it is reached from the foot of Creative, where somebody
+ * who has just listened to the compositions is the likeliest person to
+ * want it.
  */
-
-
-export default function Menu({ at, onHome }: { at: number; onHome: boolean }) {
-  /* Hidden on the hero, which has the bar built into it. A post has no hero
-     above it, so the bar is simply always there. */
-  const shown = !onHome || at > 0
-  const here = onHome ? PANELS[at] : null
-
-  const home = (e: React.MouseEvent) => {
-    if (!onHome) return
-    e.preventDefault()
-    goToPanel('hero')
-  }
-
+export default function Menu({ open }: { open: boolean }) {
   return (
-    <header className={shown ? 'menu is-shown' : 'menu'}>
+    <header className={open ? 'menu is-open' : 'menu'}>
       <nav className="menu-inner" aria-label="Sections">
-        {onHome ? (
-          <a href="#hero" className="menu-brand" onClick={home}>Ivan Ho</a>
-        ) : (
-          <Link to="/" className="menu-brand">Ivan Ho</Link>
-        )}
-
         <ul>
-          {SECTIONS.map((s) => (
-            <li key={s.id}>
-              <a
-                href={onHome ? `#${s.id}` : `/#${s.id}`}
-                className={here === s.id ? 'menu-link is-here' : 'menu-link'}
-                aria-current={here === s.id ? 'true' : undefined}
-                onClick={(e) => {
-                  if (!onHome) return
-                  e.preventDefault()
-                  goToPanel(s.id)
-                }}
+          {PAGES.map((p) => (
+            <li key={p.path}>
+              <NavLink
+                to={p.path}
+                className={({ isActive }) => (isActive ? 'menu-link is-here' : 'menu-link')}
               >
-                {s.label}
-              </a>
+                {p.label}
+              </NavLink>
             </li>
           ))}
         </ul>

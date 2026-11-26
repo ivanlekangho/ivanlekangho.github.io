@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import DocSheet from '../components/DocSheet'
 import Mark from '../components/Mark'
 import Player from '../components/Player'
@@ -29,14 +30,16 @@ import { MUSIC, WORKS, type Attachment, type Work } from '../data/portfolio'
  * on the card. A reader who has just listened to three minutes of a choir
  * is being asked one question, "do you want to see the music", and the
  * control for it should be the second loudest thing in the block after the
- * play button. So: the score leads, filled in the same red; anything that
- * is not a score follows it outlined, because a research report is a
- * footnote to a recital and a score is not.
+ * play button. So both the score and the research report are filled in the
+ * red: a report on an extended performance is not a footnote to it, it is
+ * the part that says what the player was thinking, and on this site that
+ * is the half nobody else publishes.
  */
 function Docs({ docs, title }: { docs: Attachment[]; title: string }) {
   const [open, setOpen] = useState<Attachment | null>(null)
-  const scores = docs.filter((d) => d.kind === 'score')
-  const rest = docs.filter((d) => d.kind !== 'score')
+  const lead = (d: Attachment) => d.kind === 'score' || d.kind === 'report'
+  const scores = docs.filter(lead)
+  const rest = docs.filter((d) => !lead(d))
   return (
     <>
       <ul className="docs">
@@ -44,15 +47,12 @@ function Docs({ docs, title }: { docs: Attachment[]; title: string }) {
           <li key={d.label}>
             <button
               type="button"
-              className={d.kind === 'score' ? 'doc-btn doc-btn-lead' : 'doc-btn'}
+              className={lead(d) ? 'doc-btn doc-btn-lead' : 'doc-btn'}
               onClick={() => setOpen(d)}
               aria-haspopup="dialog"
             >
               <Mark kind={d.kind} />
-              <span className="doc-btn-text">
-                <span className="doc-btn-label">{d.label}</span>
-                {d.meta && <span className="doc-btn-meta">{d.meta}</span>}
-              </span>
+              <span className="doc-btn-label">{d.label}</span>
             </button>
           </li>
         ))}
@@ -116,6 +116,40 @@ function Programme({
   )
 }
 
+/** A still that shows a marked slot rather than a broken image icon. */
+function Still({ photo }: { photo: NonNullable<Work['photo']> }) {
+  const [missing, setMissing] = useState(false)
+  if (missing) {
+    return (
+      <figure className="work-photo">
+        <div className="photo-slot">
+          <p>Photograph</p>
+          <p className="exhibit-note">public{photo.src}</p>
+        </div>
+        <figcaption>{photo.caption}</figcaption>
+      </figure>
+    )
+  }
+  return (
+    <figure className={photo.stock ? 'work-photo is-stock' : 'work-photo'}>
+      <img
+        src={photo.src}
+        alt={photo.stock
+          ? `${photo.caption} — a stock photograph, not a picture of this performance`
+          : photo.caption}
+        loading="lazy"
+        onError={() => setMissing(true)}
+      />
+      {photo.stock && (
+        <span className="stock-note" aria-hidden="true">
+          Stock image of a clarinet quintet — not this performance
+        </span>
+      )}
+      <figcaption>{photo.caption}</figcaption>
+    </figure>
+  )
+}
+
 function Stage({ work }: { work: Work }) {
   const media = useRef<HTMLMediaElement | null>(null)
   const [now, setNow] = useState(0)
@@ -137,7 +171,7 @@ function Stage({ work }: { work: Work }) {
           <span className="work-when">{work.when}</span>
         </p>
         <h3 className="work-title">{work.title}</h3>
-        <p className="work-scoring">{work.scoring}</p>
+        <p className="work-scoring">{work.scoringNote ?? work.scoring}</p>
       </header>
 
       <div className="work-body">
@@ -146,24 +180,28 @@ function Stage({ work }: { work: Work }) {
             picture of itself but has the hall it was sung in. Same shape
             either way: look at the thing, then the controls under it. */}
         <div className="work-media">
-          {work.photo && !work.media?.film && (
-            <figure className="work-photo">
-              <img src={work.photo.src} alt={work.photo.caption} loading="lazy" />
-              <figcaption>{work.photo.caption}</figcaption>
-            </figure>
-          )}
 
           {work.media && (
             <Player
               src={work.media.src}
               kind={work.media.kind}
               film={work.media.film}
-              poster={work.photo?.src}
+              end={work.media.end}
               label={work.media.label}
               mediaRef={media}
               onTime={setNow}
             />
           )}
+          {work.media?.caption && (
+            <p className="media-caption">{work.media.caption}</p>
+          )}
+
+          {/* The photograph is not the work's poster. Abendlied's film is
+              upright and the hall it was sung in is a wide shot, so using
+              one as the other's poster changes the frame's shape the moment
+              the metadata lands. It sits under the transport instead, where
+              it is a second document rather than a stand-in for the first. */}
+          {work.photo && <Still photo={work.photo} />}
         </div>
 
         <div className="work-aside">
@@ -208,34 +246,45 @@ export default function Creative() {
         <h3 className="h-rule">Ensembles</h3>
         <WorkGrid items={MUSIC} tight />
 
+        {/* The room is not in the bar, because it is the end of an argument
+            rather than a tab. This is where it belongs instead: whoever has
+            just listened to the compositions is the likeliest person to want
+            one phrase of Schubert read three ways. */}
+        <p className="to-hall">
+          <Link to="/hall">
+            <span className="to-hall-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
+            <span className="to-hall-gloss">
+              The recital room — one phrase of Schubert, read three ways
+            </span>
+          </Link>
+        </p>
+
         <Todo>
-          <b>Introduction and Rondo has a score and a recording and no words.</b>{' '}
-          Its thirteen-page research report is on your machine but it is a
-          scan, so I could not read it — one or two sentences from you on what
-          the piece is doing and it is finished. Two other things: the{' '}
-          <em>Abendlied</em> score here is cut out of your combined AS
-          submission with Ghostscript, so it carries that document's
-          typesetting rather than a clean export — if you would rather, send a
-          fresh PDF from the Sibelius file and I will swap it in. And{' '}
-          <em>Dorian</em>, for baroque jazz combo, is a third composition I
-          found, with its own written commentary, that is not up yet.
+          <b>Two pictures are still missing their files.</b> The clarinet
+          quintet stock image and the Daffodil Day photograph both came
+          through in the conversation but not as anything I could copy, so
+          save them to <code>public/photos/clarinet-quintet.jpg</code> and{' '}
+          <code>public/photos/daffodil-day.jpg</code> and they appear on their
+          own — the slots are already pointing at them. If the clarinet
+          picture is licensed for this, say so and I will add the credit; if
+          it is not, it should come down, and the disclosure on it does not
+          change that.
         </Todo>
         <Todo>
-          <b>The recital has its sound but not its picture.</b> The whole
-          17:34 is on the page above — that is the camera’s own audio, so it
-          is the performance and not a separate take. The video itself is
-          1.19GB of 720p at 9Mbps, and a seventeen-minute video does not
-          compress under GitHub’s 100MB-per-file limit at any quality worth
-          watching. Put it on YouTube or Vimeo as unlisted and I will embed
-          it beside the programme; that is also the only version that will
-          not make the repository slow to clone.
+          <b>Introduction and Rondo now describes itself from your report.</b>{' '}
+          The forces, the Mozart instrumentation, the Saint-Saëns form and the
+          A–B–A–C–A–coda are all yours, read out of the research report. Two
+          things I left out on purpose: your clarinettist and the quartet are
+          named in the report and are not named here, because they are other
+          people and this is your site, not theirs — say the word and they go
+          in with a credit. And the report says the live recording was never
+          made, so the audio is labelled as a playback of the score rather
+          than as a performance.
         </Todo>
         <Todo>
-          <b>Who is in the Cadenza photograph?</b> I have captioned it as the
-          King’s choirs on stage, which is all I can see. If you are
-          conducting in it, that is a different caption and a better one. It
-          is also forty identifiable school pupils on a public site — your
-          call, and an easy crop to the stage if you would rather.
+          <b><em>Dorian</em>, for baroque jazz combo, is a third composition</b>{' '}
+          I found with its own written commentary, and it is not up yet. Say
+          the word.
         </Todo>
       </div>
     </section>

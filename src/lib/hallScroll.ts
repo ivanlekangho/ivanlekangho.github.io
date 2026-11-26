@@ -53,13 +53,12 @@ export function useHallScroll(enabled: boolean) {
      * disagree about. So the wheel is the rail's again wherever the room
      * is the screen, which is what it was built to be.
      *
-     * Order matters between the two. This listens on the window in the
-     * CAPTURE phase and the deck listens on the deck, so the room is asked
-     * first; when it takes the gesture it stops the event dead and the deck
-     * never sees it. When it declines — downward at the last stop, upward
-     * at the first — the event carries on and the deck turns the page.
-     * That is the whole handover: the rail walks to its end, and the next
-     * gesture leaves.
+     * The room is its own page now and nothing else on it wants the wheel,
+     * so there is no handover left to arrange — past the last stop the
+     * gesture simply goes nowhere, which is correct for a page exactly one
+     * screen tall. The capture phase and the stopPropagation below are kept
+     * because they cost nothing and because they are what make this
+     * region's claim on the wheel unambiguous rather than a race.
      */
     let timer = 0
     let touchY: number | null = null

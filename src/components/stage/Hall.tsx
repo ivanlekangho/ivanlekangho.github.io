@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { PIECE } from '../../data/phrase'
-import { goToPanel } from '../../lib/deck'
+import { Link } from 'react-router-dom'
 import { useMode } from '../../lib/mode'
 import { usePlayback } from '../../lib/playback'
 import ModeRail from '../ModeRail'
@@ -46,18 +46,20 @@ export default function Hall() {
         {/* An h1, at last. The page had none: the name was a paragraph, so
             search engines and screen readers were handed a document with no
             title. The styling is unchanged — only the tag. */}
-        <h1 className="brand-name">Ivan Ho</h1>
-        <p className="brand-sub">Stanford CS / Math / Linguistics / Music</p>
+        {/* The name is in the bar above, in the corner it shrank into, so
+            setting it again here was simply "Ivan Ho" twice on one screen.
+            The page still needs its one h1, and the course line is the
+            better candidate: it is what this particular page is headed. */}
+        <h1 className="brand-sub">Stanford CS / Math / Linguistics / Music</h1>
         {/* About lives behind this rather than in a screen of its own below.
             It carries the quotation and its translation on the face, so a
             reader who never clicks has still been told the one thing that
             matters. */}
-        <button type="button" className="brand-about"
-          onClick={() => goToPanel('about')}>
+        <Link to="/about" className="brand-about">
           <span className="brand-about-line">&ldquo;Ich bin ein Fremdling überall&rdquo;</span>
           <span className="brand-about-gloss">I am a stranger everywhere</span>
           <span className="brand-about-cue">About</span>
-        </button>
+        </Link>
       </header>
 
       <figure className="score-system">

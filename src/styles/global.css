@@ -74,20 +74,19 @@ pre {
   /* The panel's full height and no more. The terminal's scrollback would
      otherwise push the room taller than the screen, and the room spends
      the wheel on the rail rather than on scrolling. */
-  height: 100%;
-  border-left: 1px solid var(--hero-ink);
+  height: 100svh;
   /* Clear of the bar, which is fixed over every panel including this one.
      Without this the bar sat on top of the room's own credit line — the
      course strip at 27–59px, under a bar occupying 0–57px.
 
      The bar stays rather than hiding here, even though the room is a
-     picture and the original hall hid it. The room is the LAST panel now:
-     a reader who arrives at the end of the site, or lands on it from a
-     bookmark, has to be able to see the way back. The stage drawing is
-     absolutely positioned against this padding box, so it starts below the
-     bar too — which is right, since there is no sense drawing a room
-     behind an opaque strip of paper. */
-  padding-top: 3.5rem;
+     picture and the original hall hid it. The room is a page of its own,
+     reachable from a link at the foot of Creative and from a bookmark, so
+     a reader who lands on it has to be able to see the way back. The stage
+     drawing is absolutely positioned against this padding box, so it
+     starts below the bar too — which is right, since there is no sense
+     drawing a room behind an opaque strip of paper. */
+  padding-top: var(--bar-h);
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   /* carries the hall colour above the stage wherever the drawing doesn't
      reach the top of the viewport (phones, very tall windows) */
@@ -690,45 +689,39 @@ pre {
 .rail-stop.is-on .rail-stop-num { color: var(--accent); opacity: 1; }
 
 /* ============================================================
-   The bar — the hero's own, kept
+   The bar
 
-   This is not a second navigation that resembles the first. It is the bar
-   drawn across the hero's top third, in the same hand and at the same
-   height, so that moving right reads as the page sliding out from under a
-   fixed bar rather than as one bar being swapped for another. Hairline
-   boxes, uppercase, ruled to the edges of the window — no container, no
-   blur, no floating pill, because the hero has none of those either.
-
-   It is hidden on the hero itself, where the picture is already drawing
-   it. Hidden rather than absent: the About control has to stay in the
-   document for the hero's own About entry to have something to open.
+   Five labels in equal cells, ruled to the edges of the window. It is the
+   front page's own nav band and every other page's navigation, and it does
+   not move between those: it is always exactly here, at the top, the same
+   height. What changes is how much room it leaves at its left for the
+   name, and that travels on the brand's curve so the two are one movement.
    ============================================================ */
 .menu {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  position: fixed; top: 0; left: 0; right: 0;
+  /* Over the brand, which fills the screen on the front page — the bar is
+     that page's nav band as well as this one's. */
+  z-index: 80;
+  height: var(--bar-h);
+  /* No background here. The bar reserves the name's room with a padding,
+     and a background on this element would paint across that padding and
+     straight over the name — which it did: the corner went blank the first
+     time, because z-index 80 sits above the brand's 70. The paper belongs
+     to the part of the bar that actually holds labels. */
+  padding-left: var(--brand-w);
+  transition: padding-left var(--brand-dur) var(--ease-out);
+}
+/* On the front page the name is below, at display size, so the bar has the
+   full width and the labels run edge to edge. */
+.menu.is-open { padding-left: 0; }
+
+.menu-inner {
+  height: 100%;
   background: var(--hero-paper);
   border-bottom: 1px solid var(--hero-ink);
-  transform: translateY(-101%);
-  transition: transform 420ms var(--ease);
 }
-.menu.is-shown { transform: none; }
-.menu-inner {
-  height: 3.5rem;
-  display: grid; grid-template-columns: auto minmax(0, 1fr);
-  align-items: stretch;
-}
-.menu-brand {
-  display: flex; align-items: center;
-  padding-inline: clamp(0.9rem, 3.5vw, 2rem);
-  border: 0; border-right: 1px solid var(--hero-ink);
-  background: none; cursor: pointer;
-  font-family: var(--font-display); font-weight: 400;
-  font-size: var(--step-0); letter-spacing: -0.02em;
-  color: var(--hero-ink); text-decoration: none; white-space: nowrap;
-  transition: background-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
-}
-.menu-brand:hover { background: var(--hero-ink); color: var(--hero-paper); }
 .menu-inner ul {
-  list-style: none; margin: 0; padding: 0;
+  list-style: none; margin: 0; padding: 0; height: 100%;
   /* Equal columns, so the bar is a ruled grid and not a row of words of
      different lengths. `minmax(0, 1fr)` and not `1fr`: a long label in an
      auto-sized track makes its own column wider and knocks the rules out
@@ -746,98 +739,64 @@ pre {
   color: var(--hero-ink); text-decoration: none;
   transition: background-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
 }
+.menu-inner li:first-child .menu-link { border-left: 0; }
+.menu.is-open .menu-inner li:first-child .menu-link { border-left: 0; }
 .menu-link:hover, .menu-link:focus-visible {
   background: var(--hero-ink); color: var(--hero-paper); outline: none;
 }
 .menu-link.is-here { background: var(--hero-red); color: #FFF; }
 .menu-link:focus-visible { outline: 2px solid var(--hero-red); outline-offset: -4px; }
 
-/* A phone has 375px of bar to divide between a name and five labels, and
-   the longest is now WORK/IMPACT at eleven characters. "Fits" is not the
-   test: at 0.52rem it measured 63px inside a 64px cell, which is true and
+/* A phone has 375px of bar to divide, less the room the name takes, and
+   the longest label is WORK/IMPACT at eleven characters. "Fits" is not the
+   test: at 0.52rem it measured 63px inside a 64px cell, which was true and
    still looked wrong, because a label touching both hairlines reads as
-   broken even when it is whole. These sizes leave it about 4px of air each
-   side, which is the difference. */
+   broken even when it is whole. */
 @media (max-width: 40rem) {
-  .menu-brand { padding-inline: 0.4rem; font-size: 0.74rem; }
-  .menu-link { padding: 0 1px; font-size: 0.47rem; letter-spacing: 0.015em; }
+  .menu-link { padding: 0 1px; font-size: 0.45rem; letter-spacing: 0.012em; }
 }
 
 /* ============================================================
-   The deck — six panels in a row
+   Pages
 
-   The site reads left to right. Each panel is exactly one screen wide and
-   snaps; the wheel, the arrow keys and the bar move between them, and a
-   panel holding more than a screen scrolls down inside itself. The logic
-   for which of those two a gesture means lives in lib/deck.ts.
+   One section per page, scrolling the way a page scrolls. This replaces a
+   horizontal deck of six screens that the wheel walked sideways — an
+   arrangement that was genuinely nice to use and cost three ordinary
+   things: the back button meant nothing, a section could not be linked to,
+   and the name in the corner had to appear and disappear as you travelled,
+   which is what finally settled it.
 
-   Mandatory snapping is safe here in a way it never was vertically. The
-   objection to it before was that a panel taller than the window fights
-   the reader the whole way down and can strand content out of reach — but
-   that was snapping on the same axis the long content ran along. The long
-   axis is now INSIDE a panel and has no snap on it at all, while the axis
-   that snaps carries nothing but six equal screens. The two cannot
-   collide, so the deck gets the landing that proximity could only
-   approximate.
-
-   svh, not vh: on a phone vh is the height with the URL bar hidden, so a
-   100vh panel is taller than the screen until you scroll.
+   `svh`, not `vh`: on a phone `vh` is the height with the URL bar hidden,
+   so a 100vh front page is taller than the screen until you scroll.
    ============================================================ */
-.deck {
-  display: flex;
-  height: 100svh;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  /* The deck is the end of the line for a sideways gesture: without this,
-     a swipe past the last panel hands the leftover scroll to the browser
-     and triggers back-navigation on a trackpad. */
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-}
-.deck::-webkit-scrollbar { display: none; }
+.page { padding-top: var(--bar-h); }
+/* The room draws its own clearance under the bar and is exactly one
+   screen tall, so it must not also be pushed down by the page's. */
+.page:has(.hall) { padding-top: 0; }
+/* The front page is the brand, which is fixed and fills the screen on its
+   own. Nothing scrolls behind it. */
+.page.is-front { padding-top: 0; height: 100svh; overflow: hidden; }
 
-.deck > * {
-  flex: 0 0 100%;
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  min-height: 0;
-  scroll-snap-align: start;
-  /* Stop at every panel, not merely at one of them. Mandatory snapping
-     only guarantees the scroll comes to REST on a snap position — it is
-     free to fly over several on the way, and it did. */
-  scroll-snap-stop: always;
-}
-
-/* ---- the four panels of work --------------------------------------
-   Vertical scrolling belongs to the panel, not to the page. `safe center`
-   centres the content of a short panel and quietly stops centring on one
-   taller than the window — plain `center` would push the top of a long
-   panel above its own scroll origin, where it cannot be reached. */
 .band {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  display: flex; flex-direction: column; justify-content: safe center;
-  /* Clear of the bar, which is fixed over the top of every panel. */
-  padding-top: calc(3.5rem + clamp(2rem, 6vh, 4.5rem));
-  padding-bottom: clamp(3rem, 8vh, 6rem);
-  border-left: 1px solid var(--hero-ink);
+  display: flex; flex-direction: column;
+  padding-block: clamp(2.5rem, 6vh, 4.5rem) clamp(3rem, 9vh, 7rem);
+  background: var(--hero-paper);
+  color: var(--ink);
+  min-height: calc(100svh - var(--bar-h));
 }
 .band > .shell { width: 100%; }
-.band-last { padding-bottom: clamp(3rem, 8vh, 6rem); }
+.band-last { padding-bottom: clamp(3rem, 9vh, 7rem); }
 
 /* ---- the light the work is read in ---------------------------------
-   These four panels are not lit by the lighting board. The board exists to
-   walk a room from candlelight to a workshop over three readings of one
-   phrase, and the room is at the far right where it belongs; the work in
-   between is read on paper, in the hero's two colours and no others.
+   These pages are not lit by the lighting board. The board exists to walk
+   a room from candlelight to a workshop over three readings of one phrase,
+   and the room is a page of its own; the work is read on paper, in the
+   front page's two colours and no others.
 
    Which is why this is a block of literals rather than mixes. Every value
    the lighting board writes onto <html> is answered here with a fixed one,
-   so a panel's ground does not recompute sixty times a second while
-   somebody is dragging a rail six screens away. The page below is the same
-   paper and the same red at every stop of the room.
+   so a page's ground does not recompute sixty times a second while
+   somebody is dragging a rail in another tab of their mind.
    ------------------------------------------------------------------- */
 .band {
   --ink:   #20242F;
@@ -861,36 +820,127 @@ pre {
   --tone: var(--hero-red);
   /* Type, fixed. The hall shifts weight and tracking as the lights move,
      because there the typography is part of the reading. Out here it is
-     the same page throughout and must not twitch when the room changes. */
+     the same page throughout and must not twitch. */
   --display-weight: 300;
   --display-tracking: -0.022em;
   --display-leading: 1.04;
   --font-label: var(--font-display);
   --label-weight: 500;
   --label-tracking: 0.14em;
+}
+
+/* ============================================================
+   The brand — the front page, and the corner of the bar
+
+   One element in two states. Open it is the whole screen; shut it is the
+   cell at the left of the bar, and it travels between them rather than
+   cutting. See components/Brand for why width/height rather than a
+   transform.
+   ============================================================ */
+:root { --bar-h: 3.5rem; --brand-w: 11rem; }
+
+.brand {
+  position: fixed; top: 0; left: 0; z-index: 70;
+  display: flex; flex-direction: column;
+  overflow: hidden;
   background: var(--hero-paper);
-  color: var(--ink);
+  color: var(--hero-ink);
+  text-decoration: none;
+  border-right: 1px solid var(--hero-ink);
+  border-bottom: 1px solid var(--hero-ink);
+  transition:
+    width var(--brand-dur) var(--ease-out),
+    height var(--brand-dur) var(--ease-out);
+}
+:root { --brand-dur: 560ms; }
+
+.brand.is-open { width: 100vw; height: 100svh; border-right-color: transparent; }
+.brand.is-shut { width: var(--brand-w); height: var(--bar-h); }
+
+/* The name. Open it is the display face at the size of a third of the
+   screen; shut it is the wordmark in the corner. It is centred in the
+   first third when open and sits at the left when shut, and both of those
+   fall out of one flex box whose own size is what is animating. */
+.brand-word {
+  flex: none;
+  display: flex; align-items: center;
+  font-weight: 300; letter-spacing: -0.012em; line-height: 1.06;
+  white-space: nowrap;
+  transition:
+    font-size var(--brand-dur) var(--ease-out),
+    height var(--brand-dur) var(--ease-out),
+    padding var(--brand-dur) var(--ease-out);
+}
+.brand.is-open .brand-word {
+  /* A third of the screen, less the bar that sits over the top of it. */
+  height: calc(33.333svh - var(--bar-h));
+  margin-top: var(--bar-h);
+  padding: 0;
+  justify-content: center;
+  font-size: min(24vw, 24svh);
+}
+.brand.is-shut .brand-word {
+  height: 100%;
+  margin-top: 0;
+  padding-inline: clamp(0.7rem, 2.5vw, 1.15rem);
+  justify-content: flex-start;
+  font-size: var(--step-0);
 }
 
-/* A panel is the scroll container now, so snapping inside it is not a
-   thing that exists — the rules that stopped Impact's three groups and
-   Education's two schools from competing as snap targets are gone with
-   the axis they were defending. */
+/* The red, and the portrait in it. It has nowhere to be in a 3.5rem cell,
+   so it leaves — fading as the box closes over it rather than being
+   clipped, because a portrait sliced by a shrinking box reads as a
+   rendering fault. */
+.brand-shot {
+  position: relative; display: block;
+  flex: 1 1 auto; min-height: 0;
+  background: var(--hero-red);
+  overflow: hidden;
+  transition: opacity var(--brand-dur) var(--ease-out);
+}
+.brand.is-shut .brand-shot { opacity: 0; }
 
-/* Snapping is involuntary motion, so anyone who asked for less of it gets
-   a deck they scroll by hand. */
+.brand-portrait {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  /* Framed to the photograph, and these two numbers are measured off its
+     alpha channel rather than chosen by eye.
+
+     The file is 912x1179. The hair starts at 19.0% down it, and at 87.3%
+     the shoulders reach the left and right edges of the original frame and
+     are sliced off square — two hard vertical lines, which are the one
+     thing that must never enter the picture, because the portrait is
+     narrower than the red block on a wide screen and there is nothing out
+     there to hide them behind.
+
+     So the window is 17.4% to 85.4%: a sliver of air above the head, and
+     stopping about 22 source pixels short of the slice, which is as much
+     shirt as this photograph has to give — the tie's dark does not start
+     until 91%, past the cut. Height sets the span (1/1.47 = 68% of the
+     file) and top sets where it starts (0.255/1.47 = 17.4%); they move
+     together or not at all. */
+  top: -25.5%; height: 147%; width: auto; max-width: none;
+  display: block;
+}
+
+@media (max-width: 40rem) {
+  /* The name and five labels share 375px. At 8.5rem the name took 136 of
+     them and left 48 a label, and WORK/IMPACT needs 50 — so it clipped.
+     6rem leaves 56 a cell, which fits the longest label with air, and
+     "Ivan Ho" still has 33px of room it does not need. */
+  :root { --brand-w: 6rem; }
+  /* Sized by width here, not height. Two thirds of a tall narrow screen is
+     still 539px, and 147% of that is wider than the phone — so the
+     portrait's own left and right edges fall outside the frame, which is
+     what hides the slice. */
+  .brand.is-open .brand-portrait { height: auto; width: 124%; top: -7%; }
+}
+
+/* Anyone who asked for less motion gets the two states and not the journey
+   between them. */
 @media (prefers-reduced-motion: reduce) {
-  .deck { scroll-snap-type: none; }
+  :root { --brand-dur: 1ms; }
 }
-/* A sheet is a scroll container of its own over the top of everything, and
-   the deck must not move underneath it. It must also not be told so with
-   `overflow: hidden`, which was the first thing tried here and is a trap:
-   taking the overflow off a scrolled container resets its scroll offset to
-   zero and does not put it back. Opening About from Contact threw the
-   reader to the hero and left them there when they closed it.
 
-   Nothing is needed instead. The deck only moves because deck.ts moves it,
-   and every one of its handlers already stands down while a sheet is up. */
 
 .shell { max-width: var(--max-w); margin-inline: auto; padding-inline: var(--gutter); }
 
@@ -1931,10 +1981,19 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
    A video and a photograph occupy the same slot and are the same shape in
    it: the thing to look at, with the transport underneath. */
 .reel {
-  display: block; width: 100%; height: auto; aspect-ratio: 16 / 9;
+  display: block;
+  /* Sized from the file rather than from an assumption. The recital is a
+     400x224 landscape frame; Abendlied was filmed on a phone held upright
+     at 480x848. A single hard aspect-ratio would have letterboxed one of
+     them badly, so both caps are set and whichever binds first wins. */
+  width: auto; height: auto;
+  max-width: 100%; max-height: min(28rem, 56svh);
+  margin-inline: auto;
   background: var(--ink); border: 1px solid var(--rule);
   border-bottom: 0; cursor: pointer;
 }
+.player-block { display: grid; justify-items: center; }
+.player-block .player { width: 100%; }
 
 /* ============================================================
    The player
@@ -2153,24 +2212,17 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .player-block .reel + .player { border-top: 0; }
 
 .player-jump {
-  position: relative;
   display: grid; place-items: center;
-  width: 2.1rem; height: 2.1rem; padding: 0;
-  border: 0; border-radius: var(--radius-lg);
-  background: none; color: var(--ink-2); cursor: pointer;
-  transition: color var(--dur-ui) var(--ease-out), background-color var(--dur-ui) var(--ease-out);
-}
-.player-jump svg { width: 100%; height: 100%; }
-/* The number inside the arrow's loop, which is the convention every player
-   a reader has already used settles on. */
-.player-jump span {
-  position: absolute; top: 56%; left: 50%; transform: translate(-50%, -50%);
-  font-family: var(--font-mono); font-size: 0.5rem; line-height: 1;
-  font-variant-numeric: tabular-nums; pointer-events: none;
+  min-width: 2.4rem; height: 1.9rem; padding: 0 0.3rem;
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+  background: none; color: var(--ink-3); cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.7rem; line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+  transition: color var(--dur-ui) var(--ease-out),
+              border-color var(--dur-ui) var(--ease-out);
 }
 .player-jump:hover, .player-jump:focus-visible {
-  color: var(--accent-deep); background: color-mix(in srgb, var(--accent) 9%, transparent);
-  outline: none;
+  color: var(--ink); border-color: var(--ink-3); outline: none;
 }
 .player-jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -2234,3 +2286,63 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 /* The group's one-line gloss. Short on purpose — it is a label for a set,
    not an introduction to it. */
 .group-gloss { margin: 0 0 var(--space-4); color: var(--ink-3); font-size: var(--step--1); }
+
+
+/* ---- the way into the room ----------------------------------------
+   Set as the line itself rather than as a labelled button, because the
+   line is the invitation: a reader who recognises it does not need to be
+   told what is behind it, and one who does not is told by the gloss. */
+.to-hall { margin: var(--space-7) 0 0; }
+.to-hall a {
+  display: inline-grid; gap: 2px;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--rule); border-radius: var(--radius-lg);
+  background: var(--paper-2); text-decoration: none;
+  transition: border-color var(--dur-ui) var(--ease-out),
+              transform 220ms var(--ease-spring);
+}
+.to-hall a:hover, .to-hall a:focus-visible {
+  border-color: var(--accent); transform: translateY(-2px); outline: none;
+}
+.to-hall a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.to-hall-line {
+  font-family: var(--font-score); font-size: var(--step-1); color: var(--ink);
+}
+.to-hall-gloss {
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: 0.04em; color: var(--ink-3);
+}
+.to-hall a:hover .to-hall-gloss { color: var(--accent-deep); }
+
+
+/* ---- a line under a moving picture --------------------------------
+   Where a still photograph would have had a figcaption. */
+.media-caption {
+  margin: var(--space-2) 0 0; width: 100%;
+  font-family: var(--font-label); font-size: var(--step--1);
+  letter-spacing: 0.03em; color: var(--ink-3); line-height: 1.45;
+}
+
+/* ---- a stock photograph, saying so --------------------------------
+   The disclosure is on the picture, not under it. A credit in small grey
+   type below an image is read after the image has already done its work,
+   and the thing being disclosed here is precisely that the image is not
+   evidence. On a touch screen there is no hover, so it is also the first
+   clause of the alt text. */
+.work-photo.is-stock { position: relative; }
+.stock-note {
+  position: absolute; inset: auto 0 0 0;
+  padding: 0.5rem 0.7rem;
+  background: color-mix(in srgb, var(--hero-ink) 82%, transparent);
+  color: #FFF;
+  font-family: var(--font-label); font-size: 0.68rem;
+  letter-spacing: 0.04em; line-height: 1.35;
+  opacity: 0; transform: translateY(0.3rem);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+.work-photo.is-stock:hover .stock-note,
+.work-photo.is-stock:focus-within .stock-note { opacity: 1; transform: none; }
+/* No hover to wait for: on a touch screen it is simply there. */
+@media (hover: none) {
+  .stock-note { opacity: 1; transform: none; }
+}

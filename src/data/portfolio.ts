@@ -34,9 +34,6 @@ export type Attachment = {
   kind: 'pdf' | 'audio' | 'video' | 'score' | 'report' | 'repo' | 'excerpt' | 'link'
   label: string
   href?: string
-  /** What you are about to open — extent, mostly. A reader deciding whether
-   *  to click a score is deciding whether to look at eight pages or one. */
-  meta?: string
 }
 
 export type Item = {
@@ -290,6 +287,12 @@ export type Media = {
    * 44.1kHz extract. Both are cut from the same tape at the same offset.
    */
   film?: string
+  /** Stop here rather than at the end of the file, where a recording
+   *  runs on into the applause. */
+  end?: number
+  /** A line under the transport — who is playing, where a still photograph
+   *  would have had a figcaption. */
+  caption?: string
 }
 
 export type Work = {
@@ -297,6 +300,8 @@ export type Work = {
   title: string
   /** Scoring, instrument, forces — what it is written for or played on. */
   scoring: string
+  /** Where the scoring deserves a longer line than the heading allows. */
+  scoringNote?: string
   kind: 'Composition' | 'Performance'
   when: string
   /** Who performed it, or what it was submitted to. */
@@ -318,7 +323,16 @@ export type Work = {
     movements?: { title: string; at: number }[]
   }[]
   media?: Media
-  photo?: { src: string; caption: string }
+  photo?: {
+    src: string
+    caption: string
+    /** Not a photograph of this: a picture of the forces, standing in for
+     *  one. Said out loud on the image rather than buried in a credit,
+     *  because a stock photograph presented as documentation of your own
+     *  work is the kind of small dishonesty that costs a reader's trust in
+     *  everything around it. */
+    stock?: boolean
+  }
   docs?: Attachment[]
 }
 
@@ -328,13 +342,27 @@ export const WORKS: Work[] = [
     title: 'Abendlied',
     scoring: 'TTBB choir and piano',
     kind: 'Composition',
-    when: '2023 – 2024',
+    when: '2023',
     where: 'Written for the King’s College TTBB choir',
     honour: 'Highly Commended, NZCF–SOUNZ Choral Composition Competition 2024',
     note: 'A setting of Heine’s “Wenn ich auf dem Lager liege”, written for my own school’s lower-voice choir and taken into their repertoire for the Big Sing Cadenza, where they took the top award. It leans on Clara Schumann’s “Liebst du um Schönheit” for its rocking ii–V–I and its “ah” bass line, and on Donald Patriquin for the polyphony from bar 29 and the rhythmic augmentation from bar 46.',
-    media: { src: '/audio/abendlied.m4a', kind: 'audio', label: 'Abendlied — recording' },
+    /* The performance itself, filmed on the night — 480x848, because it was
+       filmed on a phone held upright, which is why the frame below sizes
+       itself from the file rather than assuming a shape. Its own 63kbps
+       sound is used rather than the better separate extract: the two were
+       recorded from different positions and do not start on the same
+       instant, and a picture three seconds out of step with its sound is
+       worse than a picture with ordinary sound. */
+    media: {
+      kind: 'video',
+      src: '/video/abendlied.mp4',
+      label: 'Abendlied at Cadenza',
+      caption: 'King’s College Choir',
+      /* The film runs on into the applause. */
+      end: 144,
+    },
     docs: [
-      { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf', meta: 'TTBB and piano · 8 pages' },
+      { kind: 'score', label: 'Score', href: '/scores/abendlied.pdf' },
     ],
     photo: {
       src: '/photos/cadenza.jpg',
@@ -385,8 +413,8 @@ export const WORKS: Work[] = [
       label: 'The recital',
     },
     docs: [
-      { kind: 'score', label: 'Scores', href: '/scores/journey-through-latin-america.pdf', meta: 'The three works, as performed' },
-      { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf', meta: '11 pages' },
+      { kind: 'score', label: 'Scores', href: '/scores/journey-through-latin-america.pdf' },
+      { kind: 'report', label: 'Research report', href: '/papers/journey-through-latin-america.pdf' },
     ],
   },
   {
@@ -396,10 +424,28 @@ export const WORKS: Work[] = [
     kind: 'Composition',
     when: '2024',
     where: 'Cambridge A Level Music, extended composition',
-    media: { src: '/audio/introduction-and-rondo.mp3', kind: 'audio', label: 'Introduction and Rondo' },
+    scoringNote: 'Clarinet and string quartet, after Mozart’s K.581',
+    note: 'Scored for clarinet and string quartet on the instrumentation of Mozart’s Clarinet Quintet, K.581, and built on the form of Saint-Saëns’ Introduction and Rondo Capriccioso: a slow introduction in 2/4 over a pizzicato bass, then a fast rondo in triple time running A–B–A–C–A–coda. The other pieces of influence named in the report are Mendelssohn’s Rondo Capriccioso, Binge’s saxophone concerto and Haydn’s Requiem in C minor.',
+    media: {
+      src: '/audio/introduction-and-rondo.mp3',
+      kind: 'audio',
+      label: 'Introduction and Rondo',
+      /* Stated, not implied. The report says a live recording could not be
+         produced because the players' schedules did not meet, so this is
+         the engraving played back — and a synthesised realisation offered
+         as though it were a performance is a small lie that a listener
+         works out two seconds in. */
+      caption: 'A playback of the score — the live recording was never made',
+    },
     docs: [
-      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf', meta: 'Clarinet quintet · 26 pages' },
+      { kind: 'score', label: 'Score', href: '/scores/introduction-and-rondo.pdf' },
+      { kind: 'report', label: 'Research report', href: '/papers/introduction-and-rondo.pdf' },
     ],
+    photo: {
+      src: '/photos/clarinet-quintet.jpg',
+      caption: 'A clarinet quintet — clarinet and string quartet',
+      stock: true,
+    },
   },
 ]
 

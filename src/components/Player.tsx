@@ -65,13 +65,24 @@ const clock = (s: number) => {
 }
 
 export default function Player({
-  src, label, kind = 'audio', film, poster, mediaRef, onTime,
+  src, label, kind = 'audio', film, end, poster, mediaRef, onTime,
 }: {
   src: string
   label: string
   kind?: 'audio' | 'video'
   /** A silent picture to run against `src`. */
   film?: string
+  /**
+   * Stop here rather than at the end of the file.
+   *
+   * Abendlied's recording runs five seconds past the music into the
+   * applause, and Ivan wants it to end at 2:24. Capping it here rather
+   * than re-cutting the file is not laziness: the only encoder available
+   * would re-compress the whole thing to remove five seconds it could
+   * simply decline to play, and the reader cannot tell the difference —
+   * the scrubber ends at 2:24 and so does the sound.
+   */
+  end?: number
   poster?: string
   /** Handed in when something outside needs to seek this — the programme
    *  list, which jumps to a movement. */
@@ -81,6 +92,10 @@ export default function Player({
   const own = useRef<HTMLMediaElement | null>(null)
   const ref = mediaRef ?? own
   const pic = useRef<HTMLVideoElement | null>(null)
+  /* A video with usable sound of its own is simply the master. The split
+     into picture-plus-audio is only for the recital, whose small copy has
+     16kHz sound. */
+  const videoIsMaster = kind === 'video' && !film
   const [playing, setPlaying] = useState(false)
   const [at, setAt] = useState(0)
   const [len, setLen] = useState(NaN)
@@ -93,8 +108,15 @@ export default function Player({
   useEffect(() => {
     const a = ref.current
     if (!a) return
-    const onTimeUpdate = () => { setAt(a.currentTime); onTime?.(a.currentTime) }
-    const onMeta = () => setLen(a.duration)
+    const onTimeUpdate = () => {
+      if (end !== undefined && a.currentTime >= end) {
+        a.pause()
+        a.currentTime = end
+      }
+      setAt(a.currentTime)
+      onTime?.(a.currentTime)
+    }
+    const onMeta = () => setLen(end !== undefined ? Math.min(end, a.duration) : a.duration)
     const onPlay = () => { claimTheRoom(a); setPlaying(true) }
     const onPause = () => setPlaying(false)
     const onEnd = () => { setPlaying(false); setAt(0); onTime?.(0) }
@@ -221,18 +243,28 @@ export default function Player({
           onClick={toggle}
         />
       )}
-      <audio ref={ref as RefObject<HTMLAudioElement>} src={src} preload="metadata" />
+      {videoIsMaster ? (
+        <video
+          ref={ref as RefObject<HTMLVideoElement>}
+          className="reel"
+          src={src}
+          poster={poster}
+          preload="metadata"
+          playsInline
+          aria-label={label}
+          onClick={toggle}
+        />
+      ) : (
+        <audio ref={ref as RefObject<HTMLAudioElement>} src={src} preload="metadata" />
+      )}
 
       <div className="player">
+        {/* Set as the number and nothing else. The circular-arrow glyph
+            every player uses needs the figure inside its loop to be legible
+            at about 8px, and at that size it was a smudge with a 10 in it —
+            the two words are clearer than the icon they were decorating. */}
         <button type="button" className="player-jump" onClick={() => jump(-JUMP)}
-          aria-label={`Back ${JUMP} seconds`}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 6V2.5L7.5 6.5 12 10.5V7a6.5 6.5 0 1 1-6.4 7.7"
-              fill="none" stroke="currentColor" strokeWidth="1.9"
-              strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>{JUMP}</span>
-        </button>
+          aria-label={`Back ${JUMP} seconds`}>&minus;{JUMP}</button>
 
         <button
           type="button"
@@ -248,14 +280,7 @@ export default function Player({
         </button>
 
         <button type="button" className="player-jump" onClick={() => jump(JUMP)}
-          aria-label={`Forward ${JUMP} seconds`}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 6V2.5L16.5 6.5 12 10.5V7a6.5 6.5 0 1 0 6.4 7.7"
-              fill="none" stroke="currentColor" strokeWidth="1.9"
-              strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>{JUMP}</span>
-        </button>
+          aria-label={`Forward ${JUMP} seconds`}>+{JUMP}</button>
 
         <input
           className="player-seek"

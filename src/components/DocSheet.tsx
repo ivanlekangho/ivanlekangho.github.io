@@ -29,7 +29,6 @@ export default function DocSheet({
     <Sheet onClose={onClose} label={`${title} — ${doc.label}`} wide>
       <p className="sheet-eyebrow">{title}</p>
       <h2 className="sheet-title">{doc.label}</h2>
-      {doc.meta && <p className="sheet-sub">{doc.meta}</p>}
 
       <iframe
         className="doc-frame"
