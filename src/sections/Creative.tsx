@@ -281,7 +281,17 @@ export default function Creative() {
   return (
     <Chapters
       title="Composer and Performer"
-      subtitle="Voice, Strings, Woodwind: Ensemble and Solo"
+      /* Read it as one sentence running on from the title, because that is
+         how it is set and how it will be read: "Composer and performer, for
+         voice, strings, woodwind and piano, in ensemble and alone."
+
+         The prepositions were the other way round in the draft — "in" the
+         instruments and "for" the ensembles — and that is the whole reason
+         it sounded wrong. You write FOR an instrument and play IN an
+         ensemble. "Alone" rather than "solo" for the same reason: the line
+         beside it is a plural noun, and "solo" next to "ensembles" is an
+         adjective doing a noun's job. */
+      subtitle={<>For voice, strings, woodwind and piano<br />in ensemble and alone</>}
       chapters={chapters}
     >
       <Todo>

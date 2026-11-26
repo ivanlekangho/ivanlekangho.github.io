@@ -2423,7 +2423,10 @@ a.att:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 /* The one word that carries the point of the page. */
 .chapters-title em { font-style: normal; color: var(--accent); }
 .chapters-sub {
-  margin: 0; max-width: 42ch;
+  /* Two lines on purpose, so the leading has to be set: the default on a
+     label-face paragraph is tuned for one line and reads as two unrelated
+     labels stacked. */
+  margin: 0; max-width: 42ch; line-height: 1.5;
   font-family: var(--font-label); font-weight: 500;
   font-size: clamp(0.9rem, 0.82rem + 0.4vw, 1.12rem);
   letter-spacing: 0.06em; color: var(--ink-2);
