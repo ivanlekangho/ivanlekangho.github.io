@@ -34,9 +34,6 @@ export default function About() {
               and the recital room at the end of this site is built out of the
               bars that carry it: one phrase, read three ways.
             </p>
-            <p className="about-source">
-              Schubert, <cite>Der Wanderer</cite>, D.489
-            </p>
           </div>
         </>
       ),
@@ -67,8 +64,10 @@ export default function About() {
 
   return (
     <Chapters
-      title={<>&ldquo;Ich bin ein<br />Fremdling <em>überall</em>&rdquo;</>}
-      subtitle="I am a stranger everywhere"
+      /* Fremdling is the word the line turns on — the stranger, not the
+         everywhere — so that is the one in red. */
+      title={<>&ldquo;Ich bin ein<br /><em>Fremdling</em> überall&rdquo;</>}
+      subtitle={<>&mdash; Schubert, <cite>Der Wanderer</cite>, D.489</>}
       chapters={chapters}
     >
       <Todo>

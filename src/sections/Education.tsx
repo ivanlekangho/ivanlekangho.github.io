@@ -123,7 +123,7 @@ export default function Education() {
   ]
 
   return (
-    <Chapters title="Two schools" subtitle="Auckland, then Stanford" chapters={chapters}>
+    <Chapters title="My Education" chapters={chapters}>
       <Todo>
         The University of Sydney Chancellor’s Award was in your first brief but
         not on your résumé, so it is off the site until you say where it

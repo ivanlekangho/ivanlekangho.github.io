@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { PAGES } from '../lib/pages'
 
 /**
@@ -18,6 +18,17 @@ import { PAGES } from '../lib/pages'
  * want it.
  */
 export default function Menu({ open }: { open: boolean }) {
+  const { pathname } = useLocation()
+  /* Clicking the entry for the page you are already on changes no route, so
+     ToTop never fires and you stay halfway down where you were. Smooth
+     here, unlike a navigation: this is a return, and you should see the
+     page go past. */
+  const same = (to: string) => (e: React.MouseEvent) => {
+    if (pathname !== to) return
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <header className={open ? 'menu is-open' : 'menu'}>
       <nav className="menu-inner" aria-label="Sections">
@@ -27,6 +38,7 @@ export default function Menu({ open }: { open: boolean }) {
               <NavLink
                 to={p.path}
                 className={({ isActive }) => (isActive ? 'menu-link is-here' : 'menu-link')}
+                onClick={same(p.path)}
               >
                 {p.label}
               </NavLink>

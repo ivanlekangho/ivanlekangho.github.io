@@ -41,12 +41,12 @@ const MOVED: [string, string][] = [
   ['/writing', '/impact'],
   ['/log', '/impact'],
   ['/skills', '/education'],
-  ['/now', '/'],
-  ['/how-i-think', '/'],
+  ['/now', '/home'],
+  ['/how-i-think', '/home'],
 ]
 
 const HASH_TO_PATH: Record<string, string> = {
-  hero: '/',
+  hero: '/home',
   impact: '/impact',
   work: '/impact',
   creative: '/creative',
@@ -74,17 +74,33 @@ function Hashes() {
   return null
 }
 
-/** Every page starts at its own top. Without this, clicking from halfway
- *  down one page lands you halfway down the next. */
+/**
+ * Every page starts at its own top.
+ *
+ * Two things are needed and the obvious one is not enough. Scrolling to
+ * zero on a route change handles going from one page to another; what it
+ * does not handle is the browser putting you back where you were, which it
+ * does on its own on a back or a reload — so restoration is turned off and
+ * this owns the scroll position outright. Clicking the bar entry for the
+ * page you are already on is handled in the bar itself, because the route
+ * does not change and nothing here fires.
+ *
+ * `instant`, not smooth: arriving at a page should put you at its top, not
+ * fly you there past content you did not ask to see. The html rule says
+ * smooth, which is right for a click on a dot and wrong for a navigation.
+ */
 function ToTop() {
   const { pathname } = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+  }, [])
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [pathname])
   return null
 }
 
 export default function App() {
   const { pathname } = useLocation()
-  const open = pathname === '/'
+  const open = pathname === '/home'
   useHallScroll(pathname === '/hall')
   useReveal(pathname)
 
@@ -97,7 +113,11 @@ export default function App() {
       <ToTop />
       <main id="main" className={open ? 'page is-front' : 'page'}>
         <Routes>
-          <Route path="/" element={null} />
+          {/* The front page has a name of its own. `/` is kept as the way
+              in — a bare domain has to land somewhere — and replaces itself
+              so the back button does not bounce between the two. */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={null} />
           <Route path="/impact" element={<Impact />} />
           <Route path="/creative" element={<Creative />} />
           <Route path="/education" element={<Education />} />
@@ -109,7 +129,7 @@ export default function App() {
             <Route key={from} path={from} element={<Navigate to={to} replace />} />
           ))}
           <Route path="/log/:slug" element={<Navigate to="/impact" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
     </>

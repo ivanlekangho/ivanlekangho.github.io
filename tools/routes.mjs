@@ -25,7 +25,9 @@ const index = join(root, 'dist', 'index.html')
 
 const pages = readFileSync(join(root, 'src', 'lib', 'pages.ts'), 'utf8')
 const routes = [...pages.matchAll(/path:\s*'(\/[a-z-]+)'/g)].map((m) => m[1])
-routes.push('/hall')
+/* Neither of these is in the bar: the room is reached from Creative,
+   and the front page is reached from the name in the corner. */
+routes.push('/hall', '/home')
 
 if (routes.length < 2) {
   console.error('routes.mjs: found %d routes in pages.ts — refusing to run', routes.length)

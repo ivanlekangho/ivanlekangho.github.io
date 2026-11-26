@@ -57,7 +57,7 @@ export default function Brand({ open }: { open: boolean }) {
 
   return (
     <Link
-      to="/"
+      to="/home"
       className={open ? 'brand is-open' : 'brand is-shut'}
       aria-label="Ivan Ho — home"
       aria-current={open ? 'page' : undefined}

@@ -81,15 +81,37 @@ export default function Chapters({
       <header className="chapters-hero">
         <h1 className="chapters-title">{title}</h1>
         {subtitle && <p className="chapters-sub">{subtitle}</p>}
+        {/* A first screen with nothing showing below the fold has to say
+            there is something below the fold. A button rather than a glyph,
+            because a reader who understands it may well want to press it. */}
+        {chapters[0] && (
+          <button type="button" className="chapters-down"
+            onClick={() => go(chapters[0].id)} aria-label="Scroll to the first section">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor"
+                strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
       </header>
 
       <div className="chapters-sheet">
         {chapters.map((c) => (
           <section key={c.id} id={c.id} className="chapter" aria-label={c.label}>
-            <div className="shell">{c.body}</div>
+            {/* The card is exactly one screen and does not scroll; what
+                scrolls is this, inside it. See the note in the stylesheet:
+                it is the only way a stacked card can hold more than a
+                screen of content and still be read. */}
+            <div className="chapter-scroll">
+              <div className="shell">{c.body}</div>
+            </div>
           </section>
         ))}
-        {children && <div className="chapters-foot"><div className="shell">{children}</div></div>}
+        {children && (
+          <div className="chapters-foot">
+            <div className="chapter-scroll"><div className="shell">{children}</div></div>
+          </div>
+        )}
       </div>
     </>
   )
