@@ -2450,14 +2450,22 @@ html[data-push='up'] { --lean: calc(var(--push, 0) * 9px); }
    thing you press to get to the next one. The rail says where you are and
    lets you jump anywhere; this says next.
    ------------------------------------------------------------------- */
+/* The two of them are at opposite ends of the screen rather than paired in
+   a corner, so each sits where the thing it does points: up at the top,
+   down at the bottom, both on the centre line. The nav itself is a
+   full-screen layer that catches nothing — only the buttons take the
+   pointer — because its only job is to hold two fixed positions and carry
+   the label. */
 .page-steps {
-  position: fixed; z-index: 60;
-  right: clamp(0.9rem, 2.2vw, 2.25rem);
-  bottom: clamp(1rem, 4vh, 2.5rem);
-  display: grid; gap: 0.5rem;
+  position: fixed; inset: 0; z-index: 60;
+  pointer-events: none;
 }
 .page-step {
-  position: relative;
+  position: absolute; left: 50%;
+  pointer-events: auto;
+  /* Every transform on this button has to carry the centring, because a
+     second `transform` would replace it rather than add to it. */
+  transform: translateX(-50%);
   display: grid; place-items: center;
   width: 2.9rem; height: 2.9rem; padding: 0;
   border: 1px solid var(--rule); border-radius: 50%;
@@ -2468,23 +2476,32 @@ html[data-push='up'] { --lean: calc(var(--push, 0) * 9px); }
   transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out),
               border-color 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
+/* Clear of the bar at the top, clear of the edge at the bottom. */
+.page-step:first-of-type { top: calc(var(--bar-h) + clamp(0.6rem, 2.2vh, 1.5rem)); }
+.page-step:last-of-type { bottom: clamp(0.9rem, 3.2vh, 2.1rem); }
 .page-step svg { width: 21px; height: 21px; }
 .page-step:hover:not(:disabled) {
   background: var(--accent); border-color: var(--accent); color: #FFF;
-  transform: translateY(-2px);
 }
+.page-step:first-of-type:hover:not(:disabled) { transform: translateX(-50%) translateY(-2px); }
+.page-step:last-of-type:hover:not(:disabled) { transform: translateX(-50%) translateY(2px); }
 .page-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .page-step:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   .page-step { transition: none; }
-  .page-step:hover:not(:disabled) { transform: none; }
+  .page-step:first-of-type:hover:not(:disabled),
+  .page-step:last-of-type:hover:not(:disabled) { transform: translateX(-50%); }
 }
 
 /* How full the push is, drawn round the arrow it is pushing towards.
    r = 20.5, so the circumference is 2πr = 128.8 — the dash is the whole
    circle and the offset is what is left to fill. Rotated so it starts at
    twelve o'clock rather than at three. */
-.page-step-ring {
+/* `.page-step .page-step-ring`, not `.page-step-ring` alone: the chevron
+   rule above is `.page-step svg`, which is one class and one type and so
+   outranks a lone class — the ring was being sized as a 21px icon in the
+   middle of a 46px button. Two classes beats a class and a type. */
+.page-step .page-step-ring {
   position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px);
   pointer-events: none; overflow: visible;
 }
@@ -2498,13 +2515,11 @@ html[data-push='up'] { --lean: calc(var(--push, 0) * 9px); }
 /* Only on the arrow for the direction being pushed. */
 html[data-push='down'] .page-step:last-of-type .page-step-ring circle,
 html[data-push='up'] .page-step:first-of-type .page-step-ring circle { opacity: 1; }
-/* Clear of the rail, which is a strip along the bottom on a phone. */
 @media (max-width: 48rem) {
-  .page-steps {
-    bottom: 3.9rem; right: 0.6rem;
-    grid-auto-flow: column; gap: 0.4rem;
-  }
   .page-step { width: 2.5rem; height: 2.5rem; }
+  /* The rail is a strip along the bottom on a phone, so the down arrow
+     sits above it rather than under it. */
+  .page-step:last-of-type { bottom: 4rem; }
 }
 
 /* The accordion that was here is gone with Education's folds: two patterns
