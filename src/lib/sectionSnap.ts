@@ -95,7 +95,13 @@ const SLACK = 8
    you dragged past the edge. */
 const BUDGET = 260
 const TOUCH_BUDGET = 110
-const DECAY_MS = 180
+/** Silence this long empties the budget. Long enough to survive the gaps
+ *  in a slow, steady push: a trackpad held at a constant pressure emits
+ *  events several tens of milliseconds apart, and at 180 the ring was
+ *  draining between them while the finger was still on the pad. */
+const DECAY_MS = 260
+/** And it drains over this, rather than vanishing. */
+const DRAIN_MS = 260
 
 /**
  * One wheel event, in pixels, whatever units it arrived in.
@@ -124,6 +130,7 @@ let settle = 0
 let charge = 0
 let chargeDir: 1 | -1 | 0 = 0
 let decay = 0
+let drain = 0
 
 /**
  * Show the reader the charge.
@@ -143,11 +150,45 @@ function showCharge() {
   else root.setAttribute('data-push', chargeDir > 0 ? 'down' : 'up')
 }
 
-function dropCharge() {
-  charge = 0
-  chargeDir = 0
+/**
+ * Let the budget go — by draining it, not by deleting it.
+ *
+ * Setting it straight to zero made the ring vanish, which reads as a
+ * glitch rather than as a weight being released: a reader who stops
+ * pushing for a moment saw their progress disappear between one frame and
+ * the next and could not tell whether the page had registered anything at
+ * all. Easing it back down shows the charge returning, which is the honest
+ * picture of what is happening and is also the thing that tells them to
+ * push harder rather than longer.
+ *
+ * `instant` is for the cases where there is nothing to show: the budget
+ * was just spent, or the reader has gone back to reading inside a section.
+ */
+function dropCharge(instant = false) {
   window.clearTimeout(decay)
-  showCharge()
+  if (drain) cancelAnimationFrame(drain)
+  drain = 0
+
+  if (instant || charge <= 0) {
+    charge = 0
+    chargeDir = 0
+    showCharge()
+    return
+  }
+
+  const from = charge
+  const t0 = performance.now()
+  const step = (now: number) => {
+    const p = Math.min(1, (now - t0) / DRAIN_MS)
+    charge = from * (1 - p * p)
+    showCharge()
+    if (p < 1) { drain = requestAnimationFrame(step); return }
+    drain = 0
+    charge = 0
+    chargeDir = 0
+    showCharge()
+  }
+  drain = requestAnimationFrame(step)
 }
 
 const easeInOutCubic = (p: number) =>
@@ -170,7 +211,9 @@ export function halt() {
  */
 export function glideTo(to: number, onDone?: () => void) {
   halt()
-  dropCharge()
+  /* Instant: the budget was just spent, so there is no weight left to
+     show returning. */
+  dropCharge(true)
   const from = window.scrollY
   const dist = to - from
 
@@ -345,6 +388,10 @@ export function useSectionSnap(enabled = true) {
 
     /** Add to the budget, and spend it if it is full. */
     const push = (amount: number, dir: 1 | -1, budget: number) => {
+      /* Pushing again catches the budget before it has finished draining,
+         so a reader who pauses and resumes picks up where they were
+         instead of starting over. */
+      if (drain) { cancelAnimationFrame(drain); drain = 0 }
       /* A change of direction is a new gesture, not a continuation. */
       if (dir !== chargeDir) { charge = 0; chargeDir = dir }
       charge += amount
@@ -364,10 +411,21 @@ export function useSectionSnap(enabled = true) {
       lastInput = performance.now()
       if (busy) { e.preventDefault(); return }
       const dy = pixels(e)
-      if (Math.abs(dy) < WAKE) return
+      /* Too small to count for anything, but NOT nothing: a finger held
+         steady on a trackpad emits a stream of one- and two-pixel events,
+         and returning here without touching the timer let the budget drain
+         away underneath a reader who was still pushing. The gesture is
+         alive; it is just not adding much. */
+      if (Math.abs(dy) < WAKE) {
+        if (chargeDir !== 0) {
+          window.clearTimeout(decay)
+          decay = window.setTimeout(dropCharge, DECAY_MS)
+        }
+        return
+      }
       /* Inside a section with room left to scroll: this is reading, and
          reading is untouched. */
-      if (readingInside(e.target, dy)) { dropCharge(); return }
+      if (readingInside(e.target, dy)) { dropCharge(true); return }
       /* At the edge. The page cannot move on its own — the document is
          locked — so this is swallowed either way; what it does instead is
          fill the budget. */
@@ -442,14 +500,14 @@ export function useSectionSnap(enabled = true) {
       if (!dy) return
       lastInput = performance.now()
       if (busy) return
-      if (readingInside(e.target, dy)) { dropCharge(); return }
+      if (readingInside(e.target, dy)) { dropCharge(true); return }
       push(Math.min(Math.abs(dy), 40), dy > 0 ? 1 : -1, TOUCH_BUDGET)
     }
 
     let touching = false
     const onTouchStart = (e: TouchEvent) => {
       lastY = e.touches[0]?.clientY ?? 0
-      dropCharge()
+      dropCharge(true)
       touching = true
       halt()
       /* Where the reader is NOW, so the correction returns them to it
@@ -478,7 +536,7 @@ export function useSectionSnap(enabled = true) {
 
     return () => {
       halt()
-      dropCharge()
+      dropCharge(true)
       root.style.removeProperty('--push')
       root.style.overflow = hadOverflow
       window.clearTimeout(idle)
