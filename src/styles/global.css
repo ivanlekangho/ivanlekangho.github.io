@@ -482,6 +482,49 @@ pre {
    own. Nothing scrolls behind it. */
 .page.is-front { padding-top: 0; height: 100svh; overflow: hidden; }
 
+/* ---- the two lines turned on their side ----------------------------
+   Against the right edge of the red, reading downward, starting from the
+   top of the field. `writing-mode` rather than a rotation: a transform
+   would turn the glyphs and leave the box lying the way it was, so the
+   two lines would have to be positioned by hand and would stop agreeing
+   with each other the moment the type changed size. In vertical-rl the
+   box is genuinely tall and narrow and the browser does the rest.
+
+   `row-reverse` puts the first line nearest the edge. The alternative is
+   to let vertical-rl stack them itself, which gives the same order by a
+   route that is much harder to read in the stylesheet, and the gap then
+   has to be a logical margin pointing sideways.
+
+   It does not take the pointer. The whole front page is a link to itself
+   and this sits on top of a third of it; a dead patch there would be a
+   bug nobody could describe. */
+.front-say {
+  /* Above the Brand, which is 70 and fixed and would otherwise paint
+     straight over this — it did, and the element was correct in every
+     measurable way while being invisible on the screen. */
+  position: fixed; z-index: 71;
+  top: 33.333svh; right: 0; bottom: 0;
+  margin: 0;
+  display: flex; flex-direction: row-reverse; align-items: flex-start;
+  gap: clamp(0.45rem, 1.3vw, 0.9rem);
+  padding: clamp(1.4rem, 4vh, 2.6rem) clamp(0.9rem, 2.6vw, 2rem) 0 0;
+  pointer-events: none;
+  animation: front-say-in 520ms var(--ease-brand) 240ms both;
+}
+.front-say span {
+  display: block;
+  writing-mode: vertical-rl;
+  color: #FFF;
+  font-family: var(--font-label); font-weight: var(--label-weight);
+  font-size: clamp(0.58rem, 1.05vw, 0.78rem);
+  letter-spacing: 0.2em; text-transform: uppercase;
+  white-space: nowrap;
+}
+/* The red is already there when this arrives, so it fades in rather than
+   travelling: the box it belongs to has finished moving by then. */
+@keyframes front-say-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .front-say { animation: none; } }
+
 .band {
   display: flex; flex-direction: column;
   padding-block: clamp(2.5rem, 6vh, 4.5rem) clamp(3rem, 9vh, 7rem);

@@ -119,6 +119,28 @@ export default function App() {
     <>
       <a href="#main" className="sr-only">Skip to content</a>
       <Brand open={open} />
+      {/* What the name does not say, set into the red beside it.
+
+          The front page was the name and the portrait and no other
+          words, which is a composition and was also the one page a
+          search result for Ivan's name would land on with nothing on it
+          to read. This is the fix that does not cost the composition:
+          two tracked lines turned on their side against the right edge,
+          where the field is empty anyway, at the size of a caption. It
+          reads as a label on an object rather than as copy.
+
+          A sibling of the Brand rather than a child of it. The Brand is
+          one Link carrying an aria-label, and an aria-label replaces
+          everything inside it for the purpose of naming the link — so
+          text put in there would be seen by a reader, skipped by a
+          screen reader, and that is a worse trade than it looks. Out
+          here it belongs to everybody. */}
+      {open && (
+        <p className="front-say">
+          <span>Computer Science and Mathematics, Stanford</span>
+          <span>Composer and Performer</span>
+        </p>
+      )}
       <Menu open={open} />
       <Hashes />
       <ToTop />
