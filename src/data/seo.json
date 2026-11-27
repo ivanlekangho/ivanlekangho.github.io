@@ -1,0 +1,38 @@
+{
+  "site": {
+    "origin": "https://ivanlekangho.github.io",
+    "name": "Ivan Ho",
+    "fullName": "Ivan Le Kang Ho",
+    "image": "/share-card.jpg",
+    "sameAs": [
+      "https://www.linkedin.com/in/ivanhonz",
+      "https://github.com/ivanlekangho"
+    ]
+  },
+  "pages": {
+    "/home": {
+      "title": "Ivan Ho — Computer Science, Mathematics and Music",
+      "description": "Ivan Le Kang Ho: computer science and mathematics at Stanford, composer and performer, from Auckland, New Zealand."
+    },
+    "/impact": {
+      "title": "Work and Impact — Ivan Ho",
+      "description": "Software and data engineering at the Cancer Society of New Zealand, research on authorship inequality and speech technology, and teaching Python in Chin State."
+    },
+    "/creative": {
+      "title": "Composer and Performer — Ivan Ho",
+      "description": "Choral and chamber composition, recital performance, and the ensembles behind them. Scores, recordings and research reports you can read on the page."
+    },
+    "/education": {
+      "title": "Education — Ivan Ho",
+      "description": "Computer science and mathematics at Stanford, graduating 2028. Dux of King's College, Auckland, in 2024, with 7A* and 1A at Cambridge International A-Level."
+    },
+    "/about": {
+      "title": "About — Ivan Ho",
+      "description": "I want to make fewer people strangers in their own world. On the intersection of technology, art and society, and on Schubert's wanderer."
+    },
+    "/contact": {
+      "title": "Contact — Ivan Ho",
+      "description": "Ways to get in touch with Ivan Le Kang Ho, and the languages he works in."
+    }
+  }
+}

@@ -4,6 +4,7 @@ import Brand from './components/Brand'
 import Menu from './components/Menu'
 import { scrollToTop } from './lib/scroll'
 import { useReveal } from './lib/reveal'
+import { useTitle } from './lib/title'
 import About from './sections/About'
 import Impact from './sections/Impact'
 import Creative from './sections/Creative'
@@ -112,6 +113,7 @@ export default function App() {
   const { pathname } = useLocation()
   const open = pathname === '/home'
   useReveal(pathname)
+  useTitle(pathname)
 
   return (
     <>

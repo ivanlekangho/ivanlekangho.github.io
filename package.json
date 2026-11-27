@@ -9,7 +9,8 @@
     "postbuild": "node tools/routes.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "book-pages": "node tools/book-pages.mjs"
+    "book-pages": "node tools/book-pages.mjs",
+    "share-card": "python3 tools/share-card.py"
   },
   "dependencies": {
     "@fontsource/commit-mono": "^5.3.0",
