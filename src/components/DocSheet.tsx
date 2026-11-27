@@ -1,5 +1,7 @@
 import Book from './Book'
+import Pages from './Pages'
 import Sheet from './Sheet'
+import { PHONE, useMedia } from '../lib/media'
 import type { Attachment } from '../data/portfolio'
 
 /**
@@ -23,16 +25,25 @@ import type { Attachment } from '../data/portfolio'
  * tab of its own, which covers everything the viewer was good at —
  * searching, printing, reading it on something a spread will not fit on —
  * and lets a reader save it from there if they want it.
+ *
+ * On a phone it is not a book. Everything the book is built on is a thing
+ * a 375px screen does not have: room for two pages, a spine between them,
+ * a pointer to turn the leaf with. What that screen does have is a thumb
+ * already scrolling, so the document is a column of its pages and you
+ * read it the way you read the rest of the site. See components/Pages.
  */
 export default function DocSheet({
   doc, title, onClose,
 }: { doc: Attachment; title: string; onClose: () => void }) {
+  const phone = useMedia(PHONE)
   return (
     <Sheet onClose={onClose} label={`${title} — ${doc.label}`} wide>
       <p className="sheet-eyebrow">{title}</p>
       <h2 className="sheet-title">{doc.label}</h2>
 
-      {doc.href && <Book href={doc.href} label={`${title} — ${doc.label}`} />}
+      {doc.href && (phone
+        ? <Pages href={doc.href} label={`${title} — ${doc.label}`} />
+        : <Book href={doc.href} label={`${title} — ${doc.label}`} />)}
 
       {/* One button, and it opens the file rather than saving it: a reader
           who wants it on disk can save it from there, and a reader who only

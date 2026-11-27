@@ -2666,14 +2666,56 @@ html[data-push='up'] .page-step-up .page-step-ring circle { opacity: 1; }
 }
 .doc-get a:hover, .doc-get a:focus-visible { border-color: var(--accent); color: var(--accent-deep); }
 
-/* One page at a time where two will not fit. A spread on a phone is two
-   postage stamps. */
+/* The book's own phone rules are gone, and so is the book on a phone.
+   They narrowed the spread to one page, hid the right half and squared
+   the fold up against nothing, which left a book-shaped object that had
+   stopped being a book and still cost twenty-six taps to read. Below
+   46rem components/DocSheet renders the column instead — the breakpoint
+   is the same number in lib/media, and it has to be, or there is a width
+   where both or neither apply. */
+
+/* ---- the same document, as a column ------------------------------- */
+.doc-pages { display: grid; gap: var(--space-3); }
+
+/* The box is reserved from the manifest's ratio, so the column stands at
+   its full height before a single page has arrived and nothing below the
+   reader moves while they read. The pages of one of these documents are
+   not all the same shape — a programme whose pages run from 1150 to 1286
+   high — so the box is the most generous of them and the page is fitted
+   inside it. The band that leaves on a short page is white on white. */
+.doc-page {
+  position: relative; display: block; background: #FFF;
+  box-shadow: 0 1px 2px rgb(32 36 47 / 0.14), 0 6px 18px -12px rgb(32 36 47 / 0.5);
+}
+.doc-page img {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+}
+
+/* Where you are, and nothing else — the book's folio with the controls
+   taken off it. Stuck to the foot of the scrollport rather than placed on
+   the page, because a counter that scrolls away is a counter you have to
+   go and look for, and over to the right, where it covers the end of a
+   system rather than the middle of one.
+
+   Selected through `.sheet-body`, which is not decoration: `.sheet-body p`
+   sets the colour of every paragraph in a sheet and at (0,1,1) it beat a
+   bare `.doc-at`. The pill came out ink on ink — a dark lozenge with
+   nothing written on it. */
+.sheet-body .doc-at {
+  position: sticky; bottom: var(--space-2); z-index: 1;
+  justify-self: end; margin: calc(var(--space-3) * -1) 0 0;
+  padding: 0.3rem 0.75rem; border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 80%, transparent);
+  color: #FFF; pointer-events: none;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+}
+
+/* A document sheet on a phone gives its margins to the page. At 375px the
+   sheet's own padding was taking 56px of 375 off a score that is hard
+   enough to read at that size. */
 @media (max-width: 46rem) {
-  .book-stage { grid-template-columns: 1fr; width: min(26rem, 100%); }
-  .book.is-shut .book-stage, .book.is-closing .book-stage { --shift: 0; }
-  .book-half:last-child { display: none; }
-  .book-half:first-child { box-shadow: none; }
-  .book-leaf, .book-open { inset: 0; }
+  .sheet-wide .sheet-body { padding-inline: 0.9rem; }
 }
 
 /* Anyone who asked for less motion gets the book open, not the turning of
