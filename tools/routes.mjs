@@ -60,6 +60,19 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
  * Who the site is about, in the one format a search engine reads as fact
  * rather than as prose.
  *
+ * This is also the honest answer to "can the front page carry text a
+ * reader does not see". It can, and this is the way: structured data is
+ * read by the machine and shown to nobody, because that is what it is
+ * for. Burying a paragraph behind the portrait would do the same job for
+ * a while and then stop doing it, because hidden text is the one thing
+ * Google names in its spam policies and penalises by hand.
+ *
+ * Every field here is something the site already says out loud somewhere
+ * — the languages are the table on Contact, the awards are on Education
+ * and under Abendlied — which is the test that keeps this on the right
+ * side of that line. Structured data that claims more than the page does
+ * is the same offence wearing a tie.
+ *
  * On the front page only. Repeating a Person on all six would not be
  * wrong, but it says the same thing six times, and the front page is the
  * one a result for the name should land on. `alternateName` is there
@@ -67,17 +80,24 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
  * him Ivan Le Kang Ho — the scores are signed that way, the repositories
  * are under it — and a search for either should find this.
  */
+const P = SEO.person
 const person = {
   '@context': 'https://schema.org',
   '@type': 'Person',
+  '@id': `${origin}/home#person`,
   name: SEO.site.name,
   alternateName: SEO.site.fullName,
   url: `${origin}/home`,
+  mainEntityOfPage: `${origin}/home`,
   image: `${origin}${SEO.site.image}`,
-  jobTitle: 'Student, composer and performer',
-  alumniOf: { '@type': 'EducationalOrganization', name: 'King’s College, Auckland' },
-  affiliation: { '@type': 'CollegeOrUniversity', name: 'Stanford University' },
-  nationality: { '@type': 'Country', name: 'New Zealand' },
+  description: P.description,
+  jobTitle: P.jobTitle,
+  alumniOf: { '@type': 'EducationalOrganization', name: P.alumniOf },
+  affiliation: { '@type': 'CollegeOrUniversity', name: P.affiliation },
+  nationality: { '@type': 'Country', name: P.nationality },
+  knowsLanguage: P.knowsLanguage.map((name) => ({ '@type': 'Language', name })),
+  knowsAbout: P.knowsAbout,
+  award: P.award,
   sameAs: SEO.site.sameAs,
 }
 

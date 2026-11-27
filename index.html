@@ -21,6 +21,48 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- What is here when the script is not.
+
+         Without this the page is empty: one div, and whatever the browser
+         makes of nothing. That is a real gap on its own — a reader with
+         scripting off gets a blank sheet and no way to tell whether the
+         site is broken or they are — and it is also what every crawler
+         that does not run JavaScript sees, which is most of them outside
+         Google. Google renders the page properly and will never read
+         this, so it is not where a search result comes from.
+
+         It says what the page says and links where the page links. A
+         fallback that advertises something other than the page it stands
+         in is the hidden-text trick with an extra step, and it is treated
+         as one. -->
+    <noscript>
+      <div style="max-width:40rem;margin:0 auto;padding:3rem 1.25rem;
+                  font-family:system-ui,sans-serif;line-height:1.55;color:#20242F">
+        <h1 style="font-size:2.5rem;margin:0 0 1rem">Ivan Ho</h1>
+        <p>
+          Computer science and mathematics at Stanford University, composer
+          and performer, from Auckland, New Zealand.
+        </p>
+        <p>
+          This site needs JavaScript to run. The sections are below, and
+          each one is a page of its own.
+        </p>
+        <ul>
+          <li><a href="/impact">Work and Impact</a> — software and data
+            engineering at the Cancer Society of New Zealand, research on
+            authorship inequality and speech technology, teaching Python in
+            Chin State</li>
+          <li><a href="/creative">Creative</a> — choral and chamber
+            composition, recital performance, ensembles</li>
+          <li><a href="/education">Education</a> — Stanford, and King’s
+            College, Auckland</li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

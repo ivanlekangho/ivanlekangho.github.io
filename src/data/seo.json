@@ -34,5 +34,35 @@
       "title": "Contact — Ivan Ho",
       "description": "Ways to get in touch with Ivan Le Kang Ho, and the languages he works in."
     }
+  },
+  "person": {
+    "description": "Ivan Le Kang Ho is a computer science and mathematics student at Stanford University, and a composer and performer, from Auckland, New Zealand. He has worked as a software and data engineer at the Cancer Society of New Zealand, researched authorship inequality in international scientific collaboration, built speech preprocessing pipelines at a speech and cognitive development lab, and taught Python to students in Chin State, Myanmar. He writes choral and chamber music and performs as a singer, saxophonist and violinist.",
+    "jobTitle": "Student, composer and performer",
+    "affiliation": "Stanford University",
+    "alumniOf": "King’s College, Auckland",
+    "nationality": "New Zealand",
+    "knowsLanguage": [
+      "English",
+      "Mandarin Chinese",
+      "Hakka Chinese",
+      "French",
+      "Māori",
+      "German"
+    ],
+    "knowsAbout": [
+      "Software engineering",
+      "Data engineering",
+      "Machine learning",
+      "Automatic speech recognition",
+      "Bibliometrics",
+      "Responsible AI",
+      "Choral composition",
+      "Classical singing",
+      "Music theory"
+    ],
+    "award": [
+      "Dux and Valedictorian, King’s College, Auckland, 2024",
+      "Highly Commended, NZCF–SOUNZ Choral Composition Competition 2024"
+    ]
   }
 }
