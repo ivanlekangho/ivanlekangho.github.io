@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ivan Ho</title>
+
+    <!-- Which of the two addresses is the real one. Without this the
+         Stanford copy and the site are two URLs showing the same thing,
+         and the credit for being linked to is split between them instead
+         of adding up. -->
+    <link rel="canonical" href="https://ivanlekangho.github.io/" />
+
+    <!-- A refresh with no delay. Google treats a zero-second one as a
+         permanent redirect and passes the link credit through; a delayed
+         one is treated as a page in its own right, which is the thing
+         this must not be. -->
+    <meta http-equiv="refresh" content="0; url=https://ivanlekangho.github.io/" />
+
+    <style>
+      body {
+        margin: 0; min-height: 100vh;
+        display: grid; place-items: center;
+        font: 400 1rem/1.5 system-ui, sans-serif;
+        color: #20242F; background: #EEEEEE;
+      }
+      a { color: #C43030; }
+    </style>
+  </head>
+  <body>
+    <!-- Seen for a fraction of a second, or for good by anyone whose
+         browser does neither the refresh nor the script. It has to be a
+         real link, not a note saying please wait. -->
+    <p>
+      Taking you to
+      <a href="https://ivanlekangho.github.io/">ivanlekangho.github.io</a>
+    </p>
+    <script>
+      /* replace, not assign: this page should not sit in the back button
+         between where they came from and where they are going. */
+      location.replace('https://ivanlekangho.github.io/')
+    </script>
+  </body>
+</html>

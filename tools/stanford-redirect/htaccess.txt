@@ -1,0 +1,13 @@
+# Rename this file to .htaccess when you upload it.
+#
+# This is the better of the two redirects and the one to use if Stanford
+# Domains will take it: a real 301 from the server, which every crawler
+# and every browser understands without having to parse a page first.
+# The index.html beside this file is the fallback for a host that does
+# not read .htaccess.
+#
+# Goes in the document root of the subdomain. The path is carried over,
+# so a link to yourname.stanford.edu/creative lands on /creative rather
+# than dumping the visitor at the front page.
+
+Redirect 301 / https://ivanlekangho.github.io/
