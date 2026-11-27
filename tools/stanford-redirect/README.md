@@ -34,6 +34,11 @@ this repository:
     scp tools/stanford-redirect/index.html hoivan@cardinal.stanford.edu:~/WWW/index.html
     scp tools/stanford-redirect/htaccess.txt hoivan@cardinal.stanford.edu:~/WWW/.htaccess
 
+The rule inside it is a `RedirectMatch` anchored on `/~hoivan/`. A
+plain `Redirect 301 /` is wrong here: it appends the rest of the path,
+so the personal directory sends people to github.io/~hoivan/. If you
+move this to a subdomain root one day, that is the line to revisit.
+
 `cardinal.stanford.edu` is the AFS-attached shared host;
 `rice.stanford.edu` (FarmShare) is the alternative if that one refuses
 the login. UIT names no hostname on its own page, so if neither works,

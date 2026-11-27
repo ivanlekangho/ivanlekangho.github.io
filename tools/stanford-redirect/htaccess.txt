@@ -1,13 +1,19 @@
 # Rename this file to .htaccess when you upload it.
 #
-# This is the better of the two redirects and the one to use if Stanford
-# Domains will take it: a real 301 from the server, which every crawler
-# and every browser understands without having to parse a page first.
-# The index.html beside this file is the fallback for a host that does
-# not read .htaccess.
+# This is the better of the two redirects and the one to use wherever
+# the host reads it: a real 301 from the server, which every crawler and
+# every browser understands without parsing a page first. The index.html
+# beside this file is the fallback, and it also covers the case where
+# this file is ignored or matches nothing.
 #
-# Goes in the document root of the subdomain. The path is carried over,
-# so a link to yourname.stanford.edu/creative lands on /creative rather
-# than dumping the visitor at the front page.
+# RedirectMatch, not Redirect. `Redirect 301 / <target>` appends whatever
+# follows the matched prefix, which is right in a subdomain's document
+# root (the path is "/") and wrong in a personal directory (the path is
+# "/~hoivan/"). It shipped that way and sent visitors to
+# ivanlekangho.github.io/~hoivan/, which does not exist.
+#
+# The capture keeps the rest of the path, so /~hoivan/creative lands on
+# /creative rather than dumping the visitor at the front page. If the
+# pattern matches nothing, nothing happens and index.html takes over.
 
-Redirect 301 / https://ivanlekangho.github.io/
+RedirectMatch 301 ^/~hoivan/?(.*)$ https://ivanlekangho.github.io/$1
