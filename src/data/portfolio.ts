@@ -193,20 +193,6 @@ export const ITEMS: Item[] = [
     },
     href: 'https://www.codedotx.org/code-for-myanmar',
   },
-  {
-    id: 'pharmacy',
-    org: 'Grafton Pharmacy',
-    group: 'health',
-    title: 'Volunteering',
-    kind: 'Service',
-    when: '2020 – 2024',
-    metric: { value: '300+', label: 'hours' },
-    line: 'Blister packs for cancer and dialysis patients, medicine runs, the counter, and the website.',
-    bullets: [
-      'Packing blister packs for cancer and dialysis patients, delivering medicine, serving the public.',
-      'Designed and built the pharmacy’s website, putting its orders online so a prescription could be requested without a phone call or a queue.',
-    ],
-  },
 
   /* ------------------------------------------------------- society */
   {
